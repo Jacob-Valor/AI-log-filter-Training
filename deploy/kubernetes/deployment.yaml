@@ -1,0 +1,331 @@
+# =============================================================================
+# AI Log Filter - Kubernetes Production Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-log-filter
+  namespace: security
+  labels:
+    app: ai-log-filter
+    component: classifier
+    version: v1.0.0
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: ai-log-filter
+      component: classifier
+  template:
+    metadata:
+      labels:
+        app: ai-log-filter
+        component: classifier
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: ai-log-filter
+
+      # Anti-affinity for high availability
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: ai-log-filter
+                topologyKey: kubernetes.io/hostname
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: ai-log-filter
+                topologyKey: topology.kubernetes.io/zone
+
+      # Topology spread for zone distribution
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: ai-log-filter
+
+      containers:
+        - name: ai-filter
+          image: ai-log-filter:1.0.0
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 8000
+            - name: metrics
+              containerPort: 9090
+            - name: health
+              containerPort: 8080
+
+          env:
+            - name: APP_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: MODEL_PATH
+              value: "/app/models/production"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-log-filter-config
+                  key: kafka.bootstrap_servers
+            - name: KAFKA_INPUT_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-log-filter-config
+                  key: kafka.input_topic
+            - name: QRADAR_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: ai-log-filter-secrets
+                  key: qradar.host
+            - name: QRADAR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ai-log-filter-secrets
+                  key: qradar.token
+            - name: S3_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-log-filter-config
+                  key: s3.endpoint
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-log-filter-secrets
+                  key: s3.access_key
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-log-filter-secrets
+                  key: s3.secret_key
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+
+          # Liveness probe - is the process alive?
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: health
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # Readiness probe - is the service ready for traffic?
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: health
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # Startup probe - allow time for model loading
+          startupProbe:
+            httpGet:
+              path: /health/ready
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30 # 5 minutes to start
+
+          volumeMounts:
+            - name: models
+              mountPath: /app/models
+              readOnly: true
+            - name: config
+              mountPath: /app/configs
+              readOnly: true
+            - name: logs
+              mountPath: /var/log/ai-log-filter
+
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: ai-log-filter-models
+        - name: config
+          configMap:
+            name: ai-log-filter-config
+        - name: logs
+          emptyDir: {}
+
+      # Graceful shutdown
+      terminationGracePeriodSeconds: 60
+
+---
+# =============================================================================
+# Horizontal Pod Autoscaler
+# =============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-log-filter
+  namespace: security
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-log-filter
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Pods
+      pods:
+        metric:
+          name: kafka_consumer_lag
+        target:
+          type: AverageValue
+          averageValue: "5000"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 4
+          periodSeconds: 30
+
+---
+# =============================================================================
+# Pod Disruption Budget
+# =============================================================================
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ai-log-filter
+  namespace: security
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app: ai-log-filter
+
+---
+# =============================================================================
+# Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-log-filter
+  namespace: security
+  labels:
+    app: ai-log-filter
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+    - name: health
+      port: 8080
+      targetPort: health
+  selector:
+    app: ai-log-filter
+
+---
+# =============================================================================
+# Service Monitor (for Prometheus Operator)
+# =============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ai-log-filter
+  namespace: security
+  labels:
+    app: ai-log-filter
+spec:
+  selector:
+    matchLabels:
+      app: ai-log-filter
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+  namespaceSelector:
+    matchNames:
+      - security
+
+---
+# =============================================================================
+# ConfigMap
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-log-filter-config
+  namespace: security
+data:
+  kafka.bootstrap_servers: "kafka-cluster-kafka-bootstrap.kafka:9092"
+  kafka.input_topic: "raw-logs"
+  s3.endpoint: "https://s3.us-east-1.amazonaws.com"
+  s3.bucket: "security-log-archive"
+
+  # Production config file
+  production.yaml: |
+    # Embedded from configs/production.yaml
+    app:
+      environment: production
+    safety:
+      fail_open:
+        enabled: true
+    compliance:
+      enabled: true
+      never_discard: true
