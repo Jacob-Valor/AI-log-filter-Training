@@ -26,7 +26,7 @@ FROM base as builder
 # Install Python dependencies
 COPY pyproject.toml ./
 RUN pip install --upgrade pip && \
-    pip wheel --no-deps --wheel-dir /app/wheels -e .
+    pip install .
 
 # =============================================================================
 # Production stage
@@ -37,10 +37,9 @@ FROM base as production
 RUN groupadd --gid 1000 appuser && \
     useradd --uid 1000 --gid 1000 --shell /bin/bash --create-home appuser
 
-# Copy wheels and install
-COPY --from=builder /app/wheels /wheels
-RUN pip install --no-deps /wheels/* && \
-    rm -rf /wheels
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY src/ ./src/

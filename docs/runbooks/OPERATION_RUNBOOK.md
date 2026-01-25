@@ -36,6 +36,46 @@ Log Sources → Kafka → AI Filter → Routing
 | QRadar Router  | SIEM forwarding    | QRadar connection status |
 | Cold Storage   | Log archival       | S3/bucket metrics        |
 
+### Docker Services (Local Development)
+
+| Service | Container | Port | URL |
+|---------|-----------|------|-----|
+| REST API | ai-log-filter-api | 8080 | http://localhost:8080 |
+| AI Engine | ai-engine | 8000, 9090 | http://localhost:9090/metrics |
+| Grafana | grafana | 3000 | http://localhost:3000 |
+| Prometheus | prometheus | 9091 | http://localhost:9091 |
+| Kafka UI | kafka-ui | 8081 | http://localhost:8081 |
+| Kafka | kafka | 9092, 29092 | localhost:9092 |
+| Zookeeper | zookeeper | 2181 | localhost:2181 |
+
+**Docker Commands:**
+```bash
+# Start all services
+docker-compose up -d --build
+
+# View container status
+docker-compose ps
+
+# View logs
+docker-compose logs ai-engine --tail 50
+docker-compose logs api --tail 50
+
+# Restart specific service
+docker-compose restart ai-engine
+
+# Stop all services
+docker-compose down
+```
+
+**Environment Configuration:**
+```bash
+# Copy template and customize
+cp .env.example .env
+
+# Override at runtime
+LOG_LEVEL=DEBUG docker-compose up -d
+```
+
 ### Critical Metrics
 
 | Metric                                 | Normal Range | Alert Threshold |

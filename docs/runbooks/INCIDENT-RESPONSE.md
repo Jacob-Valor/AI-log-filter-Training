@@ -260,6 +260,77 @@ python scripts/validate_models.py
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### Evidence Preservation (Security/Data Incidents)
+
+**Goal:** Preserve admissible evidence while enabling rapid containment.
+
+**Immediate steps (first 30 minutes):**
+
+1. Assign an **Evidence Custodian** and start an evidence log.
+2. Record **UTC timestamps** and time sync status (`ntpstat` or cloud time service).
+3. Preserve **log sources** (immutable export):
+   - Application logs, Kafka topics (`raw-logs`, `classified-logs`, `audit-decisions`)
+   - QRadar offense/event exports
+   - System logs (`/var/log`, container stdout/stderr)
+   - Cloud audit trails (IAM, API, object storage access)
+4. Capture **system state**:
+   - Container image digests, running pod specs, config maps, secrets versions
+   - VM or node snapshots (if compromise suspected)
+5. Collect **volatile data** if compromise is suspected:
+   - Memory dumps, active network connections, process lists
+6. Capture **network evidence**:
+   - Short window packet captures (pcap) at ingress/egress points
+7. Store artifacts in **write-once or locked storage** and generate SHA256 hashes.
+
+**Evidence log template:**
+
+| Item ID | Type | Source | Collected By | Time (UTC) | Hash (SHA256) | Storage Path | Notes |
+|--------|------|--------|--------------|------------|---------------|--------------|-------|
+| E-001  | Log export | Kafka raw-logs | [name] | [timestamp] | [hash] | `reports/incident/INC-####/evidence/` | [notes] |
+
+**Chain-of-custody steps:**
+
+- Use a single custodian to approve evidence access.
+- Record every transfer (who, when, purpose) in the evidence log.
+- Restrict write access; preserve original artifacts as read-only.
+- Attach evidence references to the incident report.
+
+**Incident evidence checklist (one-page):**
+
+| Item | Collected | Owner | Evidence ID | Notes |
+|------|-----------|-------|-------------|-------|
+| Incident channel created, IC assigned | [ ] | | | |
+| Evidence custodian assigned | [ ] | | | |
+| UTC time sync verified | [ ] | | | |
+| Raw log export (Kafka `raw-logs`) | [ ] | | | |
+| Classified log export (`classified-logs`) | [ ] | | | |
+| Audit decision export (`audit-decisions`) | [ ] | | | |
+| QRadar offense/event export | [ ] | | | |
+| System logs (`/var/log`, container stdout/stderr) | [ ] | | | |
+| Cloud audit trail export (IAM/API/S3) | [ ] | | | |
+| Config snapshot (config maps, secrets versions) | [ ] | | | |
+| Container image digests recorded | [ ] | | | |
+| Pod/VM snapshots captured (if compromise) | [ ] | | | |
+| Volatile data captured (memory/process/net) | [ ] | | | |
+| Network capture window saved (pcap) | [ ] | | | |
+| Hashes generated (SHA256) | [ ] | | | |
+| Evidence stored in locked storage | [ ] | | | |
+| Chain-of-custody log completed | [ ] | | | |
+
+### Compliance Notification Matrix
+
+**Note:** Validate timelines with Legal/Compliance and contracts. These are maximum windows, not targets.
+
+| Incident Type | Regulation | Notify | Timeline | Trigger |
+|--------------|------------|--------|----------|---------|
+| Personal data exposure | GDPR | DPO/Legal | ≤ 1 hour internal | Confirmed or likely exposure |
+| Personal data exposure | GDPR | Supervisory Authority | ≤ 72 hours | Confirmed exposure |
+| Personal data exposure | GDPR | Data Subjects | Without undue delay | High risk to individuals |
+| Cardholder data exposure | PCI DSS | Acquirer/Brands/Forensics | ≤ 24 hours (or per contract) | Confirmed card data exposure |
+| PHI exposure | HIPAA | Privacy Officer/Legal | ≤ 1 hour internal | Confirmed PHI incident |
+| PHI exposure | HIPAA | HHS/State/Individuals | ≤ 60 days (or sooner per state law) | Breach confirmation |
+| Financial reporting integrity | SOX | Finance/Legal/Exec | ≤ 24 hours internal | Control failure/material risk |
+
 ### Communication Templates
 
 #### Initial Notification

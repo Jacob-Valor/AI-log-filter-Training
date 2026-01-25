@@ -681,8 +681,60 @@ SCENARIO: QRadar Unreachable
 | ----------------------------------- | ------------------------ |
 | `deploy/kubernetes/deployment.yaml` | Main K8s manifests       |
 | `configs/production.yaml`           | Production configuration |
+| `configs/config.yaml`               | Main service config      |
 | `configs/prometheus-alerts.yaml`    | Alert rules              |
-| `docker-compose.yml`                | Local development        |
+| `docker-compose.yaml`               | Local development        |
+| `.env.example`                      | Environment template     |
+
+### Docker Compose Architecture (Local Development)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DOCKER COMPOSE STACK                          │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │ Infrastructure                                           │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │    │
+│  │  │ Zookeeper   │  │ Kafka       │  │ Kafka UI        │  │    │
+│  │  │ :2181       │──│ :9092       │──│ :8081           │  │    │
+│  │  └─────────────┘  └──────┬──────┘  └─────────────────┘  │    │
+│  └──────────────────────────┼───────────────────────────────┘    │
+│                             │                                    │
+│  ┌──────────────────────────┼───────────────────────────────┐    │
+│  │ Application              │                                │    │
+│  │  ┌─────────────┐  ┌──────┴──────┐                        │    │
+│  │  │ AI Engine   │  │ REST API    │                        │    │
+│  │  │ :9090 (met) │  │ :8080       │                        │    │
+│  │  └──────┬──────┘  └─────────────┘                        │    │
+│  └─────────┼────────────────────────────────────────────────┘    │
+│            │                                                      │
+│  ┌─────────┼────────────────────────────────────────────────┐    │
+│  │ Monitoring                                                │    │
+│  │  ┌──────┴──────┐  ┌─────────────┐                        │    │
+│  │  │ Prometheus  │──│ Grafana     │                        │    │
+│  │  │ :9091       │  │ :3000       │                        │    │
+│  │  └─────────────┘  └─────────────┘                        │    │
+│  └───────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Service Ports:**
+
+| Service | Internal Port | External Port | Description |
+|---------|---------------|---------------|-------------|
+| ai-engine | 8000, 9090 | 8000, 9090 | AI service + metrics |
+| api | 8000 | 8080 | REST API |
+| grafana | 3000 | 3000 | Dashboards |
+| prometheus | 9090 | 9091 | Metrics |
+| kafka-ui | 8080 | 8081 | Kafka admin |
+| kafka | 9092, 29092 | 9092, 29092 | Message broker |
+| zookeeper | 2181 | 2181 | Kafka coordination |
+
+**Environment Configuration:**
+
+All services use environment variables with defaults (`${VAR:-default}` syntax):
+- See `.env.example` for all available variables
+- Copy to `.env` for local customization
 
 ---
 

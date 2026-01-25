@@ -372,7 +372,26 @@ A: Monthly, or sooner if significant drift is detected.
 
 ## 8. Quick Reference
 
-### Key URLs
+### Local Development URLs
+
+For training and testing, use the local Docker environment:
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| REST API | http://localhost:8080 | - |
+| Grafana Dashboard | http://localhost:3000 | admin / admin |
+| Prometheus | http://localhost:9091 | - |
+| AI Engine Metrics | http://localhost:9090/metrics | - |
+| Kafka UI | http://localhost:8081 | - |
+
+**Starting Local Environment:**
+```bash
+cd AI-log-filter-Training
+cp .env.example .env
+docker-compose up -d --build
+```
+
+### Production URLs
 
 | Service            | URL                                        |
 | ------------------ | ------------------------------------------ |

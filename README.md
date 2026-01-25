@@ -597,11 +597,54 @@ pip install -e ".[dev]"
 python scripts/validate_models.py
 ```
 
-5. Run with Docker:
+5. **Set up environment configuration:**
 
 ```bash
-docker-compose up -d
+# Copy the environment template
+cp .env.example .env
+
+# Edit .env with your settings (optional)
+# Default values work for local development
 ```
+
+6. Run with Docker:
+
+```bash
+# Start all services
+docker-compose up -d --build
+
+# Create Kafka topics
+docker exec kafka kafka-topics --create --topic raw-logs --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+docker exec kafka kafka-topics --create --topic filtered-logs --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+
+# Override environment variables inline (optional)
+LOG_LEVEL=DEBUG docker-compose up -d
+```
+
+### Service URLs (Local Development)
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **REST API** | [http://localhost:8080](http://localhost:8080) | FastAPI endpoints for classification |
+| **AI Engine Metrics** | [http://localhost:9090/metrics](http://localhost:9090/metrics) | Prometheus metrics |
+| **Grafana** | [http://localhost:3000](http://localhost:3000) | Dashboards (admin/admin) |
+| **Prometheus** | [http://localhost:9091](http://localhost:9091) | Metrics queries |
+| **Kafka UI** | [http://localhost:8081](http://localhost:8081) | View topics & messages |
+| **Kafka** | localhost:9092 | Broker connection |
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APP_ENV` | development | Application environment |
+| `LOG_LEVEL` | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `KAFKA_BOOTSTRAP_SERVERS` | kafka:29092 | Kafka broker addresses |
+| `KAFKA_INPUT_TOPIC` | raw-logs | Input topic for raw logs |
+| `KAFKA_CONSUMER_GROUP` | ai-log-filter-group | Consumer group ID |
+| `MODEL_PATH` | /app/models/latest | Model directory path |
+| `PROMETHEUS_PORT` | 9090 | Metrics server port |
+| `GF_ADMIN_USER` | admin | Grafana admin username |
+| `GF_ADMIN_PASSWORD` | admin | Grafana admin password |
 
 ---
 

@@ -52,6 +52,20 @@
 
 ---
 
+### Evidence Artifacts (Versioned)
+
+| Evidence Artifact | Location | Purpose |
+|------------------|----------|---------|
+| Shadow validation results | `reports/shadow_validation/validation_20260125_162107.json` | Accuracy and recall proof |
+| False negative review | `reports/shadow_validation/false_negatives_20260125_162107.csv` | Critical FN evidence |
+| Load test summary | `reports/load_test/load_test_20260125_162617.json` | Throughput/latency proof |
+| Load test step metrics | `reports/load_test/load_test_steps_20260125_162617.csv` | Step-by-step latency detail |
+| Chaos test summary | `reports/chaos_test/chaos_test_20260125_161846.json` | Resilience proof |
+
+**Retention:** Store evidence artifacts with the incident record and hash them when used for compliance or audit purposes.
+
+---
+
 ## 📈 Score Progression
 
 ```mermaid

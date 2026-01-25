@@ -1,0 +1,91 @@
+# =============================================================================
+# AI Log Filter - Main Configuration
+# =============================================================================
+
+# Application Settings
+app:
+  name: "AI Log Filter"
+  version: "1.0.0"
+  env: ${APP_ENV:-development}
+  debug: false
+
+# Logging Configuration
+logging:
+  level: ${LOG_LEVEL:-INFO}
+  format: "json"
+  output: "stdout"
+
+# Ingestion Configuration
+ingestion:
+  kafka:
+    bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
+    consumer:
+      group_id: ${KAFKA_CONSUMER_GROUP:-ai-log-filter-group}
+      auto_offset_reset: "earliest"
+      session_timeout_ms: 30000
+      heartbeat_interval_ms: 10000
+    producer:
+      acks: "all"
+      retries: 3
+      batch_size: 16384
+      linger_ms: 10
+    topics:
+      input: ${KAFKA_INPUT_TOPIC:-raw-logs}
+      output: "filtered-logs"
+
+# Model Configuration
+model:
+  path: ${MODEL_PATH:-/app/models/latest}
+  type: "ensemble"
+  batch_size: 32
+  confidence_threshold: 0.7
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: ${API_PORT:-8000}
+  workers: 4
+  timeout: 30
+
+# Monitoring Configuration
+monitoring:
+  prometheus:
+    enabled: true
+    port: ${PROMETHEUS_PORT:-9090}
+    path: "/metrics"
+
+# Health Check
+health:
+  path: "/health"
+  readiness_path: "/ready"
+  liveness_path: "/live"
+
+# Processing Configuration
+processing:
+  batch_size: 100
+  max_queue_size: 10000
+  worker_threads: 4
+  timeout_seconds: 60
+
+# Routing Configuration
+routing:
+  default_output: "filtered-logs"
+  rules:
+    - category: "critical"
+      output: "critical-logs"
+      priority: 1
+    - category: "security"
+      output: "security-logs"
+      priority: 2
+    - category: "error"
+      output: "error-logs"
+      priority: 3
+    - category: "warning"
+      output: "warning-logs"
+      priority: 4
+    - category: "info"
+      output: "info-logs"
+      priority: 5
+    - category: "debug"
+      output: "debug-logs"
+      priority: 6
