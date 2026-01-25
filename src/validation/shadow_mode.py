@@ -8,9 +8,9 @@ to validate classification accuracy before enabling production filtering.
 import asyncio
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from src.models.base import Prediction
 from src.monitoring.production_metrics import METRICS
@@ -35,28 +35,28 @@ class ValidationDecision:
     ai_category: str
     ai_confidence: float
     ai_model: str
-    explanation: Dict[str, Any]
-    qradar_offense_generated: Optional[bool] = None
-    qradar_offense_id: Optional[str] = None
-    qradar_offense_type: Optional[str] = None
-    qradar_severity: Optional[int] = None
-    is_false_negative: Optional[bool] = None
-    is_false_positive: Optional[bool] = None
-    validation_timestamp: Optional[datetime] = None
+    explanation: dict[str, Any]
+    qradar_offense_generated: bool | None = None
+    qradar_offense_id: str | None = None
+    qradar_offense_type: str | None = None
+    qradar_severity: int | None = None
+    is_false_negative: bool | None = None
+    is_false_positive: bool | None = None
+    validation_timestamp: datetime | None = None
 
 
 @dataclass
 class ValidationStats:
     phase: ValidationPhase = ValidationPhase.SHADOW
-    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     total_processed: int = 0
-    by_category: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    by_category: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     true_positives: int = 0
     true_negatives: int = 0
     false_positives: int = 0
     false_negatives: int = 0
-    missed_offenses: List[Dict[str, Any]] = field(default_factory=list)
-    confidence_buckets: Dict[str, Dict[str, int]] = field(
+    missed_offenses: list[dict[str, Any]] = field(default_factory=list)
+    confidence_buckets: dict[str, dict[str, int]] = field(
         default_factory=lambda: defaultdict(lambda: defaultdict(int))
     )
 
@@ -83,24 +83,24 @@ class ShadowModeValidator:
         },
     }
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.stats = ValidationStats()
-        self.decisions: Dict[str, ValidationDecision] = {}
+        self.decisions: dict[str, ValidationDecision] = {}
         self._lock = asyncio.Lock()
-        self.pending_validation: Dict[str, ValidationDecision] = {}
+        self.pending_validation: dict[str, ValidationDecision] = {}
         self.correlation_window_hours = self.config.get("correlation_window_hours", 24)
         logger.info(
             f"ShadowModeValidator initialized in {self.stats.phase.value} phase"
         )
 
     async def record_decision(
-        self, log_id: str, prediction: Prediction, log: Dict[str, Any]
+        self, log_id: str, prediction: Prediction, log: dict[str, Any]
     ) -> ValidationDecision:
         async with self._lock:
             decision = ValidationDecision(
                 log_id=log_id,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 log_source=log.get("source", "unknown"),
                 log_message=log.get("message", "")[:500],
                 ai_category=prediction.category,
@@ -118,14 +118,14 @@ class ShadowModeValidator:
         self,
         log_id: str,
         offense_generated: bool,
-        offense_data: Optional[Dict[str, Any]] = None,
+        offense_data: dict[str, Any] | None = None,
     ):
         async with self._lock:
             if log_id not in self.decisions:
                 return
             decision = self.decisions[log_id]
             decision.qradar_offense_generated = offense_generated
-            decision.validation_timestamp = datetime.now(timezone.utc)
+            decision.validation_timestamp = datetime.now(UTC)
             if offense_data:
                 decision.qradar_offense_id = offense_data.get("offense_id")
                 decision.qradar_offense_type = offense_data.get("offense_type")
@@ -155,7 +155,7 @@ class ShadowModeValidator:
                 self.stats.false_positives += 1
                 decision.is_false_positive = True
 
-    def get_accuracy_metrics(self) -> Dict[str, Any]:
+    def get_accuracy_metrics(self) -> dict[str, Any]:
         total = (
             self.stats.true_positives
             + self.stats.true_negatives
@@ -183,7 +183,7 @@ class ShadowModeValidator:
             },
         }
 
-    def is_ready_for_next_phase(self) -> Tuple[bool, str]:
+    def is_ready_for_next_phase(self) -> tuple[bool, str]:
         if self.stats.phase == ValidationPhase.PRODUCTION:
             return False, "Already in production"
         reqs = self.PHASE_REQUIREMENTS.get(self.stats.phase, {})
@@ -198,7 +198,7 @@ class ShadowModeValidator:
             return False, "Recall too low"
         return True, "Requirements met"
 
-    def get_validation_report(self) -> Dict[str, Any]:
+    def get_validation_report(self) -> dict[str, Any]:
         ready, reason = self.is_ready_for_next_phase()
         return {
             "phase": self.stats.phase.value,
@@ -209,6 +209,6 @@ class ShadowModeValidator:
 
 
 def create_shadow_validator(
-    config: Optional[Dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
 ) -> ShadowModeValidator:
     return ShadowModeValidator(config)

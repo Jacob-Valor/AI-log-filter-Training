@@ -7,13 +7,13 @@ Validates that all required model artifacts are present and properly configured.
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 MODELS_DIR = Path("/home/jacob/Projects/tester/models")
 MODEL_VERSION = "v1"
 
 
-def validate_models() -> Dict[str, Any]:
+def validate_models() -> dict[str, Any]:
     """Validate model artifacts for production deployment."""
 
     results = {
@@ -113,7 +113,7 @@ def validate_models() -> Dict[str, Any]:
     return results
 
 
-def print_results(results: Dict[str, Any]):
+def print_results(results: dict[str, Any]):
     """Print validation results."""
 
     print("\n" + "=" * 70)

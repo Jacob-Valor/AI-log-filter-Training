@@ -9,7 +9,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Dict, Optional
+from typing import Any
 
 from prometheus_client import Counter, Gauge, Histogram, Info
 
@@ -256,7 +256,7 @@ class EPSWindow:
     samples: deque = field(default_factory=lambda: deque(maxlen=60))
     lock: Lock = field(default_factory=Lock)
 
-    def add_sample(self, count: int, timestamp: Optional[float] = None):
+    def add_sample(self, count: int, timestamp: float | None = None):
         """Add a sample to the window."""
         ts = timestamp or time.time()
         with self.lock:
@@ -520,7 +520,7 @@ class ProductionMetricsCollector:
             partition=str(partition)
         ).set(lag)
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get summary of current metrics."""
         return {
             "eps": {

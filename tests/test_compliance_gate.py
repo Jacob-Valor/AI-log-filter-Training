@@ -44,7 +44,7 @@ class TestComplianceGateBasics:
         decision = gate.check(log)
 
         assert not decision.is_regulated
-        assert decision.must_forward == False
+        assert not decision.must_forward
         assert len(decision.matched_rules) == 0
 
     def test_pci_source_is_regulated(self, gate):
@@ -57,7 +57,7 @@ class TestComplianceGateBasics:
         decision = gate.check(log)
 
         assert decision.is_regulated
-        assert decision.must_forward == True
+        assert decision.must_forward
         assert ComplianceFramework.PCI_DSS in decision.frameworks
 
     def test_hipaa_source_is_regulated(self, gate):
@@ -70,7 +70,7 @@ class TestComplianceGateBasics:
         decision = gate.check(log)
 
         assert decision.is_regulated
-        assert decision.must_forward == True
+        assert decision.must_forward
         assert ComplianceFramework.HIPAA in decision.frameworks
 
     def test_sox_source_is_regulated(self, gate):
@@ -83,7 +83,7 @@ class TestComplianceGateBasics:
         decision = gate.check(log)
 
         assert decision.is_regulated
-        assert decision.must_forward == True
+        assert decision.must_forward
         assert ComplianceFramework.SOX in decision.frameworks
 
     def test_message_pattern_matching(self, gate):
@@ -207,4 +207,4 @@ class TestComplianceBypassPrediction:
         assert prediction["category"] == "critical"
         assert prediction["confidence"] == 1.0
         assert prediction["model"] == "compliance_bypass"
-        assert prediction["explanation"]["ai_classification_skipped"] == True
+        assert prediction["explanation"]["ai_classification_skipped"]

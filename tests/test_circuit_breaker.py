@@ -60,7 +60,7 @@ class TestCircuitBreakerStates:
             raise ValueError("Test failure")
 
         # Should fail 3 times then circuit opens
-        for i in range(3):
+        for _i in range(3):
             with pytest.raises(ValueError):
                 await breaker.call(failing_func)
 
@@ -130,7 +130,7 @@ class TestCircuitBreakerStates:
         async def success_func():
             return "success"
 
-        result = await breaker.call(success_func)
+        await breaker.call(success_func)
         # After successful call in half-open, may transition based on success_threshold
         assert breaker.state in [CircuitState.HALF_OPEN, CircuitState.CLOSED]
 

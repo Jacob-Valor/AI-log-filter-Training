@@ -4,7 +4,7 @@ Base Classifier - Abstract base class for all classifiers
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -14,10 +14,10 @@ class Prediction:
     category: str
     confidence: float
     model: str
-    probabilities: Optional[Dict[str, float]] = None
-    explanation: Optional[Dict[str, Any]] = None
+    probabilities: dict[str, float] | None = None
+    explanation: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "category": self.category,
             "confidence": self.confidence,
@@ -38,7 +38,7 @@ class BaseClassifier(ABC):
     # Standard log categories
     CATEGORIES = ["critical", "suspicious", "routine", "noise"]
 
-    def __init__(self, name: str, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, name: str, config: dict[str, Any] | None = None):
         self.name = name
         self.config = config or {}
         self.is_loaded = False
@@ -62,7 +62,7 @@ class BaseClassifier(ABC):
         pass
 
     @abstractmethod
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
         """
         Classify a batch of log messages.
 
@@ -79,15 +79,15 @@ class BaseClassifier(ABC):
         raise NotImplementedError(f"{self.name} does not support saving")
 
     @classmethod
-    def load_from_path(cls, path: str) -> "BaseClassifier":
+    def load_from_path(cls, path: str) -> BaseClassifier:
         """Load model from disk."""
         raise NotImplementedError(f"{cls.__name__} does not support loading from path")
 
-    def get_feature_importance(self) -> Optional[Dict[str, float]]:
+    def get_feature_importance(self) -> dict[str, float] | None:
         """Get feature importance scores if available."""
         return None
 
-    def explain(self, text: str) -> Optional[Dict[str, Any]]:
+    def explain(self, text: str) -> dict[str, Any] | None:
         """Generate explanation for a prediction."""
         return None
 
@@ -99,7 +99,7 @@ class ClassifierRegistry:
     Allows dynamic registration and retrieval of classifier classes.
     """
 
-    _classifiers: Dict[str, type] = {}
+    _classifiers: dict[str, type] = {}
 
     @classmethod
     def register(cls, name: str):
@@ -117,6 +117,6 @@ class ClassifierRegistry:
         return cls._classifiers[name]
 
     @classmethod
-    def list_classifiers(cls) -> List[str]:
+    def list_classifiers(cls) -> list[str]:
         """List all registered classifiers."""
         return list(cls._classifiers.keys())

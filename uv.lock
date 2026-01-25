@@ -8,8 +8,8 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "aitdrs"
-version = "0.1.0"
+name = "ai-log-filter"
+version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "confluent-kafka" },

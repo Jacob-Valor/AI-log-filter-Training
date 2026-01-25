@@ -18,9 +18,8 @@ import logging
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -68,7 +67,7 @@ class LoadTestResult:
     timestamp: str = ""
 
     # Per-step results
-    step_results: List[Dict] = field(default_factory=list)
+    step_results: list[dict] = field(default_factory=list)
 
     @property
     def passed_target(self) -> bool:
@@ -191,8 +190,8 @@ class LogGenerator:
         return pattern
 
     def generate_batch(
-        self, count: int, category_distribution: Dict[str, int] = None
-    ) -> List[str]:
+        self, count: int, category_distribution: dict[str, int] = None
+    ) -> list[str]:
         """Generate a batch of log messages."""
         import random
 
@@ -255,7 +254,7 @@ class LoadTester:
                 logger.error(f"Rule-based classifier also failed: {e2}")
                 return False
 
-    async def classify_single(self, log: str) -> Tuple[float, bool]:
+    async def classify_single(self, log: str) -> tuple[float, bool]:
         """
         Classify a single log and return latency and success.
 
@@ -285,7 +284,7 @@ class LoadTester:
             logger.debug(f"Classification error: {e}")
             return latency_ms, False
 
-    async def run_step(self, target_eps: int, duration: int) -> Dict:
+    async def run_step(self, target_eps: int, duration: int) -> dict:
         """Run a single load test step."""
         logger.info(f"Running load test step: {target_eps} EPS for {duration}s")
 
@@ -358,7 +357,7 @@ class LoadTester:
 
     async def run_load_test(self) -> LoadTestResult:
         """Run the complete load test."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         # Calculate EPS steps
         eps_steps = []
@@ -429,7 +428,7 @@ class LoadTester:
             total_events=total_events,
             successful_events=successful_events,
             failed_events=failed_events,
-            duration_seconds=(datetime.now(timezone.utc) - start_time).total_seconds(),
+            duration_seconds=(datetime.now(UTC) - start_time).total_seconds(),
             timestamp=start_time.isoformat(),
             step_results=step_results,
         )
@@ -513,7 +512,7 @@ class LoadTester:
         output_dir = Path(self.config.output_path)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
         # Save JSON report
         report_path = output_dir / f"load_test_{timestamp}.json"

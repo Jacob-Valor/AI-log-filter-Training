@@ -20,10 +20,11 @@ import logging
 import random
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -43,8 +44,8 @@ class ChaosTestResult:
     test_name: str
     passed: bool
     duration_seconds: float
-    details: Dict[str, Any] = field(default_factory=dict)
-    error: Optional[str] = None
+    details: dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
 
 
 @dataclass
@@ -55,7 +56,7 @@ class ChaosTestSuite:
     total_tests: int = 0
     passed_tests: int = 0
     failed_tests: int = 0
-    results: List[ChaosTestResult] = field(default_factory=list)
+    results: list[ChaosTestResult] = field(default_factory=list)
 
     @property
     def success_rate(self) -> float:
@@ -75,7 +76,7 @@ class ChaosTester:
     """
 
     def __init__(self):
-        self.suite = ChaosTestSuite(timestamp=datetime.now(timezone.utc).isoformat())
+        self.suite = ChaosTestSuite(timestamp=datetime.now(UTC).isoformat())
         self.classifier = None
         self.circuit_breaker = None
 
@@ -145,7 +146,7 @@ class ChaosTester:
     # CHAOS TESTS
     # ==========================================================================
 
-    async def test_fail_open_on_classifier_error(self) -> Dict[str, Any]:
+    async def test_fail_open_on_classifier_error(self) -> dict[str, Any]:
         """
         Test: When classifier raises an exception, system should fail open.
 
@@ -199,7 +200,7 @@ class ChaosTester:
             "error": None if passed else "Graceful degradation not working correctly",
         }
 
-    async def test_circuit_breaker_opens_on_failures(self) -> Dict[str, Any]:
+    async def test_circuit_breaker_opens_on_failures(self) -> dict[str, Any]:
         """
         Test: Circuit breaker opens after consecutive failures.
 
@@ -226,7 +227,7 @@ class ChaosTester:
         failures_before_open = 0
         circuit_opened = False
 
-        for i in range(10):
+        for _i in range(10):
             try:
                 await breaker.call(failing_operation)
             except Exception:
@@ -249,7 +250,7 @@ class ChaosTester:
             else f"Circuit opened after {failures_before_open} failures (expected 3)",
         }
 
-    async def test_circuit_breaker_fail_open_mode(self) -> Dict[str, Any]:
+    async def test_circuit_breaker_fail_open_mode(self) -> dict[str, Any]:
         """
         Test: Circuit breaker in fail-open mode returns default value.
 
@@ -305,7 +306,7 @@ class ChaosTester:
             "error": None if passed else "Fail-open pattern not working",
         }
 
-    async def test_high_latency_handling(self) -> Dict[str, Any]:
+    async def test_high_latency_handling(self) -> dict[str, Any]:
         """
         Test: System handles high latency operations gracefully.
 
@@ -324,9 +325,9 @@ class ChaosTester:
 
         try:
             # Should timeout within reasonable time
-            result = await asyncio.wait_for(slow_operation(), timeout=1.0)
+            await asyncio.wait_for(slow_operation(), timeout=1.0)
             timed_out = False
-        except asyncio.TimeoutError:
+        except TimeoutError:
             timed_out = True
 
         elapsed = time.perf_counter() - start_time
@@ -346,7 +347,7 @@ class ChaosTester:
             else f"Timeout handling issue: elapsed={elapsed:.2f}s",
         }
 
-    async def test_concurrent_load_handling(self) -> Dict[str, Any]:
+    async def test_concurrent_load_handling(self) -> dict[str, Any]:
         """
         Test: System handles concurrent requests without deadlock.
 
@@ -410,14 +411,14 @@ class ChaosTester:
                 "error": None if passed else f"Only {successful}/100 succeeded",
             }
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return {
                 "passed": False,
                 "details": {"timeout": True},
                 "error": "Concurrent load test timed out (deadlock suspected)",
             }
 
-    async def test_memory_pressure_resilience(self) -> Dict[str, Any]:
+    async def test_memory_pressure_resilience(self) -> dict[str, Any]:
         """
         Test: System remains stable under memory pressure.
 
@@ -426,7 +427,6 @@ class ChaosTester:
         - No crashes or unhandled exceptions
         - Garbage collection should work properly
         """
-        import gc
 
         initial_objects = len(gc.get_objects())
 
@@ -474,7 +474,7 @@ class ChaosTester:
             else f"Possible memory leak: {object_delta} objects created",
         }
 
-    async def test_critical_recall_under_stress(self) -> Dict[str, Any]:
+    async def test_critical_recall_under_stress(self) -> dict[str, Any]:
         """
         Test: Critical recall stays above 99.5% under stress conditions.
 
@@ -574,7 +574,7 @@ class ChaosTester:
             else f"Critical recall {recall:.2%} below target 99.5%",
         }
 
-    async def test_graceful_degradation(self) -> Dict[str, Any]:
+    async def test_graceful_degradation(self) -> dict[str, Any]:
         """
         Test: System degrades gracefully when components fail.
 
@@ -620,7 +620,7 @@ class ChaosTester:
                 "error": f"Degradation test failed: {e}",
             }
 
-    async def test_recovery_after_failure(self) -> Dict[str, Any]:
+    async def test_recovery_after_failure(self) -> dict[str, Any]:
         """
         Test: System recovers properly after circuit breaker opens.
 
@@ -796,7 +796,7 @@ async def main():
 
     report_path = (
         output_dir
-        / f"chaos_test_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+        / f"chaos_test_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
     )
 
     import json

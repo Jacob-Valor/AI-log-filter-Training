@@ -20,7 +20,7 @@ import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import joblib
 import numpy as np
@@ -58,7 +58,7 @@ class TrainingConfig:
 
     # TF-IDF settings
     tfidf_max_features: int = 10000
-    tfidf_ngram_range: Tuple[int, int] = (1, 3)
+    tfidf_ngram_range: tuple[int, int] = (1, 3)
     tfidf_min_df: int = 2
     tfidf_max_df: float = 0.95
 
@@ -83,13 +83,13 @@ class TrainingResults:
     model_version: str
     timestamp: str
     accuracy: float
-    per_class_metrics: Dict[str, Dict[str, float]]
-    confusion_matrix: List[List[int]]
-    cv_scores: List[float]
+    per_class_metrics: dict[str, dict[str, float]]
+    confusion_matrix: list[list[int]]
+    cv_scores: list[float]
     training_samples: int
     test_samples: int
     passed_validation: bool
-    validation_messages: List[str]
+    validation_messages: list[str]
 
 
 # =============================================================================
@@ -180,7 +180,7 @@ class DataLoader:
                                 df["message"] = df[text_cols[0]]
                     else:
                         # Load as raw log file
-                        with open(filepath, "r", errors="ignore") as f:
+                        with open(filepath, errors="ignore") as f:
                             lines = f.readlines()
                         df = pd.DataFrame({"message": lines})
 
@@ -268,7 +268,7 @@ class DataLoader:
     def prepare_data(
         self,
         df: pd.DataFrame
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Prepare data for training with train/val/test split."""
 
         # Preprocess messages
@@ -326,7 +326,7 @@ class ModelTrainer:
         y_train: np.ndarray,
         X_val: np.ndarray,
         y_val: np.ndarray
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Train TF-IDF + XGBoost classifier."""
         from xgboost import XGBClassifier
 
@@ -382,7 +382,7 @@ class ModelTrainer:
         feature_names = self.vectorizer.get_feature_names_out()
         importances = self.classifier.feature_importances_
         top_features = sorted(
-            zip(feature_names, importances),
+            zip(feature_names, importances, strict=False),
             key=lambda x: x[1],
             reverse=True
         )[:20]
@@ -397,7 +397,7 @@ class ModelTrainer:
             "top_features": dict(top_features)
         }
 
-    def train_anomaly_detector(self, X_train: np.ndarray) -> Dict[str, Any]:
+    def train_anomaly_detector(self, X_train: np.ndarray) -> dict[str, Any]:
         """Train anomaly detector on normal logs."""
         logger.info("Training anomaly detector...")
 
@@ -477,12 +477,12 @@ class ModelTrainer:
 
         # Transform test data
         X_test_vec = self.vectorizer.transform(X_test)
-        y_test_enc = self.label_encoder.transform(y_test)
+        self.label_encoder.transform(y_test)
 
         # Predict
         y_pred_enc = self.classifier.predict(X_test_vec)
         y_pred = self.label_encoder.inverse_transform(y_pred_enc)
-        y_proba = self.classifier.predict_proba(X_test_vec)
+        self.classifier.predict_proba(X_test_vec)
 
         # Calculate metrics
         accuracy = accuracy_score(y_test, y_pred)

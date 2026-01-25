@@ -27,7 +27,7 @@ class TestFailOpenPrediction:
         assert prediction.category == "critical"
         assert prediction.confidence == 0.0
         assert prediction.model == "fail_open"
-        assert prediction.explanation["fail_open"] == True
+        assert prediction.explanation["fail_open"]
         assert prediction.explanation["reason"] == "test_reason"
 
     def test_fail_open_has_full_probability(self):
@@ -124,7 +124,7 @@ class TestSafeEnsembleClassification:
         results = await mock_classifier.classify_batch(logs)
 
         assert len(results) == 1
-        assert results[0].compliance_bypassed == True
+        assert results[0].compliance_bypassed
         assert results[0].prediction.category == "critical"
         assert results[0].prediction.model == "compliance_bypass"
 
@@ -213,7 +213,7 @@ class TestSafeEnsembleFailOpen:
         results = await classifier.classify_batch(logs)
 
         assert len(results) == 1
-        assert results[0].fail_open_used == True
+        assert results[0].fail_open_used
 
 
 class TestSafeEnsembleCriticalOverride:
@@ -256,6 +256,8 @@ class TestSafeEnsembleHealth:
 
     def test_health_status_healthy(self):
         """Should report healthy when circuit is closed and models are loaded."""
+        from src.utils.circuit_breaker import CircuitState
+
         classifier = SafeEnsembleClassifier()
 
         # Mock loaded classifiers
@@ -266,11 +268,11 @@ class TestSafeEnsembleHealth:
         classifier.is_loaded = True
 
         # Reset circuit breaker to ensure closed state
-        classifier.circuit_breaker.stats.state = classifier.circuit_breaker.stats.state.__class__.CLOSED
+        classifier.circuit_breaker.stats.state = CircuitState.CLOSED
 
         status = classifier.get_health_status()
 
-        assert status["healthy"] == True
+        assert status["healthy"]
         assert "rule_based" in status["models"]["healthy"]
         assert len(status["models"]["unhealthy"]) == 0
 

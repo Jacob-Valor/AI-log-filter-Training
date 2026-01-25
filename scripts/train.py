@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 def load_config(config_path: str) -> dict:
     """Load training configuration."""
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         return yaml.safe_load(f)
 
 

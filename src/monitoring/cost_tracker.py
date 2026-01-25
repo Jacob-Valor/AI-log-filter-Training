@@ -14,12 +14,12 @@ Key Features:
 
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from threading import Lock
-from typing import Any, Dict, Optional
+from typing import Any
 
-from prometheus_client import Counter, Gauge, Histogram, Info
+from prometheus_client import Gauge
 
 from src.utils.logging import get_logger
 
@@ -258,7 +258,7 @@ class CostTracker:
         """Get max EPS for a given tier."""
         return QRADAR_PRICING_TIERS.get(tier, {}).get("max_eps", 0)
 
-    def _get_next_lower_tier(self, current_tier: str) -> Optional[str]:
+    def _get_next_lower_tier(self, current_tier: str) -> str | None:
         """Get the next lower pricing tier."""
         tiers = ["basic", "standard", "enterprise", "premium"]
         current_index = tiers.index(current_tier)
@@ -326,7 +326,7 @@ class CostTracker:
         eps_before: float,
         eps_after: float,
         reduction_ratio: float
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate cost savings based on EPS reduction.
 
@@ -380,7 +380,7 @@ class CostTracker:
             "cost_per_event": cost_per_event
         }
 
-    def _update_all_metrics(self, cost_data: Dict[str, Any]):
+    def _update_all_metrics(self, cost_data: dict[str, Any]):
         """Update all Prometheus metrics with cost data."""
         # Cost Savings
         COST_SAVINGS_HOURLY.set(cost_data["savings_hourly"])
@@ -430,7 +430,7 @@ class CostTracker:
 
         COST_SAVINGS_BY_CATEGORY.labels(category=category).set(savings_monthly)
 
-    def get_cost_report(self) -> Dict[str, Any]:
+    def get_cost_report(self) -> dict[str, Any]:
         """
         Generate comprehensive cost report.
 
@@ -543,7 +543,7 @@ class CostTracker:
 # =============================================================================
 
 # Global cost tracker instance (will be initialized with config)
-_cost_tracker: Optional[CostTracker] = None
+_cost_tracker: CostTracker | None = None
 _tracker_lock = Lock()
 
 
@@ -567,6 +567,6 @@ def init_cost_tracker(current_qradar_eps: int = 15_000) -> CostTracker:
     return _cost_tracker
 
 
-def get_cost_tracker() -> Optional[CostTracker]:
+def get_cost_tracker() -> CostTracker | None:
     """Get the global cost tracker instance."""
     return _cost_tracker

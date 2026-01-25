@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
@@ -35,9 +35,9 @@ class ComponentHealth(BaseModel):
     """Health status of a single component."""
     name: str
     status: HealthStatus
-    latency_ms: Optional[float] = None
-    message: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
+    latency_ms: float | None = None
+    message: str | None = None
+    details: dict[str, Any] | None = None
 
 
 class HealthResponse(BaseModel):
@@ -46,14 +46,14 @@ class HealthResponse(BaseModel):
     timestamp: str
     version: str
     uptime_seconds: float
-    components: List[ComponentHealth]
-    metrics: Optional[Dict[str, Any]] = None
+    components: list[ComponentHealth]
+    metrics: dict[str, Any] | None = None
 
 
 class ReadinessResponse(BaseModel):
     """Readiness probe response."""
     ready: bool
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class LivenessResponse(BaseModel):
@@ -73,7 +73,7 @@ class HealthChecker:
 
     Components register their health check functions here.
     """
-    _instance: Optional['HealthChecker'] = None
+    _instance: HealthChecker | None = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -144,7 +144,7 @@ class HealthChecker:
                 }
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return ComponentHealth(
                 name="classifier",
                 status=HealthStatus.DEGRADED,
@@ -365,7 +365,7 @@ async def liveness_probe() -> LivenessResponse:
     summary="Metrics summary",
     description="Summary of key operational metrics"
 )
-async def metrics_summary() -> Dict[str, Any]:
+async def metrics_summary() -> dict[str, Any]:
     """Get summary of key metrics."""
     return {
         "timestamp": datetime.utcnow().isoformat() + "Z",

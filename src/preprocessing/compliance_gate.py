@@ -9,7 +9,7 @@ guarantee compliance-critical logs are never filtered out.
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from src.utils.logging import get_logger
 
@@ -33,8 +33,8 @@ class ComplianceRule:
     name: str
     framework: ComplianceFramework
     description: str
-    source_patterns: List[str]
-    message_patterns: List[str] = field(default_factory=list)
+    source_patterns: list[str]
+    message_patterns: list[str] = field(default_factory=list)
     minimum_retention_days: int = 365
     must_forward_to_siem: bool = True
     priority: int = 100  # Higher = more important
@@ -44,11 +44,11 @@ class ComplianceRule:
 class ComplianceDecision:
     """Result of compliance check."""
     is_regulated: bool
-    matched_rules: List[str]
-    frameworks: Set[ComplianceFramework]
+    matched_rules: list[str]
+    frameworks: set[ComplianceFramework]
     must_forward: bool
     minimum_retention_days: int
-    bypass_reason: Optional[str] = None
+    bypass_reason: str | None = None
 
 
 class ComplianceGate:
@@ -181,7 +181,7 @@ class ComplianceGate:
         ),
     ]
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """
         Initialize compliance gate.
 
@@ -193,8 +193,8 @@ class ComplianceGate:
         """
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)
-        self.rules: List[ComplianceRule] = []
-        self.compiled_patterns: Dict[str, List[Tuple[str, re.Pattern]]] = {}
+        self.rules: list[ComplianceRule] = []
+        self.compiled_patterns: dict[str, list[tuple[str, re.Pattern]]] = {}
 
         self._load_rules()
         self._compile_patterns()
@@ -280,7 +280,7 @@ class ComplianceGate:
             f"{len(self.compiled_patterns['message'])} message patterns"
         )
 
-    def check(self, log: Dict[str, Any]) -> ComplianceDecision:
+    def check(self, log: dict[str, Any]) -> ComplianceDecision:
         """
         Check if a log should bypass AI filtering.
 
@@ -356,7 +356,7 @@ class ComplianceGate:
             bypass_reason=bypass_reason,
         )
 
-    def check_batch(self, logs: List[Dict[str, Any]]) -> List[ComplianceDecision]:
+    def check_batch(self, logs: list[dict[str, Any]]) -> list[ComplianceDecision]:
         """Check a batch of logs for compliance requirements."""
         return [self.check(log) for log in logs]
 
@@ -381,7 +381,7 @@ class ComplianceGate:
 
         logger.info(f"Added compliance rule: {rule.name}")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get compliance gate statistics."""
         bypass_rate = (
             self.stats["total_bypassed"] / max(self.stats["total_checked"], 1)
@@ -396,15 +396,15 @@ class ComplianceGate:
 
     def get_rules_by_framework(
         self, framework: ComplianceFramework
-    ) -> List[ComplianceRule]:
+    ) -> list[ComplianceRule]:
         """Get all rules for a specific framework."""
         return [r for r in self.rules if r.framework == framework]
 
 
 def create_compliance_bypass_prediction(
-    log: Dict[str, Any],
+    log: dict[str, Any],
     decision: ComplianceDecision
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create a prediction object for compliance-bypassed logs.
 

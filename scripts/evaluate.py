@@ -88,7 +88,7 @@ async def evaluate_model(model_path: str, test_data_path: str):
     logger.info(f"  Max:  {np.max(confidences):.3f}")
 
     # Analyze errors
-    errors = [(x, yt, yp, c) for x, yt, yp, c in zip(X_test, y_test, y_pred, confidences) if yt != yp]
+    errors = [(x, yt, yp, c) for x, yt, yp, c in zip(X_test, y_test, y_pred, confidences, strict=False) if yt != yp]
 
     logger.info(f"\nTotal Errors: {len(errors)} / {len(X_test)} ({100*len(errors)/len(X_test):.2f}%)")
 

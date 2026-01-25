@@ -11,11 +11,12 @@ Shared utilities for all integration modules including:
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +55,8 @@ class ConnectionStats:
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
-    last_connection: Optional[datetime] = None
-    last_failure: Optional[datetime] = None
+    last_connection: datetime | None = None
+    last_failure: datetime | None = None
     average_latency_ms: float = 0.0
     uptime_percentage: float = 0.0
 
@@ -66,7 +67,7 @@ class HealthStatus:
     healthy: bool
     latency_ms: float
     message: str
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.utcnow)
 
 
@@ -79,7 +80,7 @@ class BaseIntegration(ABC):
         self.stats = ConnectionStats()
         self._state = ConnectionState.DISCONNECTED
         self._lock = asyncio.Lock()
-        self._health_check_task: Optional[asyncio.Task] = None
+        self._health_check_task: asyncio.Task | None = None
 
     @property
     def state(self) -> ConnectionState:
@@ -174,7 +175,7 @@ class BaseIntegration(ABC):
             (self.stats.average_latency_ms * (n - 1) + latency_ms) / n
         )
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get connection statistics."""
         return {
             "name": self.name,
@@ -201,7 +202,7 @@ class BaseIntegration(ABC):
         }
 
 
-async def retry_with_backoff(
+async def retry_with_backoff[T](
     func: Callable[..., T],
     max_retries: int = 3,
     base_delay: float = 1.0,

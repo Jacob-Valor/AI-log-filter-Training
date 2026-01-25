@@ -18,9 +18,8 @@ import json
 import logging
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -78,7 +77,7 @@ class ValidationResult:
     noise_fn: int = 0
 
     # False negatives for review
-    false_negatives: List[Dict] = field(default_factory=list)
+    false_negatives: list[dict] = field(default_factory=list)
 
     # Metadata
     execution_time_seconds: float = 0.0
@@ -167,7 +166,7 @@ class ShadowModeValidator:
                 logger.error(f"Fallback classifier also failed: {e2}")
                 return False
 
-    async def classify_batch(self, logs: List[str]) -> List[Tuple[str, float]]:
+    async def classify_batch(self, logs: list[str]) -> list[tuple[str, float]]:
         """Classify a batch of logs."""
         # Convert strings to dictionaries for SafeEnsembleClassifier
         log_dicts = [{"message": log} for log in logs]
@@ -186,7 +185,7 @@ class ShadowModeValidator:
                 results.append((pred.category, pred.confidence))
             return results
 
-    def load_test_data(self) -> Tuple[List[str], List[str]]:
+    def load_test_data(self) -> tuple[list[str], list[str]]:
         """Load labeled test data."""
         import pandas as pd
 
@@ -216,7 +215,7 @@ class ShadowModeValidator:
         logger.info(f"Loaded {len(messages)} test samples")
         return messages, labels
 
-    def _generate_synthetic_test_data(self) -> Tuple[List[str], List[str]]:
+    def _generate_synthetic_test_data(self) -> tuple[list[str], list[str]]:
         """Generate synthetic test data for validation."""
         import pandas as pd
 
@@ -311,7 +310,7 @@ class ShadowModeValidator:
 
     async def run_validation(self) -> ValidationResult:
         """Run shadow mode validation."""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         # Load test data
         messages, true_labels = self.load_test_data()
@@ -342,17 +341,17 @@ class ShadowModeValidator:
 
         # Calculate execution time
         self.results.execution_time_seconds = (
-            datetime.now(timezone.utc) - start_time
+            datetime.now(UTC) - start_time
         ).total_seconds()
         self.results.timestamp = start_time.isoformat()
 
         return self.results
 
-    def _calculate_metrics(self, predictions: List[str], true_labels: List[str]):
+    def _calculate_metrics(self, predictions: list[str], true_labels: list[str]):
         """Calculate validation metrics."""
         self.results.total_samples = len(predictions)
 
-        for pred, true_label in zip(predictions, true_labels):
+        for pred, true_label in zip(predictions, true_labels, strict=False):
             # Normalize labels
             pred = pred.lower().strip()
             true_label = true_label.lower().strip()
@@ -429,7 +428,7 @@ class ShadowModeValidator:
             tp = getattr(r, f"{cat}_tp")
             fp = getattr(r, f"{cat}_fp")
             fn = getattr(r, f"{cat}_fn")
-            tn = getattr(r, f"{cat}_tn")
+            getattr(r, f"{cat}_tn")
 
             precision = tp / (tp + fp) if (tp + fp) > 0 else 0
             recall = tp / (tp + fn) if (tp + fn) > 0 else 0
@@ -475,7 +474,7 @@ class ShadowModeValidator:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate filename with timestamp
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         report_path = output_dir / f"validation_{timestamp}.json"
         csv_path = output_dir / f"false_negatives_{timestamp}.csv"
 
@@ -558,7 +557,7 @@ async def main():
         sys.exit(1)
 
     # Run validation
-    results = await validator.run_validation()
+    await validator.run_validation()
 
     # Print report
     validator.print_report()

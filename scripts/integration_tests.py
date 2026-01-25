@@ -18,8 +18,8 @@ import logging
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -61,7 +61,7 @@ class KafkaIntegrationTests:
 
         try:
             # Try to import and create consumer
-            from confluent_kafka import Consumer, KafkaError
+            from confluent_kafka import Consumer
 
             conf = {
                 "bootstrap.servers": self.config.kafka_brokers,
@@ -109,7 +109,7 @@ class KafkaIntegrationTests:
             # Test message delivery
             test_message = {
                 "id": "test-001",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "source": "integration-test",
                 "raw_message": "Test message for integration testing",
             }
@@ -131,8 +131,8 @@ class KafkaIntegrationTests:
 
             # Wait for delivery with timeout
             try:
-                await asyncio.wait_for(delivery.Event.wait, timeout=10.0)
-            except asyncio.TimeoutError:
+                await asyncio.wait_for(delivered.wait(), timeout=10.0)
+            except TimeoutError:
                 raise Exception("Message delivery timed out")
 
             producer.flush(timeout=5)
@@ -241,7 +241,7 @@ class KafkaIntegrationTests:
             self.errors.append((test_name, str(e)))
             return False
 
-    async def run_all(self) -> Dict[str, Any]:
+    async def run_all(self) -> dict[str, Any]:
         """Run all Kafka integration tests."""
         logger.info("\n" + "=" * 60)
         logger.info("KAFKA INTEGRATION TESTS")
@@ -400,7 +400,7 @@ class QRadarIntegrationTests:
             self.errors.append((test_name, str(e)))
             return False
 
-    async def run_all(self) -> Dict[str, Any]:
+    async def run_all(self) -> dict[str, Any]:
         """Run all QRadar integration tests."""
         logger.info("\n" + "=" * 60)
         logger.info("QRADAR INTEGRATION TESTS")
@@ -485,7 +485,7 @@ class S3IntegrationTests:
             test_key = f"{self.config.s3_prefix}test/test_{int(time.time())}.json"
             test_data = {
                 "test": True,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "message": "Integration test data",
             }
 
@@ -512,7 +512,7 @@ class S3IntegrationTests:
             self.errors.append((test_name, str(e)))
             return False
 
-    async def run_all(self) -> Dict[str, Any]:
+    async def run_all(self) -> dict[str, Any]:
         """Run all S3 integration tests."""
         logger.info("\n" + "=" * 60)
         logger.info("S3 INTEGRATION TESTS")
@@ -532,8 +532,8 @@ async def run_integration_tests(
     test_kafka: bool = True,
     test_qradar: bool = True,
     test_s3: bool = True,
-    config: Optional[IntegrationTestConfig] = None,
-) -> Dict[str, Any]:
+    config: IntegrationTestConfig | None = None,
+) -> dict[str, Any]:
     """Run all integration tests."""
 
     if config is None:
@@ -553,7 +553,7 @@ async def run_integration_tests(
     logger.info("\n" + "=" * 80)
     logger.info("AI LOG FILTER - INTEGRATION TESTS")
     logger.info("=" * 80)
-    logger.info(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
+    logger.info(f"Timestamp: {datetime.now(UTC).isoformat()}")
     logger.info("=" * 80)
 
     if test_kafka:

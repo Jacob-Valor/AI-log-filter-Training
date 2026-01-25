@@ -8,9 +8,10 @@ and output routing.
 import asyncio
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 from confluent_kafka import Consumer, KafkaError, KafkaException, Producer
 from confluent_kafka.admin import AdminClient, NewTopic
@@ -30,7 +31,7 @@ class KafkaConfig(IntegrationConfig):
     session_timeout_ms: int = 30000
     heartbeat_interval_ms: int = 10000
     max_poll_records: int = 500
-    topics: Dict[str, str] = field(default_factory=dict)
+    topics: dict[str, str] = field(default_factory=dict)
 
     # Producer config
     acks: str = "all"
@@ -47,10 +48,10 @@ class LogMessage:
     timestamp: str
     source: str
     raw_message: str
-    parsed_fields: Dict[str, Any] = field(default_factory=dict)
-    category: Optional[str] = None
-    confidence: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    parsed_fields: dict[str, Any] = field(default_factory=dict)
+    category: str | None = None
+    confidence: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class KafkaProducerIntegration(BaseIntegration):
@@ -61,8 +62,8 @@ class KafkaProducerIntegration(BaseIntegration):
     def __init__(self, config: KafkaConfig):
         super().__init__("kafka-producer", config)
         self.config = config
-        self._producer: Optional[Producer] = None
-        self._pending_messages: Dict[str, asyncio.Future] = {}
+        self._producer: Producer | None = None
+        self._pending_messages: dict[str, asyncio.Future] = {}
 
     def _create_producer(self) -> Producer:
         """Create Kafka producer instance."""
@@ -74,7 +75,6 @@ class KafkaProducerIntegration(BaseIntegration):
             'linger.ms': self.config.linger_ms,
             'enable.idempotence': self.config.enable_idempotence,
             'compression.type': 'gzip',
-            'linger.ms': 5,
         }
         return Producer(conf)
 
@@ -100,7 +100,7 @@ class KafkaProducerIntegration(BaseIntegration):
             self._producer.flush(timeout=30)
             logger.info("Kafka producer disconnected")
 
-    def _delivery_callback(self, err: Optional[KafkaError], msg) -> None:
+    def _delivery_callback(self, err: KafkaError | None, msg) -> None:
         """Callback for message delivery confirmation."""
         message_id = msg.headers().get('message_id', b'unknown') if msg.headers() else b'unknown'
         message_id = message_id.decode() if isinstance(message_id, bytes) else str(message_id)
@@ -119,9 +119,9 @@ class KafkaProducerIntegration(BaseIntegration):
     async def send_message(
         self,
         topic: str,
-        message: Union[LogMessage, Dict[str, Any]],
-        key: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None
+        message: LogMessage | dict[str, Any],
+        key: str | None = None,
+        headers: dict[str, str] | None = None
     ) -> bool:
         """Send a message to Kafka."""
         if not self._producer:
@@ -173,7 +173,7 @@ class KafkaProducerIntegration(BaseIntegration):
             await asyncio.wait_for(future, timeout=30.0)
             return True
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Message delivery timeout: {message_id}")
             return False
         except Exception as e:
@@ -185,9 +185,9 @@ class KafkaProducerIntegration(BaseIntegration):
     async def send_batch(
         self,
         topic: str,
-        messages: List[Union[LogMessage, Dict[str, Any]]],
-        key_field: Optional[str] = None
-    ) -> Dict[str, int]:
+        messages: list[LogMessage | dict[str, Any]],
+        key_field: str | None = None
+    ) -> dict[str, int]:
         """Send multiple messages to Kafka."""
         results = {"success": 0, "failed": 0}
 
@@ -247,9 +247,9 @@ class KafkaConsumerIntegration(BaseIntegration):
     def __init__(self, config: KafkaConfig):
         super().__init__("kafka-consumer", config)
         self.config = config
-        self._consumer: Optional[Consumer] = None
+        self._consumer: Consumer | None = None
         self._running = False
-        self._message_handlers: List[Callable] = []
+        self._message_handlers: list[Callable] = []
 
     def _create_consumer(self) -> Consumer:
         """Create Kafka consumer instance."""
@@ -340,7 +340,7 @@ class KafkaConsumerIntegration(BaseIntegration):
         start_time = asyncio.get_event_loop().time()
 
         try:
-            metadata = self._consumer.list_topics(timeout=10)
+            self._consumer.list_topics(timeout=10)
             latency_ms = (asyncio.get_event_loop().time() - start_time) * 1000
 
             return HealthStatus(
@@ -371,7 +371,7 @@ class KafkaConsumerIntegration(BaseIntegration):
         except KafkaException:
             return False
 
-    def get_assignment(self) -> List[Dict[str, int]]:
+    def get_assignment(self) -> list[dict[str, int]]:
         """Get current topic assignments."""
         if not self._consumer:
             return []
@@ -383,7 +383,7 @@ class KafkaConsumerIntegration(BaseIntegration):
 
 async def create_kafka_topics(
     bootstrap_servers: str,
-    topics: List[str],
+    topics: list[str],
     num_partitions: int = 3,
     replication_factor: int = 1
 ) -> bool:
@@ -393,7 +393,7 @@ async def create_kafka_topics(
     try:
         # Check existing topics
         metadata = admin.list_topics(timeout=10)
-        existing_topics = set(t.topic for t in metadata.topics.values())
+        existing_topics = {t.topic for t in metadata.topics.values()}
 
         # Create new topics
         new_topics = [

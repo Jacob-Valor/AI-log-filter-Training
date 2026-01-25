@@ -25,11 +25,7 @@ class MetricsServer:
     async def start(self):
         """Start the metrics server."""
         try:
-            from prometheus_client import (
-                CONTENT_TYPE_LATEST,
-                generate_latest,
-                start_http_server,
-            )
+            from prometheus_client import start_http_server
 
             # Start prometheus HTTP server in a thread
             start_http_server(self.port, addr=self.host)

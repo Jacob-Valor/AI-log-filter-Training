@@ -4,15 +4,10 @@ Tests for Health Check Endpoints
 Tests the health, readiness, and liveness probes.
 """
 
-# Mock the imports before importing the module
-import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
-sys.modules['src.utils.circuit_breaker'] = MagicMock()
-sys.modules['src.monitoring.production_metrics'] = MagicMock()
 
 
 class TestHealthChecker:
@@ -87,7 +82,7 @@ class TestHealthEndpoints:
         response = client.get("/health/live")
 
         assert response.status_code == 200
-        assert response.json()["alive"] == True
+        assert response.json()["alive"]
 
     def test_readiness_probe_healthy(self, client):
         """Readiness probe should return ready when healthy."""
@@ -107,7 +102,7 @@ class TestHealthEndpoints:
             response = client.get("/health/ready")
 
             assert response.status_code == 200
-            assert response.json()["ready"] == True
+            assert response.json()["ready"]
 
     def test_full_health_check(self, client):
         """Full health check should return comprehensive status."""

@@ -6,7 +6,7 @@ Uses weighted averaging or voting for final predictions.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.models.anomaly_detector import AnomalyDetector
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
@@ -28,8 +28,8 @@ class EnsembleClassifier(BaseClassifier):
 
     def __init__(
         self,
-        model_path: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None
+        model_path: str | None = None,
+        config: dict[str, Any] | None = None
     ):
         super().__init__("ensemble", config)
         self.model_path = model_path
@@ -52,7 +52,7 @@ class EnsembleClassifier(BaseClassifier):
         ) if config else "weighted_average"
 
         # Initialize component classifiers
-        self.classifiers: Dict[str, BaseClassifier] = {}
+        self.classifiers: dict[str, BaseClassifier] = {}
 
     async def load(self):
         """Load all component classifiers."""
@@ -86,13 +86,13 @@ class EnsembleClassifier(BaseClassifier):
         predictions = await self.predict_batch([text])
         return predictions[0]
 
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
         """Classify a batch of log messages using ensemble."""
         if not self.is_loaded:
             await self.load()
 
         # Get predictions from all classifiers
-        all_predictions: Dict[str, List[Prediction]] = {}
+        all_predictions: dict[str, list[Prediction]] = {}
 
         for name, classifier in self.classifiers.items():
             try:
@@ -120,15 +120,15 @@ class EnsembleClassifier(BaseClassifier):
 
     def _combine_weighted_average(
         self,
-        texts: List[str],
-        all_predictions: Dict[str, List[Prediction]]
-    ) -> List[Prediction]:
+        texts: list[str],
+        all_predictions: dict[str, list[Prediction]]
+    ) -> list[Prediction]:
         """Combine predictions using weighted averaging."""
         results = []
 
         for i in range(len(texts)):
             # Aggregate probabilities across models
-            category_scores: Dict[str, float] = {cat: 0.0 for cat in self.CATEGORIES}
+            category_scores: dict[str, float] = dict.fromkeys(self.CATEGORIES, 0.0)
             explanations = {}
 
             for model_name, predictions in all_predictions.items():
@@ -181,14 +181,14 @@ class EnsembleClassifier(BaseClassifier):
 
     def _combine_max_voting(
         self,
-        texts: List[str],
-        all_predictions: Dict[str, List[Prediction]]
-    ) -> List[Prediction]:
+        texts: list[str],
+        all_predictions: dict[str, list[Prediction]]
+    ) -> list[Prediction]:
         """Combine predictions using max voting."""
         results = []
 
         for i in range(len(texts)):
-            votes: Dict[str, float] = {cat: 0.0 for cat in self.CATEGORIES}
+            votes: dict[str, float] = dict.fromkeys(self.CATEGORIES, 0.0)
             explanations = {}
 
             for model_name, predictions in all_predictions.items():

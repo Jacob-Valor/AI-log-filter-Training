@@ -7,7 +7,7 @@ Good balance between accuracy and speed.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import joblib
 import numpy as np
@@ -27,7 +27,7 @@ class TFIDFClassifier(BaseClassifier):
     for classification. Provides good accuracy with low latency.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         super().__init__("tfidf_xgboost", config)
         self.vectorizer = None
         self.classifier = None
@@ -127,7 +127,7 @@ class TFIDFClassifier(BaseClassifier):
         predictions = await self.predict_batch([text])
         return predictions[0]
 
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
         """Classify a batch of log messages."""
         if not self.is_loaded:
             await self.load()
@@ -157,13 +157,13 @@ class TFIDFClassifier(BaseClassifier):
 
         # Create prediction objects
         results = []
-        for i, (pred_idx, prob) in enumerate(zip(predictions, proba)):
+        for _i, (pred_idx, prob) in enumerate(zip(predictions, proba, strict=False)):
             category = self.label_encoder.inverse_transform([pred_idx])[0]
             confidence = float(np.max(prob))
 
             probabilities = {
                 cat: float(p)
-                for cat, p in zip(self.label_encoder.classes_, prob)
+                for cat, p in zip(self.label_encoder.classes_, prob, strict=False)
             }
 
             results.append(Prediction(
@@ -175,7 +175,7 @@ class TFIDFClassifier(BaseClassifier):
 
         return results
 
-    def train(self, texts: List[str], labels: List[str]):
+    def train(self, texts: list[str], labels: list[str]):
         """Train the classifier on labeled data."""
         from sklearn.model_selection import train_test_split
 
@@ -223,7 +223,7 @@ class TFIDFClassifier(BaseClassifier):
         joblib.dump(artifacts, save_path / "model.joblib")
         logger.info(f"Model saved to {save_path}")
 
-    def get_feature_importance(self) -> Optional[Dict[str, float]]:
+    def get_feature_importance(self) -> dict[str, float] | None:
         """Get feature importance from XGBoost."""
         if not hasattr(self.classifier, "feature_importances_"):
             return None

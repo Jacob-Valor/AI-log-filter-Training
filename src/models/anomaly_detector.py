@@ -7,10 +7,11 @@ Complements classification by identifying unusual logs.
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import joblib
 import numpy as np
+
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
 from src.utils.logging import get_logger
 
@@ -52,7 +53,7 @@ class AnomalyDetector(BaseClassifier):
     may indicate security issues even if not matching known patterns.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         super().__init__("anomaly_detector", config)
         self.model = None
         self.scaler = None
@@ -136,7 +137,7 @@ class AnomalyDetector(BaseClassifier):
         predictions = await self.predict_batch([text])
         return predictions[0]
 
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
         """Check if logs are anomalous."""
         if not self.is_loaded:
             await self.load()
@@ -163,7 +164,7 @@ class AnomalyDetector(BaseClassifier):
         predictions_raw = self.model.predict(X_scaled)
 
         results = []
-        for score, pred in zip(scores, predictions_raw):
+        for score, pred in zip(scores, predictions_raw, strict=False):
             is_anomaly = pred == -1
 
             # Convert anomaly detection to classification
@@ -186,7 +187,7 @@ class AnomalyDetector(BaseClassifier):
 
         return results
 
-    def train(self, texts: List[str]):
+    def train(self, texts: list[str]):
         """Train anomaly detector on normal logs."""
         logger.info(f"Training anomaly detector on {len(texts)} samples")
 

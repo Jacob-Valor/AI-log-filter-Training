@@ -6,7 +6,7 @@ Provides high-precision classification for known patterns.
 """
 
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import yaml
 
@@ -25,10 +25,10 @@ class RuleBasedClassifier(BaseClassifier):
     High confidence for matching rules, provides baseline classification.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         super().__init__("rule_based", config)
-        self.rules: Dict[str, List[Dict[str, Any]]] = {}
-        self.compiled_rules: Dict[str, List[Tuple[str, re.Pattern, float]]] = {}
+        self.rules: dict[str, list[dict[str, Any]]] = {}
+        self.compiled_rules: dict[str, list[tuple[str, re.Pattern, float]]] = {}
         self.priority_order = ["critical", "suspicious", "noise", "routine"]
         self.default_category = "routine"
         self.default_confidence = 0.5
@@ -38,7 +38,7 @@ class RuleBasedClassifier(BaseClassifier):
         rules_path = self.config.get("rules_path", "configs/rules.yaml")
 
         try:
-            with open(rules_path, "r") as f:
+            with open(rules_path) as f:
                 rules_config = yaml.safe_load(f)
 
             self._compile_rules(rules_config)
@@ -53,7 +53,7 @@ class RuleBasedClassifier(BaseClassifier):
             logger.error(f"Failed to load rules: {e}")
             raise
 
-    def _compile_rules(self, rules_config: Dict[str, Any]):
+    def _compile_rules(self, rules_config: dict[str, Any]):
         """Compile regex patterns from rules configuration."""
         settings = rules_config.get("settings", {})
         self.priority_order = settings.get("priority_order", self.priority_order)
@@ -125,11 +125,11 @@ class RuleBasedClassifier(BaseClassifier):
             explanation={"matched_rule": None}
         )
 
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
         """Classify a batch of log messages."""
         return [await self.predict(text) for text in texts]
 
-    def get_matching_rules(self, text: str) -> List[Dict[str, Any]]:
+    def get_matching_rules(self, text: str) -> list[dict[str, Any]]:
         """Get all rules that match a given text."""
         matches = []
 

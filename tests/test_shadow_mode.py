@@ -6,6 +6,7 @@ against QRadar offense generation.
 """
 
 import pytest
+import pytest_asyncio
 
 from src.models.base import Prediction
 from src.validation.shadow_mode import (
@@ -130,7 +131,7 @@ class TestQRadarResultRecording:
         assert len(validator.stats.missed_offenses) == 1
 
         decision = validator.decisions["log-001"]
-        assert decision.is_false_negative == True
+        assert decision.is_false_negative
 
     @pytest.mark.asyncio
     async def test_false_positive(self, validator):
@@ -143,13 +144,13 @@ class TestQRadarResultRecording:
         assert validator.stats.false_positives == 1
 
         decision = validator.decisions["log-001"]
-        assert decision.is_false_positive == True
+        assert decision.is_false_positive
 
 
 class TestAccuracyMetrics:
     """Test accuracy metric calculations."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def validated_validator(self):
         """Create a validator with various outcomes."""
         validator = ShadowModeValidator()
@@ -225,7 +226,7 @@ class TestPhaseTransitions:
         """Should not be ready without enough samples."""
         ready, reason = validator.is_ready_for_next_phase()
 
-        assert ready == False
+        assert not ready
         assert "samples" in reason.lower()
 
     @pytest.mark.asyncio
@@ -247,7 +248,7 @@ class TestPhaseTransitions:
         ready, reason = validator.is_ready_for_next_phase()
 
         # Should fail on FNR or recall
-        assert ready == False
+        assert not ready
 
 
 class TestValidationReport:

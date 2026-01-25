@@ -6,7 +6,6 @@ import argparse
 import asyncio
 import signal
 import sys
-from typing import Optional
 
 from src.ingestion.kafka_consumer import LogConsumer
 from src.models.ensemble import EnsembleClassifier
@@ -29,10 +28,10 @@ class AILogFilterService:
         self.running = False
 
         # Initialize components
-        self.consumer: Optional[LogConsumer] = None
-        self.classifier: Optional[EnsembleClassifier] = None
-        self.router: Optional[LogRouter] = None
-        self.metrics_server: Optional[MetricsServer] = None
+        self.consumer: LogConsumer | None = None
+        self.classifier: EnsembleClassifier | None = None
+        self.router: LogRouter | None = None
+        self.metrics_server: MetricsServer | None = None
 
     async def initialize(self):
         """Initialize all service components."""

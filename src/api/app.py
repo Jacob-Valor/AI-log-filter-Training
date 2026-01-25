@@ -5,12 +5,13 @@ REST API for log classification and management.
 """
 
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
 from src.api.rate_limiter import (
     RateLimitConfig,
     get_rate_limit_status,
@@ -25,7 +26,7 @@ from src.utils.logging import get_logger, setup_logging
 logger = get_logger(__name__)
 
 # Global classifier instance
-classifier: Optional[EnsembleClassifier] = None
+classifier: EnsembleClassifier | None = None
 
 
 @asynccontextmanager
@@ -74,7 +75,7 @@ app.add_middleware(
 )
 
 # Global classifier instance
-classifier: Optional[EnsembleClassifier] = None
+classifier: EnsembleClassifier | None = None
 
 
 # =============================================================================
@@ -86,9 +87,9 @@ class LogMessage(BaseModel):
     """Single log message for classification."""
 
     message: str = Field(..., description="Log message text")
-    source: Optional[str] = Field(None, description="Log source identifier")
-    timestamp: Optional[datetime] = Field(None, description="Log timestamp")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    source: str | None = Field(None, description="Log source identifier")
+    timestamp: datetime | None = Field(None, description="Log timestamp")
+    metadata: dict[str, Any] | None = Field(None, description="Additional metadata")
 
 
 class ClassificationResult(BaseModel):
@@ -97,10 +98,10 @@ class ClassificationResult(BaseModel):
     category: str = Field(..., description="Predicted category")
     confidence: float = Field(..., description="Prediction confidence (0-1)")
     model: str = Field(..., description="Model used for classification")
-    probabilities: Optional[Dict[str, float]] = Field(
+    probabilities: dict[str, float] | None = Field(
         None, description="Per-class probabilities"
     )
-    explanation: Optional[Dict[str, Any]] = Field(
+    explanation: dict[str, Any] | None = Field(
         None, description="Classification explanation"
     )
 
@@ -108,13 +109,13 @@ class ClassificationResult(BaseModel):
 class BatchClassifyRequest(BaseModel):
     """Request for batch classification."""
 
-    logs: List[LogMessage] = Field(..., description="List of log messages")
+    logs: list[LogMessage] = Field(..., description="List of log messages")
 
 
 class BatchClassifyResponse(BaseModel):
     """Response for batch classification."""
 
-    results: List[ClassificationResult]
+    results: list[ClassificationResult]
     processing_time_ms: float
     total_logs: int
 
@@ -124,14 +125,14 @@ class HealthResponse(BaseModel):
 
     status: str
     timestamp: datetime
-    checks: Dict[str, Any]
+    checks: dict[str, Any]
 
 
 class StatsResponse(BaseModel):
     """Statistics response."""
 
     total_processed: int
-    classification_distribution: Dict[str, int]
+    classification_distribution: dict[str, int]
     avg_latency_ms: float
     uptime_seconds: float
 
@@ -159,7 +160,7 @@ async def health_check():
 
     return HealthResponse(
         status=health["status"],
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         checks=health.get("checks", {}),
     )
 

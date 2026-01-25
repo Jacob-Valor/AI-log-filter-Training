@@ -17,7 +17,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -33,7 +33,7 @@ class ClassificationRecord:
     log_id: str
     timestamp: datetime
     message_hash: str
-    source_ip: Optional[str]
+    source_ip: str | None
     source: str
     category: str
     confidence: float
@@ -49,12 +49,12 @@ class QRadarOffense:
     offense_type_name: str
     severity: int
     status: str
-    source_ips: List[str]
-    log_sources: List[str]
+    source_ips: list[str]
+    log_sources: list[str]
     start_time: datetime
     last_updated: datetime
     event_count: int
-    categories: List[str]
+    categories: list[str]
 
 
 @dataclass
@@ -70,13 +70,13 @@ class CorrelationMatch:
 class QRadarClient:
     """Client for QRadar API interactions."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.host = config.get("host", "localhost")
         self.port = config.get("port", 443)
         self.token = config.get("token")
         self.verify_ssl = config.get("verify_ssl", True)
         self.timeout = config.get("timeout", 30)
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client."""
@@ -95,11 +95,11 @@ class QRadarClient:
 
     async def get_offenses(
         self,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
         status: str = "OPEN",
         limit: int = 100
-    ) -> List[QRadarOffense]:
+    ) -> list[QRadarOffense]:
         """Fetch offenses from QRadar."""
         client = await self._get_client()
 
@@ -158,7 +158,7 @@ class QRadarClient:
         self,
         offense_id: int,
         limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get events associated with an offense."""
         client = await self._get_client()
 
@@ -224,8 +224,8 @@ class OffenseCorrelator:
 
     def __init__(
         self,
-        qradar_config: Dict[str, Any],
-        correlation_config: Optional[Dict[str, Any]] = None
+        qradar_config: dict[str, Any],
+        correlation_config: dict[str, Any] | None = None
     ):
         self.qradar = QRadarClient(qradar_config)
         self.config = correlation_config or {}
@@ -238,13 +238,13 @@ class OffenseCorrelator:
         self.min_correlation_confidence = self.config.get("min_correlation_confidence", 0.6)
 
         # Storage for classification records
-        self.classifications: Dict[str, ClassificationRecord] = {}
-        self.classifications_by_ip: Dict[str, List[str]] = defaultdict(list)
-        self.classifications_by_source: Dict[str, List[str]] = defaultdict(list)
+        self.classifications: dict[str, ClassificationRecord] = {}
+        self.classifications_by_ip: dict[str, list[str]] = defaultdict(list)
+        self.classifications_by_source: dict[str, list[str]] = defaultdict(list)
 
         # Results
-        self.matches: List[CorrelationMatch] = []
-        self.false_negatives: List[CorrelationMatch] = []
+        self.matches: list[CorrelationMatch] = []
+        self.false_negatives: list[CorrelationMatch] = []
 
         # Stats
         self.stats = {
@@ -265,8 +265,8 @@ class OffenseCorrelator:
         source: str,
         category: str,
         confidence: float,
-        source_ip: Optional[str] = None,
-        timestamp: Optional[datetime] = None
+        source_ip: str | None = None,
+        timestamp: datetime | None = None
     ):
         """Record an AI classification for later correlation."""
         record = ClassificationRecord(
@@ -312,7 +312,7 @@ class OffenseCorrelator:
     async def correlate_with_offenses(
         self,
         lookback_hours: int = 1
-    ) -> List[CorrelationMatch]:
+    ) -> list[CorrelationMatch]:
         """
         Fetch recent offenses and correlate with stored classifications.
 
@@ -373,7 +373,7 @@ class OffenseCorrelator:
         self.matches.extend(new_matches)
         return new_matches
 
-    def _find_correlations(self, offense: QRadarOffense) -> List[CorrelationMatch]:
+    def _find_correlations(self, offense: QRadarOffense) -> list[CorrelationMatch]:
         """Find classification records that correlate with an offense."""
         matches = []
         checked_log_ids = set()
@@ -494,7 +494,7 @@ class OffenseCorrelator:
 
         return min(confidence, 1.0)
 
-    def get_false_negative_report(self) -> Dict[str, Any]:
+    def get_false_negative_report(self) -> dict[str, Any]:
         """Generate a report of detected false negatives."""
         return {
             "timestamp": datetime.utcnow().isoformat(),
@@ -530,7 +530,7 @@ class OffenseCorrelator:
     async def run_continuous_correlation(
         self,
         interval_seconds: int = 300,
-        callback: Optional[callable] = None
+        callback: callable | None = None
     ):
         """
         Run continuous correlation in the background.
@@ -567,8 +567,8 @@ class OffenseCorrelator:
 
 # Factory function
 def create_correlator(
-    qradar_config: Dict[str, Any],
-    correlation_config: Optional[Dict[str, Any]] = None
+    qradar_config: dict[str, Any],
+    correlation_config: dict[str, Any] | None = None
 ) -> OffenseCorrelator:
     """Create an offense correlator instance."""
     return OffenseCorrelator(qradar_config, correlation_config)
@@ -594,7 +594,7 @@ class ShadowModeCorrelationIntegration:
     async def process_classification(
         self,
         log_id: str,
-        log: Dict[str, Any],
+        log: dict[str, Any],
         prediction: Any  # Prediction
     ):
         """Process a classification and record for correlation."""
@@ -614,7 +614,7 @@ class ShadowModeCorrelationIntegration:
         # Record in shadow validator
         await self.validator.record_decision(log_id, prediction, log)
 
-    def _extract_ip(self, message: str) -> Optional[str]:
+    def _extract_ip(self, message: str) -> str | None:
         """Extract first IP address from message."""
         ip_pattern = r"\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
         match = re.search(ip_pattern, message)

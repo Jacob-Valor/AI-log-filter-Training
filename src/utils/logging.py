@@ -7,7 +7,6 @@ Provides structured logging with JSON output support.
 import logging
 import sys
 from datetime import datetime
-from typing import Optional
 
 try:
     import structlog
@@ -23,7 +22,7 @@ _loggers = {}
 def setup_logging(
     level: str = "INFO",
     format_type: str = "json",
-    output_file: Optional[str] = None
+    output_file: str | None = None
 ):
     """
     Configure logging for the application.
@@ -71,7 +70,7 @@ def _setup_structlog(log_level: int):
 def _setup_standard_logging(
     log_level: int,
     format_type: str,
-    output_file: Optional[str]
+    output_file: str | None
 ):
     """Configure standard Python logging."""
     if format_type == "json":

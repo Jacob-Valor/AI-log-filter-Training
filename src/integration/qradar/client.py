@@ -11,7 +11,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, TypedDict
 
 import httpx
 from pydantic import BaseModel, Field
@@ -35,7 +35,7 @@ class QRadarConfig(IntegrationConfig):
     max_results: int = 1000
 
     # Offense config
-    offense_types: Dict[str, int] = field(default_factory=lambda: {
+    offense_types: dict[str, int] = field(default_factory=lambda: {
         "username": 0,
         "sourceip": 1,
         "destinationip": 2,
@@ -62,29 +62,29 @@ class LEEFEvent(BaseModel):
     severity: int = Field(ge=0, le=10, default=5)
 
     # Optional fields
-    message_id: Optional[str] = None
-    signature_id: Optional[str] = None
-    source_host: Optional[str] = None
-    source_ip: Optional[str] = None
-    source_port: Optional[int] = None
-    dest_host: Optional[str] = None
-    dest_ip: Optional[str] = None
-    dest_port: Optional[int] = None
-    username: Optional[str] = None
-    url: Optional[str] = None
-    file_path: Optional[str] = None
-    process_id: Optional[str] = None
-    process_name: Optional[str] = None
-    protocol: Optional[str] = None
-    bytes_in: Optional[int] = None
-    bytes_out: Optional[int] = None
-    count: Optional[int] = None
+    message_id: str | None = None
+    signature_id: str | None = None
+    source_host: str | None = None
+    source_ip: str | None = None
+    source_port: int | None = None
+    dest_host: str | None = None
+    dest_ip: str | None = None
+    dest_port: int | None = None
+    username: str | None = None
+    url: str | None = None
+    file_path: str | None = None
+    process_id: str | None = None
+    process_name: str | None = None
+    protocol: str | None = None
+    bytes_in: int | None = None
+    bytes_out: int | None = None
+    count: int | None = None
 
     # Custom extension fields
-    extensions: Dict[str, str] = Field(default_factory=dict)
+    extensions: dict[str, str] = Field(default_factory=dict)
 
     # Category mapping
-    category_map: Dict[str, int] = field(default_factory=lambda: {
+    category_map: dict[str, int] = field(default_factory=lambda: {
         "critical": 10,
         "high": 8,
         "medium": 6,
@@ -155,18 +155,18 @@ class LEEFEvent(BaseModel):
 
 class QRadarEvent(TypedDict):
     """QRadar event format."""
-    sourceip: Optional[str]
-    destinationip: Optional[str]
-    sourceport: Optional[int]
-    destinationport: Optional[int]
-    username: Optional[str]
-    hostname: Optional[str]
-    qid: Optional[int]
-    severity: Optional[int]
-    content: Optional[str]
-    device_time: Optional[str]
-    logsourceid: Optional[int]
-    facility: Optional[int]
+    sourceip: str | None
+    destinationip: str | None
+    sourceport: int | None
+    destinationport: int | None
+    username: str | None
+    hostname: str | None
+    qid: int | None
+    severity: int | None
+    content: str | None
+    device_time: str | None
+    logsourceid: int | None
+    facility: int | None
 
 
 class QRadarIntegration(BaseIntegration):
@@ -177,8 +177,8 @@ class QRadarIntegration(BaseIntegration):
     def __init__(self, config: QRadarConfig):
         super().__init__("qradar", config)
         self.config = config
-        self._client: Optional[httpx.AsyncClient] = None
-        self._base_url: Optional[str] = None
+        self._client: httpx.AsyncClient | None = None
+        self._base_url: str | None = None
 
     def _create_client(self) -> httpx.AsyncClient:
         """Create HTTP client for QRadar API."""
@@ -233,8 +233,8 @@ class QRadarIntegration(BaseIntegration):
 
     async def send_event(
         self,
-        event: Union[LEEFEvent, Dict[str, Any]],
-        log_source_id: Optional[int] = None
+        event: LEEFEvent | dict[str, Any],
+        log_source_id: int | None = None
     ) -> bool:
         """
         Send a single event to QRadar via the Event API.
@@ -261,7 +261,7 @@ class QRadarIntegration(BaseIntegration):
             # Send to QRadar
             endpoint = f"{self._base_url}/siem/events"
 
-            payload: Dict[str, Any] = {
+            payload: dict[str, Any] = {
                 "events": [{
                     "device_time": datetime.utcnow().isoformat(),
                     "logsource_id": log_source_id or 116,
@@ -293,9 +293,9 @@ class QRadarIntegration(BaseIntegration):
 
     async def send_batch(
         self,
-        events: List[Union[LEEFEvent, Dict[str, Any]]],
+        events: list[LEEFEvent | dict[str, Any]],
         batch_size: int = 100
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """
         Send multiple events to QRadar in batches.
 
@@ -329,10 +329,10 @@ class QRadarIntegration(BaseIntegration):
         title: str,
         description: str,
         severity: int = 5,
-        source_ip: Optional[str] = None,
-        username: Optional[str] = None,
+        source_ip: str | None = None,
+        username: str | None = None,
         offense_type: str = "sourceip"
-    ) -> Optional[int]:
+    ) -> int | None:
         """
         Create a new offense in QRadar.
 
@@ -387,9 +387,9 @@ class QRadarIntegration(BaseIntegration):
 
     async def get_offenses(
         self,
-        status: Optional[str] = None,
+        status: str | None = None,
         limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get offenses from QRadar."""
         if not self._client:
             raise RuntimeError("QRadar client not connected")
@@ -446,10 +446,10 @@ class QRadarIntegration(BaseIntegration):
     async def run_ariel_query(
         self,
         query: str,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-        timeout: Optional[int] = None
-    ) -> Dict[str, Any]:
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+        timeout: int | None = None
+    ) -> dict[str, Any]:
         """
         Run an Ariel search query.
 
@@ -500,7 +500,7 @@ class QRadarIntegration(BaseIntegration):
         self,
         search_id: str,
         timeout: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Wait for Ariel search to complete."""
         start_time = time.time()
 
@@ -586,9 +586,9 @@ def create_qradar_event(
     log_message: str,
     category: str,
     confidence: float,
-    source_ip: Optional[str] = None,
-    hostname: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    source_ip: str | None = None,
+    hostname: str | None = None,
+    metadata: dict[str, Any] | None = None
 ) -> LEEFEvent:
     """Create a LEEF event from classification result."""
 

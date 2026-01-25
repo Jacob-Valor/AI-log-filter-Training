@@ -21,10 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.monitoring.cost_tracker import (
-    INFRASTRUCTURE_COSTS,
-    QRADAR_PRICING_TIERS,
     TOTAL_INFRASTRUCTURE_COST,
-    get_cost_tracker,
 )
 
 
