@@ -88,7 +88,7 @@ class TestFeatureExtractor:
         parsed = {
             # Use "login" keyword which matches the has_auth regex pattern
             "message": "ERROR: Login authentication failed for user admin",
-            "format": "generic"
+            "format": "generic",
         }
 
         features = extractor.extract(parsed)

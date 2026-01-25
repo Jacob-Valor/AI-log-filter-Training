@@ -48,9 +48,11 @@ logger = get_logger(__name__)
 # Configuration
 # =============================================================================
 
+
 @dataclass
 class TrainingConfig:
     """Training configuration."""
+
     # Data settings
     test_size: float = 0.15
     val_size: float = 0.10
@@ -80,6 +82,7 @@ class TrainingConfig:
 @dataclass
 class TrainingResults:
     """Results from training run."""
+
     model_version: str
     timestamp: str
     accuracy: float
@@ -95,6 +98,7 @@ class TrainingResults:
 # =============================================================================
 # Data Loading and Preprocessing
 # =============================================================================
+
 
 class DataLoader:
     """Load and preprocess training data from various sources."""
@@ -250,7 +254,9 @@ class DataLoader:
         # Normalize UUIDs
         text = re.sub(
             r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-            "<UUID>", text, flags=re.IGNORECASE
+            "<UUID>",
+            text,
+            flags=re.IGNORECASE,
         )
 
         # Normalize paths
@@ -266,8 +272,7 @@ class DataLoader:
         return text
 
     def prepare_data(
-        self,
-        df: pd.DataFrame
+        self, df: pd.DataFrame
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Prepare data for training with train/val/test split."""
 
@@ -283,19 +288,17 @@ class DataLoader:
 
         # First split: train+val vs test
         X_trainval, X_test, y_trainval, y_test = train_test_split(
-            X, y,
-            test_size=self.config.test_size,
-            random_state=self.config.random_state,
-            stratify=y
+            X, y, test_size=self.config.test_size, random_state=self.config.random_state, stratify=y
         )
 
         # Second split: train vs val
         val_ratio = self.config.val_size / (1 - self.config.test_size)
         X_train, X_val, y_train, y_val = train_test_split(
-            X_trainval, y_trainval,
+            X_trainval,
+            y_trainval,
             test_size=val_ratio,
             random_state=self.config.random_state,
-            stratify=y_trainval
+            stratify=y_trainval,
         )
 
         logger.info(f"Data split: train={len(X_train)}, val={len(X_val)}, test={len(X_test)}")
@@ -306,6 +309,7 @@ class DataLoader:
 # =============================================================================
 # Model Training
 # =============================================================================
+
 
 class ModelTrainer:
     """Train classification and anomaly detection models."""
@@ -321,11 +325,7 @@ class ModelTrainer:
         self.anomaly_scaler = None
 
     def train_tfidf_xgboost(
-        self,
-        X_train: np.ndarray,
-        y_train: np.ndarray,
-        X_val: np.ndarray,
-        y_val: np.ndarray
+        self, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray
     ) -> dict[str, Any]:
         """Train TF-IDF + XGBoost classifier."""
         from xgboost import XGBClassifier
@@ -338,7 +338,7 @@ class ModelTrainer:
             ngram_range=self.config.tfidf_ngram_range,
             min_df=self.config.tfidf_min_df,
             max_df=self.config.tfidf_max_df,
-            sublinear_tf=True
+            sublinear_tf=True,
         )
 
         # Fit vectorizer and transform
@@ -355,6 +355,7 @@ class ModelTrainer:
 
         # Calculate class weights for imbalanced data
         from sklearn.utils.class_weight import compute_sample_weight
+
         sample_weights = compute_sample_weight("balanced", y_train_enc)
 
         # Initialize classifier
@@ -367,24 +368,23 @@ class ModelTrainer:
             use_label_encoder=False,
             n_jobs=-1,
             random_state=self.config.random_state,
-            early_stopping_rounds=self.config.xgb_early_stopping_rounds
+            early_stopping_rounds=self.config.xgb_early_stopping_rounds,
         )
 
         # Train with early stopping
         self.classifier.fit(
-            X_train_vec, y_train_enc,
+            X_train_vec,
+            y_train_enc,
             sample_weight=sample_weights,
             eval_set=[(X_val_vec, y_val_enc)],
-            verbose=False
+            verbose=False,
         )
 
         # Get feature importance
         feature_names = self.vectorizer.get_feature_names_out()
         importances = self.classifier.feature_importances_
         top_features = sorted(
-            zip(feature_names, importances, strict=False),
-            key=lambda x: x[1],
-            reverse=True
+            zip(feature_names, importances, strict=False), key=lambda x: x[1], reverse=True
         )[:20]
 
         logger.info("Top 10 features:")
@@ -394,7 +394,7 @@ class ModelTrainer:
         return {
             "vocabulary_size": len(self.vectorizer.vocabulary_),
             "n_estimators_used": self.classifier.best_iteration + 1,
-            "top_features": dict(top_features)
+            "top_features": dict(top_features),
         }
 
     def train_anomaly_detector(self, X_train: np.ndarray) -> dict[str, Any]:
@@ -414,7 +414,7 @@ class ModelTrainer:
             n_estimators=self.config.anomaly_n_estimators,
             max_samples="auto",
             random_state=self.config.random_state,
-            n_jobs=-1
+            n_jobs=-1,
         )
         self.anomaly_detector.fit(features_scaled)
 
@@ -425,7 +425,7 @@ class ModelTrainer:
             "n_features": features.shape[1],
             "mean_score": float(np.mean(scores)),
             "std_score": float(np.std(scores)),
-            "threshold": float(np.percentile(scores, 10))
+            "threshold": float(np.percentile(scores, 10)),
         }
 
     def _extract_anomaly_features(self, texts: np.ndarray) -> np.ndarray:
@@ -454,24 +454,22 @@ class ModelTrainer:
             has_ip = 1 if re.search(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", text) else 0
             has_path = 1 if re.search(r"/\w+/", text) else 0
 
-            features.append([
-                msg_len,
-                word_count,
-                digit_ratio,
-                special_ratio,
-                upper_ratio,
-                has_error,
-                has_ip,
-                has_path
-            ])
+            features.append(
+                [
+                    msg_len,
+                    word_count,
+                    digit_ratio,
+                    special_ratio,
+                    upper_ratio,
+                    has_error,
+                    has_ip,
+                    has_path,
+                ]
+            )
 
         return np.array(features)
 
-    def evaluate(
-        self,
-        X_test: np.ndarray,
-        y_test: np.ndarray
-    ) -> TrainingResults:
+    def evaluate(self, X_test: np.ndarray, y_test: np.ndarray) -> TrainingResults:
         """Evaluate trained models."""
         logger.info("Evaluating models...")
 
@@ -498,7 +496,7 @@ class ModelTrainer:
                 "precision": float(precision[i]),
                 "recall": float(recall[i]),
                 "f1": float(f1[i]),
-                "support": int(support[i])
+                "support": int(support[i]),
             }
 
         # Cross-validation using a fresh classifier without early stopping
@@ -506,6 +504,7 @@ class ModelTrainer:
         logger.info("Running cross-validation...")
         try:
             from xgboost import XGBClassifier as XGBClassifierCV
+
             cv_classifier = XGBClassifierCV(
                 n_estimators=min(50, self.config.xgb_n_estimators),
                 max_depth=self.config.xgb_max_depth,
@@ -513,15 +512,17 @@ class ModelTrainer:
                 objective="multi:softprob",
                 eval_metric="mlogloss",
                 n_jobs=-1,
-                random_state=self.config.random_state
+                random_state=self.config.random_state,
                 # No early_stopping_rounds for CV compatibility
             )
             X_all = self.vectorizer.transform(X_test)
             y_all = self.label_encoder.transform(y_test)
             cv_scores = cross_val_score(
-                cv_classifier, X_all, y_all,
+                cv_classifier,
+                X_all,
+                y_all,
                 cv=min(self.config.cv_folds, len(y_test) // 10),
-                scoring="accuracy"
+                scoring="accuracy",
             )
         except Exception as e:
             logger.warning(f"Cross-validation failed: {e}")
@@ -574,7 +575,7 @@ class ModelTrainer:
             training_samples=len(X_test),  # Will be updated
             test_samples=len(X_test),
             passed_validation=passed,
-            validation_messages=validation_messages
+            validation_messages=validation_messages,
         )
 
     def save(self, output_path: str, results: TrainingResults):
@@ -585,22 +586,28 @@ class ModelTrainer:
         # Save TF-IDF + XGBoost
         tfidf_dir = output_dir / "tfidf_xgboost"
         tfidf_dir.mkdir(exist_ok=True)
-        joblib.dump({
-            "vectorizer": self.vectorizer,
-            "classifier": self.classifier,
-            "label_encoder": self.label_encoder,
-            "config": asdict(self.config)
-        }, tfidf_dir / "model.joblib")
+        joblib.dump(
+            {
+                "vectorizer": self.vectorizer,
+                "classifier": self.classifier,
+                "label_encoder": self.label_encoder,
+                "config": asdict(self.config),
+            },
+            tfidf_dir / "model.joblib",
+        )
         logger.info(f"Saved TF-IDF model to {tfidf_dir}")
 
         # Save anomaly detector
         anomaly_dir = output_dir / "anomaly_detector"
         anomaly_dir.mkdir(exist_ok=True)
-        joblib.dump({
-            "model": self.anomaly_detector,
-            "scaler": self.anomaly_scaler,
-            "config": asdict(self.config)
-        }, anomaly_dir / "model.joblib")
+        joblib.dump(
+            {
+                "model": self.anomaly_detector,
+                "scaler": self.anomaly_scaler,
+                "config": asdict(self.config),
+            },
+            anomaly_dir / "model.joblib",
+        )
         logger.info(f"Saved anomaly detector to {anomaly_dir}")
 
         # Save results and metadata
@@ -608,14 +615,18 @@ class ModelTrainer:
             json.dump(asdict(results), f, indent=2)
 
         with open(output_dir / "model_info.json", "w") as f:
-            json.dump({
-                "version": results.model_version,
-                "timestamp": results.timestamp,
-                "accuracy": results.accuracy,
-                "critical_recall": results.per_class_metrics["critical"]["recall"],
-                "passed_validation": results.passed_validation,
-                "config": asdict(self.config)
-            }, f, indent=2)
+            json.dump(
+                {
+                    "version": results.model_version,
+                    "timestamp": results.timestamp,
+                    "accuracy": results.accuracy,
+                    "critical_recall": results.per_class_metrics["critical"]["recall"],
+                    "passed_validation": results.passed_validation,
+                    "config": asdict(self.config),
+                },
+                f,
+                indent=2,
+            )
 
         # Create latest symlink
         latest_link = output_dir.parent / "latest"
@@ -630,6 +641,7 @@ class ModelTrainer:
 # =============================================================================
 # Main Pipeline
 # =============================================================================
+
 
 def run_pipeline(args):
     """Run the complete training pipeline."""
@@ -718,35 +730,26 @@ Examples:
 
   # Train with custom recall threshold
   python scripts/training_pipeline.py --data data/train.csv --min-recall 0.995 --output models/v1
-        """
+        """,
     )
 
     parser.add_argument(
         "--data",
         type=str,
-        help="Path to labeled CSV file (must have 'message' and 'category' columns)"
+        help="Path to labeled CSV file (must have 'message' and 'category' columns)",
+    )
+    parser.add_argument("--hdfs", type=str, help="Path to HDFS TraceBench directory")
+    parser.add_argument(
+        "--auto-label", action="store_true", help="Auto-label data using pattern matching"
     )
     parser.add_argument(
-        "--hdfs",
-        type=str,
-        help="Path to HDFS TraceBench directory"
-    )
-    parser.add_argument(
-        "--auto-label",
-        action="store_true",
-        help="Auto-label data using pattern matching"
-    )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="models/v1",
-        help="Output directory for trained models"
+        "--output", type=str, default="models/v1", help="Output directory for trained models"
     )
     parser.add_argument(
         "--min-recall",
         type=float,
         default=0.99,
-        help="Minimum required critical recall (default: 0.99)"
+        help="Minimum required critical recall (default: 0.99)",
     )
 
     args = parser.parse_args()

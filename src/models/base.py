@@ -23,7 +23,7 @@ class Prediction:
             "confidence": self.confidence,
             "model": self.model,
             "probabilities": self.probabilities,
-            "explanation": self.explanation
+            "explanation": self.explanation,
         }
 
 
@@ -104,9 +104,11 @@ class ClassifierRegistry:
     @classmethod
     def register(cls, name: str):
         """Decorator to register a classifier class."""
+
         def decorator(classifier_class: type):
             cls._classifiers[name] = classifier_class
             return classifier_class
+
         return decorator
 
     @classmethod

@@ -57,12 +57,8 @@ class TestSafeEnsembleInitialization:
             "timeout_seconds": 10.0,
             "max_batch_size": 500,
             "ensemble": {
-                "weights": {
-                    "rule_based": 0.5,
-                    "tfidf_xgboost": 0.3,
-                    "anomaly_detector": 0.2
-                }
-            }
+                "weights": {"rule_based": 0.5, "tfidf_xgboost": 0.3, "anomaly_detector": 0.2}
+            },
         }
 
         classifier = SafeEnsembleClassifier(config=config)
@@ -74,12 +70,12 @@ class TestSafeEnsembleInitialization:
 
 class TestSafeEnsembleClassification:
     """Test classification functionality."""
+
     @pytest.fixture
     def mock_classifier(self):
         """Create a classifier with mocked _classify_texts method."""
         classifier = SafeEnsembleClassifier(
-            model_path="models/test",
-            config={"timeout_seconds": 1.0}
+            model_path="models/test", config={"timeout_seconds": 1.0}
         )
         classifier.is_loaded = True
 
@@ -89,11 +85,11 @@ class TestSafeEnsembleClassification:
                 category="routine",
                 confidence=0.8,
                 model="safe_ensemble",
-                probabilities={"critical": 0.1, "suspicious": 0.1, "routine": 0.7, "noise": 0.1}
+                probabilities={"critical": 0.1, "suspicious": 0.1, "routine": 0.7, "noise": 0.1},
             ),
             processing_time_ms=10.0,
             fail_open_used=False,
-            models_used=["rule_based", "tfidf_xgboost"]
+            models_used=["rule_based", "tfidf_xgboost"],
         )
 
         # Create async mock that handles circuit breaker call signature
@@ -135,9 +131,7 @@ class TestSafeEnsembleFailOpen:
     @pytest.mark.asyncio
     async def test_fail_open_on_error(self):
         """Should fail-open when classification fails repeatedly."""
-        classifier = SafeEnsembleClassifier(
-            config={"timeout_seconds": 1.0}
-        )
+        classifier = SafeEnsembleClassifier(config={"timeout_seconds": 1.0})
         classifier.is_loaded = True
 
         # Track call count for circuit breaker
@@ -153,14 +147,22 @@ class TestSafeEnsembleFailOpen:
                 return [
                     ClassificationResult(
                         prediction=Prediction(
-                            category="critical", confidence=0.0, model="fail_open",
-                            probabilities={"critical": 1.0, "suspicious": 0.0, "routine": 0.0, "noise": 0.0},
-                            explanation={"fail_open": True, "reason": "circuit_open"}
+                            category="critical",
+                            confidence=0.0,
+                            model="fail_open",
+                            probabilities={
+                                "critical": 1.0,
+                                "suspicious": 0.0,
+                                "routine": 0.0,
+                                "noise": 0.0,
+                            },
+                            explanation={"fail_open": True, "reason": "circuit_open"},
                         ),
                         processing_time_ms=0.0,
                         fail_open_used=True,
-                        models_used=[]
-                    ) for _ in texts
+                        models_used=[],
+                    )
+                    for _ in texts
                 ]
             # Before circuit opens, return success
             return [
@@ -168,8 +170,9 @@ class TestSafeEnsembleFailOpen:
                     prediction=Prediction(category="routine", confidence=0.8, model="test"),
                     processing_time_ms=10.0,
                     fail_open_used=False,
-                    models_used=["test"]
-                ) for _ in texts
+                    models_used=["test"],
+                )
+                for _ in texts
             ]
 
         classifier.circuit_breaker.call = mock_call
@@ -203,8 +206,9 @@ class TestSafeEnsembleFailOpen:
                     prediction=create_fail_open_prediction(text, "timeout"),
                     processing_time_ms=50.0,
                     fail_open_used=True,
-                    models_used=[]
-                ) for text in texts
+                    models_used=[],
+                )
+                for text in texts
             ]
 
         classifier.circuit_breaker.call = mock_timeout_call
@@ -231,12 +235,21 @@ class TestSafeEnsembleCriticalOverride:
                 category="critical",
                 confidence=0.95,
                 model="safe_ensemble",
-                probabilities={"critical": 0.95, "suspicious": 0.03, "routine": 0.01, "noise": 0.01},
-                explanation={"model_predictions": {"rule_based": {"prediction": "critical", "confidence": 0.95}}}
+                probabilities={
+                    "critical": 0.95,
+                    "suspicious": 0.03,
+                    "routine": 0.01,
+                    "noise": 0.01,
+                },
+                explanation={
+                    "model_predictions": {
+                        "rule_based": {"prediction": "critical", "confidence": 0.95}
+                    }
+                },
             ),
             processing_time_ms=10.0,
             fail_open_used=False,
-            models_used=["rule_based", "tfidf_xgboost", "anomaly_detector"]
+            models_used=["rule_based", "tfidf_xgboost", "anomaly_detector"],
         )
 
         async def mock_classify(fn, texts, logs=None):
@@ -296,18 +309,14 @@ class TestClassificationResult:
 
     def test_result_creation(self):
         """Should create classification result correctly."""
-        prediction = Prediction(
-            category="suspicious",
-            confidence=0.75,
-            model="ensemble"
-        )
+        prediction = Prediction(category="suspicious", confidence=0.75, model="ensemble")
 
         result = ClassificationResult(
             prediction=prediction,
             processing_time_ms=45.2,
             compliance_bypassed=False,
             fail_open_used=False,
-            models_used=["rule_based", "tfidf_xgboost"]
+            models_used=["rule_based", "tfidf_xgboost"],
         )
 
         assert result.prediction.category == "suspicious"

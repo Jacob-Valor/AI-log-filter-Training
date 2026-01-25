@@ -69,9 +69,7 @@ class TestClientIdentification:
         """Test client identification with API key header."""
         from src.api.rate_limiter import get_client_identifier
 
-        request = self._create_mock_request(
-            {"X-API-Key": "test-api-key-12345678901234567890"}
-        )
+        request = self._create_mock_request({"X-API-Key": "test-api-key-12345678901234567890"})
 
         result = get_client_identifier(request)
         assert result.startswith("api_key:")
@@ -429,9 +427,7 @@ class TestAPIRateLimitEndpoint:
 
     def test_rate_limit_status_with_client_id_header(self, client):
         """Test rate limit status with custom client ID header."""
-        response = client.get(
-            "/rate-limit-status", headers={"X-Client-ID": "test-client-123"}
-        )
+        response = client.get("/rate-limit-status", headers={"X-Client-ID": "test-client-123"})
         data = response.json()
 
         assert data["client_id"] == "client:test-client-123"

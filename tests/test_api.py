@@ -12,6 +12,7 @@ def client():
     # Import here to avoid issues with uninstalled dependencies
     try:
         from src.api.app import app
+
         return TestClient(app)
     except ImportError:
         pytest.skip("FastAPI not available")
@@ -45,10 +46,7 @@ class TestAPIEndpoints:
 
     def test_classify_endpoint(self, client):
         """Test single log classification."""
-        response = client.post(
-            "/classify",
-            json={"message": "Failed login attempt for user admin"}
-        )
+        response = client.post("/classify", json={"message": "Failed login attempt for user admin"})
 
         # May return 503 if classifier not loaded
         if response.status_code == 200:
@@ -60,12 +58,7 @@ class TestAPIEndpoints:
         """Test batch classification."""
         response = client.post(
             "/classify/batch",
-            json={
-                "logs": [
-                    {"message": "Malware detected"},
-                    {"message": "Health check OK"}
-                ]
-            }
+            json={"logs": [{"message": "Malware detected"}, {"message": "Health check OK"}]},
         )
 
         if response.status_code == 200:
@@ -78,10 +71,7 @@ class TestAPIEndpoints:
         # Create oversized batch
         logs = [{"message": "test"} for _ in range(1001)]
 
-        response = client.post(
-            "/classify/batch",
-            json={"logs": logs}
-        )
+        response = client.post("/classify/batch", json={"logs": logs})
 
         # Either 400 (batch too large) or 503 (classifier not available)
         # Both are acceptable - the important thing is large batches are rejected

@@ -74,7 +74,7 @@ class TFIDFClassifier(BaseClassifier):
             ngram_range=self.ngram_range,
             min_df=self.min_df,
             max_df=self.max_df,
-            sublinear_tf=True
+            sublinear_tf=True,
         )
 
         self.classifier = XGBClassifier(
@@ -85,7 +85,7 @@ class TFIDFClassifier(BaseClassifier):
             eval_metric="mlogloss",
             use_label_encoder=False,
             n_jobs=-1,
-            random_state=42
+            random_state=42,
         )
 
         self.label_encoder = LabelEncoder()
@@ -107,7 +107,7 @@ class TFIDFClassifier(BaseClassifier):
             r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             "<UUID>",
             text,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
 
         # Normalize paths
@@ -143,7 +143,7 @@ class TFIDFClassifier(BaseClassifier):
                     category="routine",
                     confidence=0.5,
                     model=self.name,
-                    explanation={"note": "Model not trained"}
+                    explanation={"note": "Model not trained"},
                 )
                 for _ in texts
             ]
@@ -162,16 +162,17 @@ class TFIDFClassifier(BaseClassifier):
             confidence = float(np.max(prob))
 
             probabilities = {
-                cat: float(p)
-                for cat, p in zip(self.label_encoder.classes_, prob, strict=False)
+                cat: float(p) for cat, p in zip(self.label_encoder.classes_, prob, strict=False)
             }
 
-            results.append(Prediction(
-                category=category,
-                confidence=confidence,
-                model=self.name,
-                probabilities=probabilities
-            ))
+            results.append(
+                Prediction(
+                    category=category,
+                    confidence=confidence,
+                    model=self.name,
+                    probabilities=probabilities,
+                )
+            )
 
         return results
 
@@ -189,10 +190,7 @@ class TFIDFClassifier(BaseClassifier):
 
         # Split for validation
         X_train, X_val, y_train, y_val = train_test_split(
-            processed, encoded_labels,
-            test_size=0.1,
-            random_state=42,
-            stratify=encoded_labels
+            processed, encoded_labels, test_size=0.1, random_state=42, stratify=encoded_labels
         )
 
         # Vectorize
@@ -200,11 +198,7 @@ class TFIDFClassifier(BaseClassifier):
         X_val_vec = self.vectorizer.transform(X_val)
 
         # Train with early stopping
-        self.classifier.fit(
-            X_train_vec, y_train,
-            eval_set=[(X_val_vec, y_val)],
-            verbose=False
-        )
+        self.classifier.fit(X_train_vec, y_train, eval_set=[(X_val_vec, y_val)], verbose=False)
 
         logger.info("Training complete")
 
@@ -217,7 +211,7 @@ class TFIDFClassifier(BaseClassifier):
             "vectorizer": self.vectorizer,
             "classifier": self.classifier,
             "label_encoder": self.label_encoder,
-            "config": self.config
+            "config": self.config,
         }
 
         joblib.dump(artifacts, save_path / "model.joblib")
@@ -234,7 +228,4 @@ class TFIDFClassifier(BaseClassifier):
         # Get top features
         indices = np.argsort(importances)[::-1][:50]
 
-        return {
-            feature_names[i]: float(importances[i])
-            for i in indices
-        }
+        return {feature_names[i]: float(importances[i]) for i in indices}

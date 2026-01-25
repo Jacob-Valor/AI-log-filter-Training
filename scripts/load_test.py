@@ -145,9 +145,7 @@ class LogGenerator:
             "/files/upload",
             "/config",
         ]
-        self.files = [
-            f"/var/log/{name}.log" for name in ["sys", "app", "access", "error"]
-        ]
+        self.files = [f"/var/log/{name}.log" for name in ["sys", "app", "access", "error"]]
         self.components = ["nginx", "apache", "mysql", "postgres", "redis", "kafka"]
 
     def generate(self, category: str = "routine") -> str:
@@ -189,9 +187,7 @@ class LogGenerator:
 
         return pattern
 
-    def generate_batch(
-        self, count: int, category_distribution: dict[str, int] = None
-    ) -> list[str]:
+    def generate_batch(self, count: int, category_distribution: dict[str, int] = None) -> list[str]:
         """Generate a batch of log messages."""
         import random
 
@@ -330,9 +326,7 @@ class LoadTester:
                 logger.debug(f"Current rate: {current_eps:.0f} EPS")
 
             # Rate limiting
-            elapsed_batch = (
-                time.perf_counter() - start_time - (batch_num - 1) * batch_interval
-            )
+            elapsed_batch = time.perf_counter() - start_time - (batch_num - 1) * batch_interval
             if elapsed_batch < batch_interval:
                 await asyncio.sleep(batch_interval - elapsed_batch)
 
@@ -378,9 +372,7 @@ class LoadTester:
         # Ramp up steps
         for i, target_eps in enumerate(eps_steps):
             duration = (
-                self.config.duration_seconds
-                if target_eps < self.config.target_eps * 1.2
-                else 30
+                self.config.duration_seconds if target_eps < self.config.target_eps * 1.2 else 30
             )
 
             result = await self.run_step(target_eps, duration)
@@ -474,9 +466,7 @@ class LoadTester:
         print("\n" + "-" * 80)
         print("STEP-BY-STEP RESULTS")
         print("-" * 80)
-        print(
-            f"{'Step':<8} {'Target EPS':<12} {'Achieved':<12} {'P99 Latency':<12} {'Errors':<8}"
-        )
+        print(f"{'Step':<8} {'Target EPS':<12} {'Achieved':<12} {'P99 Latency':<12} {'Errors':<8}")
         print("-" * 52)
 
         for sr in self.results.step_results:
@@ -552,10 +542,7 @@ class LoadTester:
         # Save step results to CSV
         csv_path = output_dir / f"load_test_steps_{timestamp}.csv"
         pd.DataFrame(
-            [
-                {k: v for k, v in sr.items() if k != "latencies"}
-                for sr in self.results.step_results
-            ]
+            [{k: v for k, v in sr.items() if k != "latencies"} for sr in self.results.step_results]
         ).to_csv(csv_path, index=False)
 
         logger.info(f"Step results saved to {csv_path}")

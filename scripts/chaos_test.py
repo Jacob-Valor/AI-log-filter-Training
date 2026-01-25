@@ -105,9 +105,7 @@ class ChaosTester:
             logger.error(f"Setup failed: {e}")
             return False
 
-    async def run_test(
-        self, name: str, test_func: Callable, *args, **kwargs
-    ) -> ChaosTestResult:
+    async def run_test(self, name: str, test_func: Callable, *args, **kwargs) -> ChaosTestResult:
         """Run a single chaos test with timing and error handling."""
         logger.info(f"Running chaos test: {name}")
         start_time = time.perf_counter()
@@ -162,9 +160,7 @@ class ChaosTester:
         from src.models.safe_ensemble import SafeEnsembleClassifier
 
         # Create classifier that will have partial failures (missing ML models)
-        failing_classifier = SafeEnsembleClassifier(
-            model_path="nonexistent/path", config={}
-        )
+        failing_classifier = SafeEnsembleClassifier(model_path="nonexistent/path", config={})
         await failing_classifier.load()
 
         # Test logs - use known patterns that rules will catch
@@ -342,9 +338,7 @@ class ChaosTester:
                 "elapsed_seconds": elapsed,
                 "timeout_threshold": 1.0,
             },
-            "error": None
-            if passed
-            else f"Timeout handling issue: elapsed={elapsed:.2f}s",
+            "error": None if passed else f"Timeout handling issue: elapsed={elapsed:.2f}s",
         }
 
     async def test_concurrent_load_handling(self) -> dict[str, Any]:
@@ -374,11 +368,7 @@ class ChaosTester:
             try:
                 result = await self.classifier.predict(log)
                 # Prediction is a dataclass, check category attribute
-                return (
-                    {"category": result.category}
-                    if result
-                    else {"error": "None result"}
-                )
+                return {"category": result.category} if result else {"error": "None result"}
             except Exception as e:
                 return {"error": str(e)}
 
@@ -391,9 +381,7 @@ class ChaosTester:
             )
             elapsed = time.perf_counter() - start_time
 
-            successful = sum(
-                1 for r in results if isinstance(r, dict) and "error" not in r
-            )
+            successful = sum(1 for r in results if isinstance(r, dict) and "error" not in r)
             failed = len(results) - successful
 
             # At least 90% should succeed
@@ -469,9 +457,7 @@ class ChaosTester:
                 "object_delta": object_delta,
                 "classifier_works": classifier_works,
             },
-            "error": None
-            if passed
-            else f"Possible memory leak: {object_delta} objects created",
+            "error": None if passed else f"Possible memory leak: {object_delta} objects created",
         }
 
     async def test_critical_recall_under_stress(self) -> dict[str, Any]:
@@ -569,9 +555,7 @@ class ChaosTester:
                 "recall": recall,
                 "target_recall": 0.995,
             },
-            "error": None
-            if passed
-            else f"Critical recall {recall:.2%} below target 99.5%",
+            "error": None if passed else f"Critical recall {recall:.2%} below target 99.5%",
         }
 
     async def test_graceful_degradation(self) -> dict[str, Any]:
@@ -775,9 +759,7 @@ async def main():
 
     parser = argparse.ArgumentParser(description="Chaos Testing for AI Log Filter")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-    parser.add_argument(
-        "--output", "-o", default="reports/chaos_test", help="Output directory"
-    )
+    parser.add_argument("--output", "-o", default="reports/chaos_test", help="Output directory")
 
     args = parser.parse_args()
 
@@ -794,10 +776,7 @@ async def main():
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    report_path = (
-        output_dir
-        / f"chaos_test_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
-    )
+    report_path = output_dir / f"chaos_test_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
 
     import json
 

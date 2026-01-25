@@ -10,6 +10,7 @@ from datetime import datetime
 
 try:
     import structlog
+
     HAS_STRUCTLOG = True
 except ImportError:
     HAS_STRUCTLOG = False
@@ -19,11 +20,7 @@ except ImportError:
 _loggers = {}
 
 
-def setup_logging(
-    level: str = "INFO",
-    format_type: str = "json",
-    output_file: str | None = None
-):
+def setup_logging(level: str = "INFO", format_type: str = "json", output_file: str | None = None):
     """
     Configure logging for the application.
 
@@ -52,7 +49,7 @@ def _setup_structlog(log_level: int):
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer()
+            structlog.processors.JSONRenderer(),
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -67,18 +64,13 @@ def _setup_structlog(log_level: int):
     )
 
 
-def _setup_standard_logging(
-    log_level: int,
-    format_type: str,
-    output_file: str | None
-):
+def _setup_standard_logging(log_level: int, format_type: str, output_file: str | None):
     """Configure standard Python logging."""
     if format_type == "json":
         formatter = JsonFormatter()
     else:
         formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
 
     # Console handler
@@ -96,10 +88,7 @@ def _setup_standard_logging(
         handlers.append(file_handler)
 
     # Configure root logger
-    logging.basicConfig(
-        level=log_level,
-        handlers=handlers
-    )
+    logging.basicConfig(level=log_level, handlers=handlers)
 
 
 class JsonFormatter(logging.Formatter):
@@ -122,11 +111,27 @@ class JsonFormatter(logging.Formatter):
         # Add extra fields
         for key, value in record.__dict__.items():
             if key not in (
-                "name", "msg", "args", "created", "levelname",
-                "levelno", "pathname", "filename", "module",
-                "exc_info", "exc_text", "stack_info", "lineno",
-                "funcName", "processName", "process", "threadName",
-                "thread", "message", "msecs", "relativeCreated"
+                "name",
+                "msg",
+                "args",
+                "created",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "processName",
+                "process",
+                "threadName",
+                "thread",
+                "message",
+                "msecs",
+                "relativeCreated",
             ):
                 log_data[key] = value
 

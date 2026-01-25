@@ -30,6 +30,7 @@ def pytest_collection_modifyitems(config, items):
 def fresh_eps_window():
     """Create a fresh EPSWindow instance for testing."""
     from src.monitoring.production_metrics import EPSWindow
+
     return EPSWindow()
 
 
@@ -39,10 +40,10 @@ def fresh_metrics_collector():
     Create a fresh ProductionMetricsCollector with reset internal state.
     """
     from src.monitoring.production_metrics import ProductionMetricsCollector
+
     collector = ProductionMetricsCollector()
     # Ensure internal counters are reset
     collector.critical_true_positives = 0
     collector.critical_false_negatives = 0
     collector.critical_false_positives = 0
     return collector
-

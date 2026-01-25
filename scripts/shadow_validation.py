@@ -134,9 +134,7 @@ class ShadowModeValidator:
         try:
             from src.models.safe_ensemble import SafeEnsembleClassifier
 
-            self.classifier = SafeEnsembleClassifier(
-                model_path=self.config.model_path, config={}
-            )
+            self.classifier = SafeEnsembleClassifier(model_path=self.config.model_path, config={})
             await self.classifier.load()
 
             logger.info("Classifier loaded successfully")
@@ -174,9 +172,7 @@ class ShadowModeValidator:
         if hasattr(self.classifier, "classify_batch"):
             raw_results = await self.classifier.classify_batch(log_dicts)
             # Extract category and confidence from ClassificationResult
-            return [
-                (r.prediction.category, r.prediction.confidence) for r in raw_results
-            ]
+            return [(r.prediction.category, r.prediction.confidence) for r in raw_results]
         else:
             # Fallback for simpler classifier
             results = []
@@ -316,9 +312,7 @@ class ShadowModeValidator:
         messages, true_labels = self.load_test_data()
 
         if len(messages) < self.config.min_samples:
-            logger.warning(
-                f"Insufficient test data: {len(messages)} < {self.config.min_samples}"
-            )
+            logger.warning(f"Insufficient test data: {len(messages)} < {self.config.min_samples}")
 
         # Run classification
         logger.info("Running classification on test data...")
@@ -340,9 +334,7 @@ class ShadowModeValidator:
         self._calculate_metrics(predictions, true_labels)
 
         # Calculate execution time
-        self.results.execution_time_seconds = (
-            datetime.now(UTC) - start_time
-        ).total_seconds()
+        self.results.execution_time_seconds = (datetime.now(UTC) - start_time).total_seconds()
         self.results.timestamp = start_time.isoformat()
 
         return self.results
@@ -432,11 +424,7 @@ class ShadowModeValidator:
 
             precision = tp / (tp + fp) if (tp + fp) > 0 else 0
             recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-            f1 = (
-                2 * precision * recall / (precision + recall)
-                if (precision + recall) > 0
-                else 0
-            )
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
 
             print(
                 f"{cat.capitalize():<15} {precision * 100:>6.2f}%    {recall * 100:>6.2f}%    {f1 * 100:>6.2f}%"
@@ -497,11 +485,9 @@ class ShadowModeValidator:
                 "critical_fn_per_1000": self.results.critical_fn_per_1000,
             },
             "pass_fail": {
-                "critical_recall_pass": self.results.critical_recall
-                >= self.config.target_recall,
+                "critical_recall_pass": self.results.critical_recall >= self.config.target_recall,
                 "false_negatives_pass": self.results.critical_fn
-                <= self.config.max_false_negatives
-                * (self.results.total_samples / 1000),
+                <= self.config.max_false_negatives * (self.results.total_samples / 1000),
             },
         }
 
@@ -523,9 +509,7 @@ class ShadowModeValidator:
         r = self.results
         max_fn = self.config.max_false_negatives * (r.total_samples / 1000)
 
-        return (
-            r.critical_recall >= self.config.target_recall and r.critical_fn <= max_fn
-        )
+        return r.critical_recall >= self.config.target_recall and r.critical_fn <= max_fn
 
 
 async def main():

@@ -42,33 +42,45 @@ class LogParser:
     def _initialize_formats(self) -> list[tuple[str, re.Pattern, callable]]:
         """Initialize supported log formats."""
         return [
-            ("leef", re.compile(
-                r"LEEF:(?P<version>[^|]+)\|(?P<vendor>[^|]+)\|"
-                r"(?P<product>[^|]+)\|(?P<prod_version>[^|]+)\|"
-                r"(?P<event_id>[^|]+)\|(?P<attributes>.*)"
-            ), self._parse_leef),
-
-            ("cef", re.compile(
-                r"CEF:(?P<version>\d+)\|(?P<vendor>[^|]+)\|"
-                r"(?P<product>[^|]+)\|(?P<prod_version>[^|]+)\|"
-                r"(?P<signature_id>[^|]+)\|(?P<name>[^|]+)\|"
-                r"(?P<severity>[^|]+)\|(?P<extension>.*)"
-            ), self._parse_cef),
-
-            ("syslog_rfc5424", re.compile(
-                r"^<(?P<priority>\d+)>(?P<version>\d+)\s+"
-                r"(?P<timestamp>\S+)\s+(?P<hostname>\S+)\s+"
-                r"(?P<app_name>\S+)\s+(?P<proc_id>\S+)\s+"
-                r"(?P<msg_id>\S+)\s+(?P<structured_data>\[.*?\]|-)\s*"
-                r"(?P<message>.*)"
-            ), self._parse_syslog_rfc5424),
-
-            ("syslog_rfc3164", re.compile(
-                r"^(?:<(?P<priority>\d+)>)?(?P<timestamp>\w{3}\s+\d{1,2}\s+"
-                r"\d{2}:\d{2}:\d{2})\s+(?P<hostname>\S+)\s+"
-                r"(?P<process>\S+?)(?:\[(?P<pid>\d+)\])?:\s+(?P<message>.*)"
-            ), self._parse_syslog_rfc3164),
-
+            (
+                "leef",
+                re.compile(
+                    r"LEEF:(?P<version>[^|]+)\|(?P<vendor>[^|]+)\|"
+                    r"(?P<product>[^|]+)\|(?P<prod_version>[^|]+)\|"
+                    r"(?P<event_id>[^|]+)\|(?P<attributes>.*)"
+                ),
+                self._parse_leef,
+            ),
+            (
+                "cef",
+                re.compile(
+                    r"CEF:(?P<version>\d+)\|(?P<vendor>[^|]+)\|"
+                    r"(?P<product>[^|]+)\|(?P<prod_version>[^|]+)\|"
+                    r"(?P<signature_id>[^|]+)\|(?P<name>[^|]+)\|"
+                    r"(?P<severity>[^|]+)\|(?P<extension>.*)"
+                ),
+                self._parse_cef,
+            ),
+            (
+                "syslog_rfc5424",
+                re.compile(
+                    r"^<(?P<priority>\d+)>(?P<version>\d+)\s+"
+                    r"(?P<timestamp>\S+)\s+(?P<hostname>\S+)\s+"
+                    r"(?P<app_name>\S+)\s+(?P<proc_id>\S+)\s+"
+                    r"(?P<msg_id>\S+)\s+(?P<structured_data>\[.*?\]|-)\s*"
+                    r"(?P<message>.*)"
+                ),
+                self._parse_syslog_rfc5424,
+            ),
+            (
+                "syslog_rfc3164",
+                re.compile(
+                    r"^(?:<(?P<priority>\d+)>)?(?P<timestamp>\w{3}\s+\d{1,2}\s+"
+                    r"\d{2}:\d{2}:\d{2})\s+(?P<hostname>\S+)\s+"
+                    r"(?P<process>\S+?)(?:\[(?P<pid>\d+)\])?:\s+(?P<message>.*)"
+                ),
+                self._parse_syslog_rfc3164,
+            ),
             ("json", re.compile(r"^\s*\{.*\}\s*$", re.DOTALL), self._parse_json),
         ]
 
@@ -218,7 +230,10 @@ class LogParser:
         # Try to extract common fields
         # Timestamp patterns
         timestamp_patterns = [
-            (r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)", "timestamp"),
+            (
+                r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)",
+                "timestamp",
+            ),
             (r"(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})", "timestamp"),
         ]
 
@@ -247,11 +262,7 @@ class LogParser:
 
         return result
 
-    def _parse_key_value_pairs(
-        self,
-        text: str,
-        delimiter: str = r"[\t ]+"
-    ) -> dict[str, str]:
+    def _parse_key_value_pairs(self, text: str, delimiter: str = r"[\t ]+") -> dict[str, str]:
         """Parse key=value pairs from text."""
         result = {}
 
@@ -289,20 +300,17 @@ class FeatureExtractor:
 
         features = {
             # Text features
-            "message": message[:self.max_length],
+            "message": message[: self.max_length],
             "message_length": len(message),
             "word_count": len(message.split()),
-
             # Character-level features
             "digit_count": sum(c.isdigit() for c in message),
             "special_char_count": sum(not c.isalnum() and not c.isspace() for c in message),
             "uppercase_ratio": sum(c.isupper() for c in message) / max(len(message), 1),
-
             # Log metadata
             "log_format": parsed_log.get("format", "unknown"),
             "has_timestamp": "timestamp" in parsed_log,
             "has_ip": "source_ip" in parsed_log or "ip_addresses" in parsed_log,
-
             # Keyword indicators
             "has_error": bool(re.search(r"\b(error|fail|exception)\b", message, re.I)),
             "has_warning": bool(re.search(r"\b(warn|warning|alert)\b", message, re.I)),
@@ -336,7 +344,7 @@ class FeatureExtractor:
         text = re.sub(
             r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?",
             "<TIMESTAMP>",
-            text
+            text,
         )
 
         # Normalize hex values
@@ -347,7 +355,7 @@ class FeatureExtractor:
             r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             "<UUID>",
             text,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
 
         # Normalize file paths

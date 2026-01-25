@@ -64,7 +64,7 @@ class TestProductionMetricsCollector:
             model="ensemble",
             confidence=0.95,
             latency_seconds=0.05,
-            forwarded_to_qradar=True
+            forwarded_to_qradar=True,
         )
 
         # Should have recorded the event
@@ -75,9 +75,7 @@ class TestProductionMetricsCollector:
     def test_record_batch_processed(self, collector):
         """Should record batch processing metrics."""
         collector.record_batch_processed(
-            batch_size=256,
-            model="safe_ensemble",
-            latency_seconds=0.15
+            batch_size=256, model="safe_ensemble", latency_seconds=0.15
         )
 
         # No exception means success
@@ -95,8 +93,8 @@ class TestProductionMetricsCollector:
         # OR just test that the method runs without error for non-critical predictions
         collector.record_false_negative(
             original_category="routine",  # AI predicted routine
-            offense_type="Malware",        # But QRadar flagged it
-            severity="8"
+            offense_type="Malware",  # But QRadar flagged it
+            severity="8",
         )
 
         # The counter only increments for original_category == "critical"
@@ -105,9 +103,7 @@ class TestProductionMetricsCollector:
 
         # Now test with critical prediction
         collector.record_false_negative(
-            original_category="critical",
-            offense_type="RealThreat",
-            severity="9"
+            original_category="critical", offense_type="RealThreat", severity="9"
         )
         assert collector.critical_false_negatives == 1
 
@@ -121,9 +117,7 @@ class TestProductionMetricsCollector:
     def test_record_circuit_breaker_state(self, collector):
         """Should record circuit breaker state."""
         collector.record_circuit_breaker_state(
-            circuit_name="test_circuit",
-            state="open",
-            failure_count=5
+            circuit_name="test_circuit", state="open", failure_count=5
         )
 
         # Should not raise
@@ -131,52 +125,35 @@ class TestProductionMetricsCollector:
 
     def test_record_compliance_bypass(self, collector):
         """Should record compliance bypasses."""
-        collector.record_compliance_bypass(
-            framework="pci_dss",
-            rule="payment_systems"
-        )
+        collector.record_compliance_bypass(framework="pci_dss", rule="payment_systems")
 
         # Should not raise
         assert True
 
     def test_record_model_drift(self, collector):
         """Should record model drift."""
-        collector.record_model_drift(
-            model="tfidf_xgboost",
-            drift_type="feature_drift",
-            score=0.15
-        )
+        collector.record_model_drift(model="tfidf_xgboost", drift_type="feature_drift", score=0.15)
 
         # Should not raise
         assert True
 
     def test_record_routing_decision(self, collector):
         """Should record routing decisions."""
-        collector.record_routing_decision(
-            category="critical",
-            destination="qradar"
-        )
+        collector.record_routing_decision(category="critical", destination="qradar")
 
         # Should not raise
         assert True
 
     def test_record_routing_error(self, collector):
         """Should record routing errors."""
-        collector.record_routing_error(
-            destination="qradar",
-            error_type="connection_timeout"
-        )
+        collector.record_routing_error(destination="qradar", error_type="connection_timeout")
 
         # Should not raise
         assert True
 
     def test_update_kafka_lag(self, collector):
         """Should update Kafka lag metrics."""
-        collector.update_kafka_lag(
-            topic="raw-logs",
-            partition=0,
-            lag=5000
-        )
+        collector.update_kafka_lag(topic="raw-logs", partition=0, lag=5000)
 
         # Should not raise
         assert True

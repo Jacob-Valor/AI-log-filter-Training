@@ -5,7 +5,6 @@ Provides configurable rate limiting to protect the API from abuse
 and ensure fair resource allocation.
 """
 
-
 from fastapi import Request, Response
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -151,9 +150,7 @@ def rate_limit_by_ip(limit: str = RateLimitConfig.DEFAULT_LIMIT):
 # =============================================================================
 
 
-async def custom_rate_limit_handler(
-    request: Request, exc: RateLimitExceeded
-) -> Response:
+async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Response:
     """
     Custom handler for rate limit exceeded errors.
 

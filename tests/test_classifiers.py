@@ -53,11 +53,7 @@ class TestRuleBasedClassifier:
     @pytest.mark.asyncio
     async def test_classify_batch(self, classifier):
         """Test batch classification."""
-        logs = [
-            "Malware detected",
-            "Failed login",
-            "Health check OK"
-        ]
+        logs = ["Malware detected", "Failed login", "Health check OK"]
 
         results = await classifier.predict_batch(logs)
 
@@ -79,11 +75,7 @@ class TestPrediction:
 
     def test_prediction_creation(self):
         """Test creating a prediction."""
-        pred = Prediction(
-            category="critical",
-            confidence=0.95,
-            model="test_model"
-        )
+        pred = Prediction(category="critical", confidence=0.95, model="test_model")
 
         assert pred.category == "critical"
         assert pred.confidence == 0.95
@@ -96,7 +88,7 @@ class TestPrediction:
             confidence=0.75,
             model="ensemble",
             probabilities={"critical": 0.1, "suspicious": 0.75},
-            explanation={"rule": "test"}
+            explanation={"rule": "test"},
         )
 
         result = pred.to_dict()

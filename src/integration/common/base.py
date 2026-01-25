@@ -20,11 +20,12 @@ from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ConnectionState(Enum):
     """Connection states for integrations."""
+
     DISCONNECTED = "disconnected"
     CONNECTING = "connecting"
     CONNECTED = "connected"
@@ -35,6 +36,7 @@ class ConnectionState(Enum):
 @dataclass
 class IntegrationConfig:
     """Base configuration for all integrations."""
+
     host: str
     port: int
     timeout: float = 30.0
@@ -48,6 +50,7 @@ class IntegrationConfig:
 @dataclass
 class ConnectionStats:
     """Connection statistics."""
+
     state: ConnectionState = ConnectionState.DISCONNECTED
     total_connections: int = 0
     active_connections: int = 0
@@ -64,6 +67,7 @@ class ConnectionStats:
 @dataclass
 class HealthStatus:
     """Health check result."""
+
     healthy: bool
     latency_ms: float
     message: str
@@ -119,9 +123,7 @@ class BaseIntegration(ABC):
                 self.stats.total_connections += 1
 
                 # Start background health check
-                self._health_check_task = asyncio.create_task(
-                    self._periodic_health_check()
-                )
+                self._health_check_task = asyncio.create_task(self._periodic_health_check())
 
                 logger.info(f"Integration {self.name} initialized successfully")
                 return True
@@ -171,9 +173,7 @@ class BaseIntegration(ABC):
 
         # Update average latency
         n = self.stats.total_requests
-        self.stats.average_latency_ms = (
-            (self.stats.average_latency_ms * (n - 1) + latency_ms) / n
-        )
+        self.stats.average_latency_ms = (self.stats.average_latency_ms * (n - 1) + latency_ms) / n
 
     def get_stats(self) -> dict[str, Any]:
         """Get connection statistics."""
@@ -188,17 +188,16 @@ class BaseIntegration(ABC):
             "failed_requests": self.stats.failed_requests,
             "success_rate": (
                 self.stats.successful_requests / self.stats.total_requests * 100
-                if self.stats.total_requests > 0 else 0
+                if self.stats.total_requests > 0
+                else 0
             ),
             "average_latency_ms": round(self.stats.average_latency_ms, 2),
             "last_connection": (
-                self.stats.last_connection.isoformat()
-                if self.stats.last_connection else None
+                self.stats.last_connection.isoformat() if self.stats.last_connection else None
             ),
             "last_failure": (
-                self.stats.last_failure.isoformat()
-                if self.stats.last_failure else None
-            )
+                self.stats.last_failure.isoformat() if self.stats.last_failure else None
+            ),
         }
 
 
@@ -208,7 +207,7 @@ async def retry_with_backoff[T](
     base_delay: float = 1.0,
     max_delay: float = 60.0,
     exponential_base: float = 2.0,
-    **kwargs
+    **kwargs,
 ) -> T:
     """
     Retry a function with exponential backoff.
@@ -235,14 +234,8 @@ async def retry_with_backoff[T](
         except Exception as e:
             last_exception = e
             if attempt < max_retries:
-                delay = min(
-                    base_delay * (exponential_base ** attempt),
-                    max_delay
-                )
-                logger.warning(
-                    f"Attempt {attempt + 1} failed: {e}. "
-                    f"Retrying in {delay:.1f}s..."
-                )
+                delay = min(base_delay * (exponential_base**attempt), max_delay)
+                logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {delay:.1f}s...")
                 await asyncio.sleep(delay)
             else:
                 logger.error(f"All {max_retries + 1} attempts failed: {e}")

@@ -36,10 +36,7 @@ class TestComplianceGateBasics:
 
     def test_non_regulated_log_passes_through(self, gate):
         """Non-regulated logs should not be bypassed."""
-        log = {
-            "source": "web-server-01",
-            "message": "User logged in successfully"
-        }
+        log = {"source": "web-server-01", "message": "User logged in successfully"}
 
         decision = gate.check(log)
 
@@ -49,10 +46,7 @@ class TestComplianceGateBasics:
 
     def test_pci_source_is_regulated(self, gate):
         """PCI source patterns should trigger bypass."""
-        log = {
-            "source": "pci_payment_gateway",
-            "message": "Transaction processed"
-        }
+        log = {"source": "pci_payment_gateway", "message": "Transaction processed"}
 
         decision = gate.check(log)
 
@@ -62,10 +56,7 @@ class TestComplianceGateBasics:
 
     def test_hipaa_source_is_regulated(self, gate):
         """HIPAA source patterns should trigger bypass."""
-        log = {
-            "source": "ehr_patient_records",
-            "message": "Patient record accessed"
-        }
+        log = {"source": "ehr_patient_records", "message": "Patient record accessed"}
 
         decision = gate.check(log)
 
@@ -75,10 +66,7 @@ class TestComplianceGateBasics:
 
     def test_sox_source_is_regulated(self, gate):
         """SOX source patterns should trigger bypass."""
-        log = {
-            "source": "financial_trading_system",
-            "message": "Trade executed"
-        }
+        log = {"source": "financial_trading_system", "message": "Trade executed"}
 
         decision = gate.check(log)
 
@@ -88,10 +76,7 @@ class TestComplianceGateBasics:
 
     def test_message_pattern_matching(self, gate):
         """Message patterns should also trigger bypass."""
-        log = {
-            "source": "generic-app",
-            "message": "Accessing cardholder data for customer 12345"
-        }
+        log = {"source": "generic-app", "message": "Accessing cardholder data for customer 12345"}
 
         decision = gate.check(log)
 
@@ -155,7 +140,7 @@ class TestComplianceGateCustomRules:
             description="Custom sensitive data",
             source_patterns=[r"^custom_sensitive_"],
             message_patterns=[r"secret_data"],
-            minimum_retention_days=730
+            minimum_retention_days=730,
         )
 
         gate.add_rule(custom_rule)
@@ -199,7 +184,7 @@ class TestComplianceBypassPrediction:
             frameworks={ComplianceFramework.PCI_DSS},
             must_forward=True,
             minimum_retention_days=365,
-            bypass_reason="Matched PCI-DSS rules"
+            bypass_reason="Matched PCI-DSS rules",
         )
 
         prediction = create_compliance_bypass_prediction(log, decision)

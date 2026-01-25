@@ -32,16 +32,18 @@ class AnomalyFeatures:
     hour_of_day: int
 
     def to_array(self) -> np.ndarray:
-        return np.array([
-            self.message_length,
-            self.word_count,
-            self.digit_ratio,
-            self.special_char_ratio,
-            self.uppercase_ratio,
-            self.has_error_keyword,
-            self.has_ip_address,
-            self.hour_of_day
-        ])
+        return np.array(
+            [
+                self.message_length,
+                self.word_count,
+                self.digit_ratio,
+                self.special_char_ratio,
+                self.uppercase_ratio,
+                self.has_error_keyword,
+                self.has_ip_address,
+                self.hour_of_day,
+            ]
+        )
 
 
 @ClassifierRegistry.register("anomaly_detector")
@@ -92,7 +94,7 @@ class AnomalyDetector(BaseClassifier):
             n_estimators=self.n_estimators,
             max_samples="auto",
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
         )
         self.scaler = StandardScaler()
 
@@ -129,7 +131,7 @@ class AnomalyDetector(BaseClassifier):
             uppercase_ratio=uppercase_ratio,
             has_error_keyword=has_error,
             has_ip_address=has_ip,
-            hour_of_day=hour
+            hour_of_day=hour,
         )
 
     async def predict(self, text: str) -> Prediction:
@@ -153,7 +155,7 @@ class AnomalyDetector(BaseClassifier):
                     category="routine",
                     confidence=0.5,
                     model=self.name,
-                    explanation={"note": "Model not trained", "is_anomaly": False}
+                    explanation={"note": "Model not trained", "is_anomaly": False},
                 )
                 for _ in texts
             ]
@@ -175,15 +177,14 @@ class AnomalyDetector(BaseClassifier):
                 category = "routine"  # Let other models decide
                 confidence = 0.5
 
-            results.append(Prediction(
-                category=category,
-                confidence=confidence,
-                model=self.name,
-                explanation={
-                    "is_anomaly": is_anomaly,
-                    "anomaly_score": float(score)
-                }
-            ))
+            results.append(
+                Prediction(
+                    category=category,
+                    confidence=confidence,
+                    model=self.name,
+                    explanation={"is_anomaly": is_anomaly, "anomaly_score": float(score)},
+                )
+            )
 
         return results
 
@@ -206,11 +207,7 @@ class AnomalyDetector(BaseClassifier):
         save_path = Path(path)
         save_path.mkdir(parents=True, exist_ok=True)
 
-        artifacts = {
-            "model": self.model,
-            "scaler": self.scaler,
-            "config": self.config
-        }
+        artifacts = {"model": self.model, "scaler": self.scaler, "config": self.config}
 
         joblib.dump(artifacts, save_path / "model.joblib")
         logger.info(f"Anomaly detector saved to {save_path}")

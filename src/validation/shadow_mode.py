@@ -90,9 +90,7 @@ class ShadowModeValidator:
         self._lock = asyncio.Lock()
         self.pending_validation: dict[str, ValidationDecision] = {}
         self.correlation_window_hours = self.config.get("correlation_window_hours", 24)
-        logger.info(
-            f"ShadowModeValidator initialized in {self.stats.phase.value} phase"
-        )
+        logger.info(f"ShadowModeValidator initialized in {self.stats.phase.value} phase")
 
     async def record_decision(
         self, log_id: str, prediction: Prediction, log: dict[str, Any]
@@ -165,9 +163,7 @@ class ShadowModeValidator:
         if total == 0:
             return {"total_validated": 0}
         total_positives = self.stats.true_positives + self.stats.false_negatives
-        recall = (
-            self.stats.true_positives / total_positives if total_positives > 0 else 1.0
-        )
+        recall = self.stats.true_positives / total_positives if total_positives > 0 else 1.0
         fnr = self.stats.false_negatives / total_positives if total_positives > 0 else 0
         return {
             "total_processed": self.stats.total_processed,
@@ -190,9 +186,7 @@ class ShadowModeValidator:
         metrics = self.get_accuracy_metrics()
         if metrics.get("total_validated", 0) < reqs.get("min_samples", 0):
             return False, "Need more samples"
-        if metrics.get("false_negative_rate", 1) > reqs.get(
-            "max_false_negative_rate", 0.01
-        ):
+        if metrics.get("false_negative_rate", 1) > reqs.get("max_false_negative_rate", 0.01):
             return False, "False negative rate too high"
         if metrics.get("recall", 0) < reqs.get("min_critical_recall", 0.99):
             return False, "Recall too low"

@@ -26,20 +26,12 @@ class EnsembleClassifier(BaseClassifier):
     for robust log classification.
     """
 
-    def __init__(
-        self,
-        model_path: str | None = None,
-        config: dict[str, Any] | None = None
-    ):
+    def __init__(self, model_path: str | None = None, config: dict[str, Any] | None = None):
         super().__init__("ensemble", config)
         self.model_path = model_path
 
         # Default weights
-        self.weights = {
-            "rule_based": 0.30,
-            "tfidf_xgboost": 0.45,
-            "anomaly_detector": 0.25
-        }
+        self.weights = {"rule_based": 0.30, "tfidf_xgboost": 0.45, "anomaly_detector": 0.25}
 
         if config and "ensemble" in config:
             ensemble_config = config["ensemble"]
@@ -47,9 +39,11 @@ class EnsembleClassifier(BaseClassifier):
                 self.weights = ensemble_config["weights"]
 
         # Combination strategy
-        self.strategy = config.get("ensemble", {}).get(
-            "combination_strategy", "weighted_average"
-        ) if config else "weighted_average"
+        self.strategy = (
+            config.get("ensemble", {}).get("combination_strategy", "weighted_average")
+            if config
+            else "weighted_average"
+        )
 
         # Initialize component classifiers
         self.classifiers: dict[str, BaseClassifier] = {}
@@ -102,12 +96,7 @@ class EnsembleClassifier(BaseClassifier):
                 logger.warning(f"Classifier {name} failed: {e}")
                 # Use default predictions
                 all_predictions[name] = [
-                    Prediction(
-                        category="routine",
-                        confidence=0.5,
-                        model=name
-                    )
-                    for _ in texts
+                    Prediction(category="routine", confidence=0.5, model=name) for _ in texts
                 ]
 
         # Combine predictions
@@ -119,9 +108,7 @@ class EnsembleClassifier(BaseClassifier):
             return self._combine_weighted_average(texts, all_predictions)
 
     def _combine_weighted_average(
-        self,
-        texts: list[str],
-        all_predictions: dict[str, list[Prediction]]
+        self, texts: list[str], all_predictions: dict[str, list[Prediction]]
     ) -> list[Prediction]:
         """Combine predictions using weighted averaging."""
         results = []
@@ -151,7 +138,7 @@ class EnsembleClassifier(BaseClassifier):
                 explanations[model_name] = {
                     "prediction": pred.category,
                     "confidence": pred.confidence,
-                    "explanation": pred.explanation
+                    "explanation": pred.explanation,
                 }
 
             # Normalize scores
@@ -169,20 +156,20 @@ class EnsembleClassifier(BaseClassifier):
                 final_category = "critical"
                 final_confidence = rule_pred.confidence
 
-            results.append(Prediction(
-                category=final_category,
-                confidence=final_confidence,
-                model="ensemble",
-                probabilities=category_scores,
-                explanation={"model_predictions": explanations}
-            ))
+            results.append(
+                Prediction(
+                    category=final_category,
+                    confidence=final_confidence,
+                    model="ensemble",
+                    probabilities=category_scores,
+                    explanation={"model_predictions": explanations},
+                )
+            )
 
         return results
 
     def _combine_max_voting(
-        self,
-        texts: list[str],
-        all_predictions: dict[str, list[Prediction]]
+        self, texts: list[str], all_predictions: dict[str, list[Prediction]]
     ) -> list[Prediction]:
         """Combine predictions using max voting."""
         results = []
@@ -198,18 +185,20 @@ class EnsembleClassifier(BaseClassifier):
 
                 explanations[model_name] = {
                     "prediction": pred.category,
-                    "confidence": pred.confidence
+                    "confidence": pred.confidence,
                 }
 
             final_category = max(votes, key=votes.get)
             final_confidence = votes[final_category] / sum(votes.values())
 
-            results.append(Prediction(
-                category=final_category,
-                confidence=final_confidence,
-                model="ensemble",
-                explanation={"votes": votes, "model_predictions": explanations}
-            ))
+            results.append(
+                Prediction(
+                    category=final_category,
+                    confidence=final_confidence,
+                    model="ensemble",
+                    explanation={"votes": votes, "model_predictions": explanations},
+                )
+            )
 
         return results
 

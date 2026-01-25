@@ -74,9 +74,7 @@ class RuleBasedClassifier(BaseClassifier):
                     for pattern in rule.get("patterns", []):
                         try:
                             compiled = re.compile(pattern, flags)
-                            self.compiled_rules[category].append(
-                                (rule_name, compiled, confidence)
-                            )
+                            self.compiled_rules[category].append((rule_name, compiled, confidence))
                         except re.error as e:
                             logger.warning(f"Invalid regex pattern in rule {rule_name}: {e}")
 
@@ -88,7 +86,11 @@ class RuleBasedClassifier(BaseClassifier):
                 ("brute_force", re.compile(r"brute.?force|multiple.*fail.*auth", re.I), 0.90),
             ],
             "suspicious": [
-                ("failed_auth", re.compile(r"failed.*(login|auth)|authentication.*fail", re.I), 0.75),
+                (
+                    "failed_auth",
+                    re.compile(r"failed.*(login|auth)|authentication.*fail", re.I),
+                    0.75,
+                ),
                 ("access_denied", re.compile(r"access.*denied|permission.*denied", re.I), 0.70),
             ],
             "noise": [
@@ -114,7 +116,7 @@ class RuleBasedClassifier(BaseClassifier):
                         category=category,
                         confidence=confidence,
                         model=self.name,
-                        explanation={"matched_rule": rule_name}
+                        explanation={"matched_rule": rule_name},
                     )
 
         # No rule matched, return default
@@ -122,7 +124,7 @@ class RuleBasedClassifier(BaseClassifier):
             category=self.default_category,
             confidence=self.default_confidence,
             model=self.name,
-            explanation={"matched_rule": None}
+            explanation={"matched_rule": None},
         )
 
     async def predict_batch(self, texts: list[str]) -> list[Prediction]:
@@ -137,11 +139,13 @@ class RuleBasedClassifier(BaseClassifier):
             for rule_name, pattern, confidence in self.compiled_rules.get(category, []):
                 match = pattern.search(text)
                 if match:
-                    matches.append({
-                        "category": category,
-                        "rule": rule_name,
-                        "confidence": confidence,
-                        "match": match.group(0)
-                    })
+                    matches.append(
+                        {
+                            "category": category,
+                            "rule": rule_name,
+                            "confidence": confidence,
+                            "match": match.group(0),
+                        }
+                    )
 
         return matches

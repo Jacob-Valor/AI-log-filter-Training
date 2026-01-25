@@ -50,14 +50,12 @@ class QRadarDestination(BaseDestination):
         if self._client is None:
             try:
                 import httpx
+
                 self._client = httpx.AsyncClient(
                     base_url=f"https://{self.host}:{self.port}",
                     verify=self.verify_ssl,
                     timeout=self.timeout,
-                    headers={
-                        "SEC": self.token,
-                        "Content-Type": "application/json"
-                    }
+                    headers={"SEC": self.token, "Content-Type": "application/json"},
                 )
             except ImportError:
                 logger.warning("httpx not available, QRadar destination disabled")
@@ -105,12 +103,7 @@ class QRadarDestination(BaseDestination):
 
     def _get_severity(self, category: str) -> int:
         """Map category to QRadar severity."""
-        severity_map = {
-            "critical": 10,
-            "suspicious": 7,
-            "routine": 3,
-            "noise": 1
-        }
+        severity_map = {"critical": 10, "suspicious": 7, "routine": 3, "noise": 1}
         return severity_map.get(category, 5)
 
     async def _send_syslog(self, message: str):
@@ -191,7 +184,7 @@ class SummaryDestination(BaseDestination):
                     "count": 0,
                     "first_seen": datetime.utcnow().isoformat(),
                     "last_seen": None,
-                    "sample": log
+                    "sample": log,
                 }
 
             self.summaries[template]["count"] += 1
@@ -212,7 +205,7 @@ class SummaryDestination(BaseDestination):
             r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             "<UUID>",
             template,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
 
         return template[:200]  # Limit template length
@@ -257,14 +250,10 @@ class LogRouter:
 
         # Initialize cold storage
         if "cold_storage" in self.config:
-            self.destinations["cold_storage"] = ColdStorageDestination(
-                self.config["cold_storage"]
-            )
+            self.destinations["cold_storage"] = ColdStorageDestination(self.config["cold_storage"])
 
         # Initialize summary aggregator
-        self.destinations["summary"] = SummaryDestination(
-            self.config.get("summary", {})
-        )
+        self.destinations["summary"] = SummaryDestination(self.config.get("summary", {}))
 
         # Initialize queues
         for category in ["critical", "suspicious", "routine", "noise"]:

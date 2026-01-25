@@ -98,12 +98,8 @@ class ClassificationResult(BaseModel):
     category: str = Field(..., description="Predicted category")
     confidence: float = Field(..., description="Prediction confidence (0-1)")
     model: str = Field(..., description="Model used for classification")
-    probabilities: dict[str, float] | None = Field(
-        None, description="Per-class probabilities"
-    )
-    explanation: dict[str, Any] | None = Field(
-        None, description="Classification explanation"
-    )
+    probabilities: dict[str, float] | None = Field(None, description="Per-class probabilities")
+    explanation: dict[str, Any] | None = Field(None, description="Classification explanation")
 
 
 class BatchClassifyRequest(BaseModel):
@@ -212,9 +208,7 @@ async def classify_log(request: Request, log: LogMessage):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post(
-    "/classify/batch", response_model=BatchClassifyResponse, tags=["Classification"]
-)
+@app.post("/classify/batch", response_model=BatchClassifyResponse, tags=["Classification"])
 @limiter.limit(RateLimitConfig.CLASSIFY_BATCH_LIMIT)
 async def classify_batch(request: Request, batch_request: BatchClassifyRequest):
     """

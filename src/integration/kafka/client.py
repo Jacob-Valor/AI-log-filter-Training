@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class KafkaConfig(IntegrationConfig):
     """Kafka-specific configuration."""
+
     bootstrap_servers: str = "localhost:9092"
     group_id: str = "ai-log-filter"
     auto_offset_reset: str = "earliest"
@@ -44,6 +45,7 @@ class KafkaConfig(IntegrationConfig):
 @dataclass
 class LogMessage:
     """Log message structure for Kafka."""
+
     id: str
     timestamp: str
     source: str
@@ -68,13 +70,13 @@ class KafkaProducerIntegration(BaseIntegration):
     def _create_producer(self) -> Producer:
         """Create Kafka producer instance."""
         conf = {
-            'bootstrap.servers': self.config.bootstrap_servers,
-            'acks': self.config.acks,
-            'retries': self.config.retries,
-            'batch.size': self.config.batch_size,
-            'linger.ms': self.config.linger_ms,
-            'enable.idempotence': self.config.enable_idempotence,
-            'compression.type': 'gzip',
+            "bootstrap.servers": self.config.bootstrap_servers,
+            "acks": self.config.acks,
+            "retries": self.config.retries,
+            "batch.size": self.config.batch_size,
+            "linger.ms": self.config.linger_ms,
+            "enable.idempotence": self.config.enable_idempotence,
+            "compression.type": "gzip",
         }
         return Producer(conf)
 
@@ -86,7 +88,7 @@ class KafkaProducerIntegration(BaseIntegration):
             metadata = self._producer.list_topics(timeout=10)
             logger.info(
                 f"Kafka producer connected to {self.config.bootstrap_servers}",
-                extra={"topics": list(metadata.topics.keys())}
+                extra={"topics": list(metadata.topics.keys())},
             )
             return True
         except KafkaException as e:
@@ -102,15 +104,13 @@ class KafkaProducerIntegration(BaseIntegration):
 
     def _delivery_callback(self, err: KafkaError | None, msg) -> None:
         """Callback for message delivery confirmation."""
-        message_id = msg.headers().get('message_id', b'unknown') if msg.headers() else b'unknown'
+        message_id = msg.headers().get("message_id", b"unknown") if msg.headers() else b"unknown"
         message_id = message_id.decode() if isinstance(message_id, bytes) else str(message_id)
 
         if err:
             logger.error(f"Message delivery failed: {err}")
             if message_id in self._pending_messages:
-                self._pending_messages[message_id].set_exception(
-                    KafkaException(err)
-                )
+                self._pending_messages[message_id].set_exception(KafkaException(err))
         else:
             logger.debug(f"Message delivered to {msg.topic()} [{msg.partition()}]")
             if message_id in self._pending_messages:
@@ -121,7 +121,7 @@ class KafkaProducerIntegration(BaseIntegration):
         topic: str,
         message: LogMessage | dict[str, Any],
         key: str | None = None,
-        headers: dict[str, str] | None = None
+        headers: dict[str, str] | None = None,
     ) -> bool:
         """Send a message to Kafka."""
         if not self._producer:
@@ -137,7 +137,7 @@ class KafkaProducerIntegration(BaseIntegration):
                 "parsed_fields": message.parsed_fields,
                 "category": message.category,
                 "confidence": message.confidence,
-                "metadata": message.metadata
+                "metadata": message.metadata,
             }
         else:
             message_data = message
@@ -151,11 +151,9 @@ class KafkaProducerIntegration(BaseIntegration):
         # Prepare headers
         kafka_headers = []
         if headers:
-            kafka_headers.extend([
-                (k, v.encode()) for k, v in headers.items()
-            ])
-        kafka_headers.append(('message_id', message_id.encode()))
-        kafka_headers.append(('timestamp', datetime.utcnow().isoformat().encode()))
+            kafka_headers.extend([(k, v.encode()) for k, v in headers.items()])
+        kafka_headers.append(("message_id", message_id.encode()))
+        kafka_headers.append(("timestamp", datetime.utcnow().isoformat().encode()))
 
         try:
             self._producer.produce(
@@ -163,7 +161,7 @@ class KafkaProducerIntegration(BaseIntegration):
                 key=key.encode() if key else None,
                 value=json.dumps(message_data).encode(),
                 headers=kafka_headers,
-                callback=self._delivery_callback
+                callback=self._delivery_callback,
             )
 
             # Trigger delivery reports
@@ -183,10 +181,7 @@ class KafkaProducerIntegration(BaseIntegration):
             self._pending_messages.pop(message_id, None)
 
     async def send_batch(
-        self,
-        topic: str,
-        messages: list[LogMessage | dict[str, Any]],
-        key_field: str | None = None
+        self, topic: str, messages: list[LogMessage | dict[str, Any]], key_field: str | None = None
     ) -> dict[str, int]:
         """Send multiple messages to Kafka."""
         results = {"success": 0, "failed": 0}
@@ -219,15 +214,15 @@ class KafkaProducerIntegration(BaseIntegration):
                 message=f"Connected to {self.config.bootstrap_servers}",
                 details={
                     "available_topics": len(metadata.topics),
-                    "brokers": [b.host for b in metadata.brokers.values()]
-                }
+                    "brokers": [b.host for b in metadata.brokers.values()],
+                },
             )
         except KafkaException as e:
             return HealthStatus(
                 healthy=False,
                 latency_ms=0,
                 message=f"Kafka health check failed: {e}",
-                details={"error": str(e)}
+                details={"error": str(e)},
             )
 
     async def is_healthy(self) -> bool:
@@ -254,13 +249,13 @@ class KafkaConsumerIntegration(BaseIntegration):
     def _create_consumer(self) -> Consumer:
         """Create Kafka consumer instance."""
         conf = {
-            'bootstrap.servers': self.config.bootstrap_servers,
-            'group.id': self.config.group_id,
-            'auto.offset.reset': self.config.auto_offset_reset,
-            'enable.auto.commit': self.config.enable_auto_commit,
-            'session.timeout.ms': self.config.session_timeout_ms,
-            'heartbeat.interval.ms': self.config.heartbeat_interval_ms,
-            'max.poll.records': self.config.max_poll_records,
+            "bootstrap.servers": self.config.bootstrap_servers,
+            "group.id": self.config.group_id,
+            "auto.offset.reset": self.config.auto_offset_reset,
+            "enable.auto.commit": self.config.enable_auto_commit,
+            "session.timeout.ms": self.config.session_timeout_ms,
+            "heartbeat.interval.ms": self.config.heartbeat_interval_ms,
+            "max.poll.records": self.config.max_poll_records,
         }
         return Consumer(conf)
 
@@ -276,7 +271,7 @@ class KafkaConsumerIntegration(BaseIntegration):
 
             logger.info(
                 f"Kafka consumer connected to {self.config.bootstrap_servers}",
-                extra={"topics": topics, "group_id": self.config.group_id}
+                extra={"topics": topics, "group_id": self.config.group_id},
             )
             return True
         except KafkaException as e:
@@ -314,11 +309,21 @@ class KafkaConsumerIntegration(BaseIntegration):
                 try:
                     value = json.loads(msg.value().decode())
                     log_message = LogMessage(
-                        id=value.get("id", msg.headers().get("message_id", "unknown") if msg.headers() else "unknown"),
-                        timestamp=value.get("timestamp", msg.timestamp()[1].isoformat() if msg.timestamp()[1] else datetime.utcnow().isoformat()),
+                        id=value.get(
+                            "id",
+                            msg.headers().get("message_id", "unknown")
+                            if msg.headers()
+                            else "unknown",
+                        ),
+                        timestamp=value.get(
+                            "timestamp",
+                            msg.timestamp()[1].isoformat()
+                            if msg.timestamp()[1]
+                            else datetime.utcnow().isoformat(),
+                        ),
                         source=value.get("source", msg.topic()),
                         raw_message=value.get("raw_message", msg.value().decode()),
-                        parsed_fields=value.get("parsed_fields", {})
+                        parsed_fields=value.get("parsed_fields", {}),
                     )
 
                     # Call handlers
@@ -352,15 +357,17 @@ class KafkaConsumerIntegration(BaseIntegration):
                     "assigned_partitions": [
                         {"topic": p.topic, "partition": p.partition}
                         for p in self._consumer.assignment()
-                    ] if self._consumer.assignment() else []
-                }
+                    ]
+                    if self._consumer.assignment()
+                    else [],
+                },
             )
         except KafkaException as e:
             return HealthStatus(
                 healthy=False,
                 latency_ms=0,
                 message=f"Kafka health check failed: {e}",
-                details={"error": str(e)}
+                details={"error": str(e)},
             )
 
     async def is_healthy(self) -> bool:
@@ -375,20 +382,14 @@ class KafkaConsumerIntegration(BaseIntegration):
         """Get current topic assignments."""
         if not self._consumer:
             return []
-        return [
-            {"topic": p.topic, "partition": p.partition}
-            for p in self._consumer.assignment()
-        ]
+        return [{"topic": p.topic, "partition": p.partition} for p in self._consumer.assignment()]
 
 
 async def create_kafka_topics(
-    bootstrap_servers: str,
-    topics: list[str],
-    num_partitions: int = 3,
-    replication_factor: int = 1
+    bootstrap_servers: str, topics: list[str], num_partitions: int = 3, replication_factor: int = 1
 ) -> bool:
     """Create Kafka topics if they don't exist."""
-    admin = AdminClient({'bootstrap.servers': bootstrap_servers})
+    admin = AdminClient({"bootstrap.servers": bootstrap_servers})
 
     try:
         # Check existing topics
@@ -398,9 +399,7 @@ async def create_kafka_topics(
         # Create new topics
         new_topics = [
             NewTopic(
-                topic=topic,
-                num_partitions=num_partitions,
-                replication_factor=replication_factor
+                topic=topic, num_partitions=num_partitions, replication_factor=replication_factor
             )
             for topic in topics
             if topic not in existing_topics

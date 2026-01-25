@@ -291,16 +291,12 @@ class QRadarIntegrationTests:
 
                 if response.status_code == 200:
                     info = response.json()
-                    logger.info(
-                        f"✅ {test_name}: Connected to QRadar {info.get('version')}"
-                    )
+                    logger.info(f"✅ {test_name}: Connected to QRadar {info.get('version')}")
                     logger.info(f"   Hostname: {info.get('hostname')}")
                     self.passed += 1
                     return True
                 else:
-                    raise Exception(
-                        f"HTTP {response.status_code}: {response.text[:100]}"
-                    )
+                    raise Exception(f"HTTP {response.status_code}: {response.text[:100]}")
 
         except ImportError:
             logger.warning(f"⚠️  {test_name}: httpx not installed - skipping")
@@ -352,9 +348,7 @@ class QRadarIntegrationTests:
                     self.passed += 1
                     return True
                 else:
-                    raise Exception(
-                        f"HTTP {response.status_code}: {response.text[:100]}"
-                    )
+                    raise Exception(f"HTTP {response.status_code}: {response.text[:100]}")
 
         except Exception as e:
             logger.error(f"❌ {test_name}: {e}")
@@ -384,15 +378,11 @@ class QRadarIntegrationTests:
 
                 if response.status_code == 200:
                     offenses = response.json()
-                    logger.info(
-                        f"✅ {test_name}: Retrieved {len(offenses)} open offenses"
-                    )
+                    logger.info(f"✅ {test_name}: Retrieved {len(offenses)} open offenses")
                     self.passed += 1
                     return True
                 else:
-                    raise Exception(
-                        f"HTTP {response.status_code}: {response.text[:100]}"
-                    )
+                    raise Exception(f"HTTP {response.status_code}: {response.text[:100]}")
 
         except Exception as e:
             logger.error(f"❌ {test_name}: {e}")

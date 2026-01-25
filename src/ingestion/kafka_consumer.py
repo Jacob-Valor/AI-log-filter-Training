@@ -43,7 +43,7 @@ class RawLog:
             "offset": self.offset,
             "timestamp": self.timestamp.isoformat(),
             "key": self.key,
-            "headers": self.headers
+            "headers": self.headers,
         }
 
 
@@ -67,7 +67,7 @@ class ClassifiedLog:
             "confidence": self.confidence,
             "model_used": self.model_used,
             "explanation": self.explanation,
-            "processing_time_ms": self.processing_time_ms
+            "processing_time_ms": self.processing_time_ms,
         }
 
 
@@ -88,7 +88,7 @@ class LogConsumer:
         classifier: BaseClassifier,
         router: LogRouter,
         batch_size: int = 256,
-        max_wait_ms: int = 100
+        max_wait_ms: int = 100,
     ):
         self.config = config
         self.classifier = classifier
@@ -204,7 +204,7 @@ class LogConsumer:
             offset=msg.offset(),
             timestamp=datetime.fromtimestamp(msg.timestamp()[1] / 1000),
             key=msg.key().decode("utf-8") if msg.key() else None,
-            headers=headers
+            headers=headers,
         )
 
     async def _process_batch(self, batch: list[RawLog]):
@@ -220,7 +220,10 @@ class LogConsumer:
             parsed_logs = [self.parser.parse(log.raw_message) for log in batch]
 
             # Extract messages for classification
-            messages = [p.get("message", log.raw_message) for p, log in zip(parsed_logs, batch, strict=False)]
+            messages = [
+                p.get("message", log.raw_message)
+                for p, log in zip(parsed_logs, batch, strict=False)
+            ]
 
             # Classify batch
             predictions = await self.classifier.predict_batch(messages)
@@ -235,7 +238,7 @@ class LogConsumer:
                     confidence=pred["confidence"],
                     model_used=pred.get("model", "ensemble"),
                     explanation=pred.get("explanation"),
-                    processing_time_ms=(time.time() - start_time) * 1000 / len(batch)
+                    processing_time_ms=(time.time() - start_time) * 1000 / len(batch),
                 )
                 classified_logs.append(classified)
 
@@ -253,9 +256,7 @@ class LogConsumer:
             for log in classified_logs:
                 METRICS.classification_distribution.labels(category=log.category).inc()
 
-            logger.debug(
-                f"Processed {len(batch)} logs in {processing_time*1000:.2f}ms"
-            )
+            logger.debug(f"Processed {len(batch)} logs in {processing_time * 1000:.2f}ms")
 
         except Exception as e:
             logger.error(f"Error processing batch: {e}", exc_info=True)
@@ -272,13 +273,15 @@ class LogProducer:
         from confluent_kafka import Producer
 
         self.config = config
-        self.producer = Producer({
-            "bootstrap.servers": config["bootstrap_servers"],
-            "acks": config.get("producer", {}).get("acks", "all"),
-            "retries": config.get("producer", {}).get("retries", 3),
-            "batch.size": config.get("producer", {}).get("batch_size", 16384),
-            "linger.ms": config.get("producer", {}).get("linger_ms", 10),
-        })
+        self.producer = Producer(
+            {
+                "bootstrap.servers": config["bootstrap_servers"],
+                "acks": config.get("producer", {}).get("acks", "all"),
+                "retries": config.get("producer", {}).get("retries", 3),
+                "batch.size": config.get("producer", {}).get("batch_size", 16384),
+                "linger.ms": config.get("producer", {}).get("linger_ms", 10),
+            }
+        )
 
     def send(self, topic: str, message: dict[str, Any], key: str | None = None):
         """Send message to Kafka topic."""
@@ -287,7 +290,7 @@ class LogProducer:
                 topic=topic,
                 key=key.encode("utf-8") if key else None,
                 value=json.dumps(message).encode("utf-8"),
-                callback=self._delivery_callback
+                callback=self._delivery_callback,
             )
             self.producer.poll(0)
         except Exception as e:

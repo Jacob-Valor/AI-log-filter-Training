@@ -40,14 +40,13 @@ class AILogFilterService:
         # Setup logging
         setup_logging(
             level=self.config.get("logging", {}).get("level", "INFO"),
-            format_type=self.config.get("logging", {}).get("format", "json")
+            format_type=self.config.get("logging", {}).get("format", "json"),
         )
 
         # Initialize classifier
         logger.info("Loading classification models...")
         self.classifier = EnsembleClassifier(
-            model_path=self.config["model"]["path"],
-            config=self.config["model"]
+            model_path=self.config["model"]["path"], config=self.config["model"]
         )
         await self.classifier.load()
 
@@ -59,9 +58,7 @@ class AILogFilterService:
         # Initialize Kafka consumer
         logger.info("Starting Kafka consumer...")
         self.consumer = LogConsumer(
-            config=self.config["ingestion"]["kafka"],
-            classifier=self.classifier,
-            router=self.router
+            config=self.config["ingestion"]["kafka"], classifier=self.classifier, router=self.router
         )
 
         # Initialize metrics server
@@ -120,10 +117,7 @@ async def run_service(config_path: str):
     # Setup signal handlers
     loop = asyncio.get_event_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(
-            sig,
-            lambda s=sig: service.handle_signal(s)
-        )
+        loop.add_signal_handler(sig, lambda s=sig: service.handle_signal(s))
 
     try:
         await service.initialize()
@@ -137,21 +131,16 @@ async def run_service(config_path: str):
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="AI-Driven Log Filtering for SIEM Efficiency"
-    )
+    parser = argparse.ArgumentParser(description="AI-Driven Log Filtering for SIEM Efficiency")
     parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/config.yaml",
-        help="Path to configuration file"
+        "--config", type=str, default="configs/config.yaml", help="Path to configuration file"
     )
     parser.add_argument(
         "--mode",
         type=str,
         choices=["service", "consumer", "api"],
         default="service",
-        help="Run mode"
+        help="Run mode",
     )
 
     args = parser.parse_args()
@@ -162,12 +151,7 @@ def main():
 
         from src.api.app import app
 
-        uvicorn.run(
-            app,
-            host="0.0.0.0",
-            port=8000,
-            log_level="info"
-        )
+        uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
     else:
         # Run main service
         asyncio.run(run_service(args.config))

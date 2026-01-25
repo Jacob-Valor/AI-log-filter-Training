@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 
 class ComplianceFramework(Enum):
     """Supported compliance frameworks."""
+
     PCI_DSS = "pci_dss"
     HIPAA = "hipaa"
     SOX = "sox"
@@ -30,6 +31,7 @@ class ComplianceFramework(Enum):
 @dataclass
 class ComplianceRule:
     """A single compliance rule definition."""
+
     name: str
     framework: ComplianceFramework
     description: str
@@ -43,6 +45,7 @@ class ComplianceRule:
 @dataclass
 class ComplianceDecision:
     """Result of compliance check."""
+
     is_regulated: bool
     matched_rules: list[str]
     frameworks: set[ComplianceFramework]
@@ -110,7 +113,6 @@ class ComplianceGate:
             ],
             minimum_retention_days=365,
         ),
-
         # HIPAA Rules
         ComplianceRule(
             name="hipaa_phi_systems",
@@ -135,7 +137,6 @@ class ComplianceGate:
             ],
             minimum_retention_days=2190,  # 6 years for HIPAA
         ),
-
         # SOX Rules
         ComplianceRule(
             name="sox_financial_systems",
@@ -159,7 +160,6 @@ class ComplianceGate:
             ],
             minimum_retention_days=2555,  # 7 years for SOX
         ),
-
         # GDPR Rules
         ComplianceRule(
             name="gdpr_personal_data",
@@ -203,12 +203,12 @@ class ComplianceGate:
         self.stats = {
             "total_checked": 0,
             "total_bypassed": 0,
-            "bypasses_by_framework": {f.value: 0 for f in ComplianceFramework}
+            "bypasses_by_framework": {f.value: 0 for f in ComplianceFramework},
         }
 
         logger.info(
             f"Compliance gate initialized with {len(self.rules)} rules",
-            extra={"enabled": self.enabled, "rule_count": len(self.rules)}
+            extra={"enabled": self.enabled, "rule_count": len(self.rules)},
         )
 
     def _load_rules(self):
@@ -220,9 +220,7 @@ class ComplianceGate:
         custom_rules = self.config.get("custom_rules", [])
         for rule_def in custom_rules:
             try:
-                framework = ComplianceFramework(
-                    rule_def.get("framework", "custom")
-                )
+                framework = ComplianceFramework(rule_def.get("framework", "custom"))
                 rule = ComplianceRule(
                     name=rule_def["name"],
                     framework=framework,
@@ -342,7 +340,7 @@ class ComplianceGate:
                     "source": source[:50],
                     "matched_rules": list(matched_rules),
                     "frameworks": [f.value for f in matched_frameworks],
-                }
+                },
             )
         else:
             bypass_reason = None
@@ -383,9 +381,7 @@ class ComplianceGate:
 
     def get_stats(self) -> dict[str, Any]:
         """Get compliance gate statistics."""
-        bypass_rate = (
-            self.stats["total_bypassed"] / max(self.stats["total_checked"], 1)
-        ) * 100
+        bypass_rate = (self.stats["total_bypassed"] / max(self.stats["total_checked"], 1)) * 100
 
         return {
             **self.stats,
@@ -394,16 +390,13 @@ class ComplianceGate:
             "enabled": self.enabled,
         }
 
-    def get_rules_by_framework(
-        self, framework: ComplianceFramework
-    ) -> list[ComplianceRule]:
+    def get_rules_by_framework(self, framework: ComplianceFramework) -> list[ComplianceRule]:
         """Get all rules for a specific framework."""
         return [r for r in self.rules if r.framework == framework]
 
 
 def create_compliance_bypass_prediction(
-    log: dict[str, Any],
-    decision: ComplianceDecision
+    log: dict[str, Any], decision: ComplianceDecision
 ) -> dict[str, Any]:
     """
     Create a prediction object for compliance-bypassed logs.
@@ -425,5 +418,5 @@ def create_compliance_bypass_prediction(
         "metadata": {
             "compliance_regulated": True,
             "retention_days": decision.minimum_retention_days,
-        }
+        },
     }

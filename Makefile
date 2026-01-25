@@ -17,9 +17,9 @@ help:
 	@echo "Development:"
 	@echo "  make test           Run tests with coverage"
 	@echo "  make test-fast      Run tests without coverage"
-	@echo "  make lint           Run linting checks"
-	@echo "  make format         Format code with black and isort"
-	@echo "  make typecheck      Run mypy type checking"
+	@echo "  make lint           Run linting checks (Ruff)"
+	@echo "  make format         Format code (Ruff)"
+	@echo "  make check          Run all checks (lint + test)"
 	@echo ""
 	@echo "Docker:"
 	@echo "  make docker-build   Build Docker images"
@@ -45,6 +45,7 @@ install:
 
 install-dev:
 	pip install -e ".[dev]"
+	pip install pre-commit
 	pre-commit install
 
 setup: install-dev
@@ -65,16 +66,13 @@ test-fast:
 	pytest tests/ -v -x --no-cov
 
 lint:
-	flake8 src/ scripts/ tests/
-	black --check src/ scripts/ tests/
-	isort --check-only src/ scripts/ tests/
+	ruff check src/ scripts/ tests/
 
 format:
-	black src/ scripts/ tests/
-	isort src/ scripts/ tests/
+	ruff format src/ scripts/ tests/
+	ruff check --fix src/ scripts/ tests/
 
-typecheck:
-	mypy src/ scripts/
+check: lint test
 
 # =============================================================================
 # Docker
@@ -135,7 +133,7 @@ clean:
 	rm -rf dist/
 	rm -rf *.egg-info
 	rm -rf .pytest_cache/
-	rm -rf .mypy_cache/
+	rm -rf .ruff_cache/
 	rm -rf htmlcov/
 	rm -rf .coverage
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
