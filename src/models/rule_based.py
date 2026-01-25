@@ -1,228 +1,147 @@
 """
-Ensemble Classifier
+Rule-Based Classifier
 
-Combines multiple classifiers for robust log classification.
-Uses weighted averaging or voting for final predictions.
+Uses predefined regex patterns and rules for log classification.
+Provides high-precision classification for known patterns.
 """
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
-from src.models.tfidf_classifier import TFIDFClassifier
-from src.utils.logging import get_logger
+import yaml
 
-from src.models.anomaly_detector import AnomalyDetector
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
-from src.models.rule_based import RuleBasedClassifier
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-@ClassifierRegistry.register("ensemble")
-class EnsembleClassifier(BaseClassifier):
+@ClassifierRegistry.register("rule_based")
+class RuleBasedClassifier(BaseClassifier):
     """
-    Ensemble classifier combining multiple models.
+    Rule-based log classifier using regex patterns.
 
-    Combines rule-based, ML, and anomaly detection approaches
-    for robust log classification.
+    Applies predefined rules in priority order to classify logs.
+    High confidence for matching rules, provides baseline classification.
     """
 
-    def __init__(
-        self,
-        model_path: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None
-    ):
-        super().__init__("ensemble", config)
-        self.model_path = model_path
-
-        # Default weights
-        self.weights = {
-            "rule_based": 0.30,
-            "tfidf_xgboost": 0.45,
-            "anomaly_detector": 0.25
-        }
-
-        if config and "ensemble" in config:
-            ensemble_config = config["ensemble"]
-            if "weights" in ensemble_config:
-                self.weights = ensemble_config["weights"]
-
-        # Combination strategy
-        self.strategy = config.get("ensemble", {}).get(
-            "combination_strategy", "weighted_average"
-        ) if config else "weighted_average"
-
-        # Initialize component classifiers
-        self.classifiers: Dict[str, BaseClassifier] = {}
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        super().__init__("rule_based", config)
+        self.rules: Dict[str, List[Dict[str, Any]]] = {}
+        self.compiled_rules: Dict[str, List[Tuple[str, re.Pattern, float]]] = {}
+        self.priority_order = ["critical", "suspicious", "noise", "routine"]
+        self.default_category = "routine"
+        self.default_confidence = 0.5
 
     async def load(self):
-        """Load all component classifiers."""
-        logger.info("Loading ensemble classifier components...")
+        """Load rules from configuration file."""
+        rules_path = self.config.get("rules_path", "configs/rules.yaml")
 
-        # Rule-based classifier
-        rule_config = self.config.get("rule_based", {}) if self.config else {}
-        rule_config["rules_path"] = rule_config.get("rules_path", "configs/rules.yaml")
-        self.classifiers["rule_based"] = RuleBasedClassifier(rule_config)
-        await self.classifiers["rule_based"].load()
+        try:
+            with open(rules_path, "r") as f:
+                rules_config = yaml.safe_load(f)
 
-        # TF-IDF classifier
-        tfidf_config = self.config.get("tfidf", {}) if self.config else {}
-        if self.model_path:
-            tfidf_config["model_path"] = f"{self.model_path}/tfidf_xgboost"
-        self.classifiers["tfidf_xgboost"] = TFIDFClassifier(tfidf_config)
-        await self.classifiers["tfidf_xgboost"].load()
+            self._compile_rules(rules_config)
+            self.is_loaded = True
+            logger.info(f"Loaded {sum(len(r) for r in self.compiled_rules.values())} rules")
 
-        # Anomaly detector
-        anomaly_config = self.config.get("anomaly", {}) if self.config else {}
-        if self.model_path:
-            anomaly_config["model_path"] = f"{self.model_path}/anomaly_detector"
-        self.classifiers["anomaly_detector"] = AnomalyDetector(anomaly_config)
-        await self.classifiers["anomaly_detector"].load()
+        except FileNotFoundError:
+            logger.warning(f"Rules file not found: {rules_path}, using default rules")
+            self._load_default_rules()
+            self.is_loaded = True
+        except Exception as e:
+            logger.error(f"Failed to load rules: {e}")
+            raise
 
-        self.is_loaded = True
-        logger.info(f"Loaded {len(self.classifiers)} classifiers")
+    def _compile_rules(self, rules_config: Dict[str, Any]):
+        """Compile regex patterns from rules configuration."""
+        settings = rules_config.get("settings", {})
+        self.priority_order = settings.get("priority_order", self.priority_order)
+        self.default_category = settings.get("default_category", self.default_category)
+        self.default_confidence = settings.get("default_confidence", self.default_confidence)
+
+        case_insensitive = settings.get("case_insensitive", True)
+        flags = re.IGNORECASE if case_insensitive else 0
+
+        for category in self.CATEGORIES:
+            self.compiled_rules[category] = []
+
+            if category in rules_config:
+                for rule in rules_config[category]:
+                    rule_name = rule.get("name", "unnamed")
+                    confidence = rule.get("confidence", 0.8)
+
+                    for pattern in rule.get("patterns", []):
+                        try:
+                            compiled = re.compile(pattern, flags)
+                            self.compiled_rules[category].append(
+                                (rule_name, compiled, confidence)
+                            )
+                        except re.error as e:
+                            logger.warning(f"Invalid regex pattern in rule {rule_name}: {e}")
+
+    def _load_default_rules(self):
+        """Load minimal default rules."""
+        default_rules = {
+            "critical": [
+                ("malware", re.compile(r"malware|virus|trojan|ransomware", re.I), 0.95),
+                ("brute_force", re.compile(r"brute.?force|multiple.*fail.*auth", re.I), 0.90),
+            ],
+            "suspicious": [
+                ("failed_auth", re.compile(r"failed.*(login|auth)|authentication.*fail", re.I), 0.75),
+                ("access_denied", re.compile(r"access.*denied|permission.*denied", re.I), 0.70),
+            ],
+            "noise": [
+                ("health_check", re.compile(r"health.?check|heartbeat|keep.?alive", re.I), 0.90),
+                ("debug", re.compile(r"^\s*(DEBUG|TRACE)", re.I), 0.85),
+            ],
+            "routine": [
+                ("success", re.compile(r"success|completed|started", re.I), 0.60),
+            ],
+        }
+        self.compiled_rules = default_rules
 
     async def predict(self, text: str) -> Prediction:
-        """Classify a single log message."""
-        predictions = await self.predict_batch([text])
-        return predictions[0]
-
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
-        """Classify a batch of log messages using ensemble."""
+        """Classify a single log message using rules."""
         if not self.is_loaded:
             await self.load()
 
-        # Get predictions from all classifiers
-        all_predictions: Dict[str, List[Prediction]] = {}
-
-        for name, classifier in self.classifiers.items():
-            try:
-                preds = await classifier.predict_batch(texts)
-                all_predictions[name] = preds
-            except Exception as e:
-                logger.warning(f"Classifier {name} failed: {e}")
-                # Use default predictions
-                all_predictions[name] = [
-                    Prediction(
-                        category="routine",
-                        confidence=0.5,
-                        model=name
+        # Check rules in priority order
+        for category in self.priority_order:
+            for rule_name, pattern, confidence in self.compiled_rules.get(category, []):
+                if pattern.search(text):
+                    return Prediction(
+                        category=category,
+                        confidence=confidence,
+                        model=self.name,
+                        explanation={"matched_rule": rule_name}
                     )
-                    for _ in texts
-                ]
 
-        # Combine predictions
-        if self.strategy == "weighted_average":
-            return self._combine_weighted_average(texts, all_predictions)
-        elif self.strategy == "max_voting":
-            return self._combine_max_voting(texts, all_predictions)
-        else:
-            return self._combine_weighted_average(texts, all_predictions)
+        # No rule matched, return default
+        return Prediction(
+            category=self.default_category,
+            confidence=self.default_confidence,
+            model=self.name,
+            explanation={"matched_rule": None}
+        )
 
-    def _combine_weighted_average(
-        self,
-        texts: List[str],
-        all_predictions: Dict[str, List[Prediction]]
-    ) -> List[Prediction]:
-        """Combine predictions using weighted averaging."""
-        results = []
+    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+        """Classify a batch of log messages."""
+        return [await self.predict(text) for text in texts]
 
-        for i in range(len(texts)):
-            # Aggregate probabilities across models
-            category_scores: Dict[str, float] = {cat: 0.0 for cat in self.CATEGORIES}
-            explanations = {}
+    def get_matching_rules(self, text: str) -> List[Dict[str, Any]]:
+        """Get all rules that match a given text."""
+        matches = []
 
-            for model_name, predictions in all_predictions.items():
-                pred = predictions[i]
-                weight = self.weights.get(model_name, 0.25)
+        for category in self.CATEGORIES:
+            for rule_name, pattern, confidence in self.compiled_rules.get(category, []):
+                match = pattern.search(text)
+                if match:
+                    matches.append({
+                        "category": category,
+                        "rule": rule_name,
+                        "confidence": confidence,
+                        "match": match.group(0)
+                    })
 
-                if pred.probabilities:
-                    # Use full probability distribution
-                    for cat, prob in pred.probabilities.items():
-                        category_scores[cat] += weight * prob
-                else:
-                    # Use confidence for predicted category
-                    category_scores[pred.category] += weight * pred.confidence
-                    # Distribute remaining weight
-                    remaining = weight * (1 - pred.confidence)
-                    for cat in self.CATEGORIES:
-                        if cat != pred.category:
-                            category_scores[cat] += remaining / (len(self.CATEGORIES) - 1)
-
-                explanations[model_name] = {
-                    "prediction": pred.category,
-                    "confidence": pred.confidence,
-                    "explanation": pred.explanation
-                }
-
-            # Normalize scores
-            total = sum(category_scores.values())
-            if total > 0:
-                category_scores = {k: v / total for k, v in category_scores.items()}
-
-            # Get final prediction
-            final_category = max(category_scores, key=category_scores.get)
-            final_confidence = category_scores[final_category]
-
-            # Override: If rule-based says critical with high confidence, use it
-            rule_pred = all_predictions.get("rule_based", [None])[i]
-            if rule_pred and rule_pred.category == "critical" and rule_pred.confidence > 0.9:
-                final_category = "critical"
-                final_confidence = rule_pred.confidence
-
-            results.append(Prediction(
-                category=final_category,
-                confidence=final_confidence,
-                model="ensemble",
-                probabilities=category_scores,
-                explanation={"model_predictions": explanations}
-            ))
-
-        return results
-
-    def _combine_max_voting(
-        self,
-        texts: List[str],
-        all_predictions: Dict[str, List[Prediction]]
-    ) -> List[Prediction]:
-        """Combine predictions using max voting."""
-        results = []
-
-        for i in range(len(texts)):
-            votes: Dict[str, float] = {cat: 0.0 for cat in self.CATEGORIES}
-            explanations = {}
-
-            for model_name, predictions in all_predictions.items():
-                pred = predictions[i]
-                weight = self.weights.get(model_name, 0.25)
-                votes[pred.category] += weight
-
-                explanations[model_name] = {
-                    "prediction": pred.category,
-                    "confidence": pred.confidence
-                }
-
-            final_category = max(votes, key=votes.get)
-            final_confidence = votes[final_category] / sum(votes.values())
-
-            results.append(Prediction(
-                category=final_category,
-                confidence=final_confidence,
-                model="ensemble",
-                explanation={"votes": votes, "model_predictions": explanations}
-            ))
-
-        return results
-
-    def save(self, path: str):
-        """Save all component models."""
-        save_path = Path(path)
-        save_path.mkdir(parents=True, exist_ok=True)
-
-        for name, classifier in self.classifiers.items():
-            try:
-                classifier.save(str(save_path / name))
-            except NotImplementedError:
-                logger.debug(f"Classifier {name} does not support saving")
-
-        logger.info(f"Ensemble saved to {save_path}")
+        return matches

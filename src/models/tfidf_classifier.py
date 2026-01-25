@@ -11,9 +11,9 @@ from typing import Any, Dict, List, Optional
 
 import joblib
 import numpy as np
-from src.utils.logging import get_logger
 
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

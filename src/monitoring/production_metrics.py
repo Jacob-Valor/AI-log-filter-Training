@@ -12,6 +12,7 @@ from threading import Lock
 from typing import Any, Dict, Optional
 
 from prometheus_client import Counter, Gauge, Histogram, Info
+
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)

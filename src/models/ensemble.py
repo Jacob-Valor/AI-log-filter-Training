@@ -8,12 +8,11 @@ Uses weighted averaging or voting for final predictions.
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from src.models.anomaly_detector import AnomalyDetector
+from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
 from src.models.rule_based import RuleBasedClassifier
 from src.models.tfidf_classifier import TFIDFClassifier
 from src.utils.logging import get_logger
-
-from src.models.anomaly_detector import AnomalyDetector
-from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
 
 logger = get_logger(__name__)
 
