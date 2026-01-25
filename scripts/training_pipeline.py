@@ -283,8 +283,8 @@ class DataLoader:
         # Remove empty messages
         df = df[df["processed"].str.len() > 0]
 
-        X = df["processed"].values
-        y = df["category"].values
+        X = np.array(df["processed"].tolist())
+        y = np.array(df["category"].tolist())
 
         # First split: train+val vs test
         X_trainval, X_test, y_trainval, y_test = train_test_split(

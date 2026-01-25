@@ -16,6 +16,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "fastparquet" },
     { name = "httpx" },
+    { name = "joblib" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "prometheus-client" },
@@ -24,7 +25,6 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "ruff" },
     { name = "scikit-learn" },
     { name = "slowapi" },
     { name = "structlog" },
@@ -39,6 +39,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -48,6 +49,7 @@ requires-dist = [
     { name = "fastparquet", specifier = ">=2025.12.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=7.1.0" },
+    { name = "joblib", specifier = ">=1.5.3" },
     { name = "numpy", specifier = ">=2.4.1" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "prometheus-client", specifier = ">=0.24.1" },
@@ -59,7 +61,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "ruff", specifier = ">=0.14.13" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.13" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
     { name = "slowapi", specifier = ">=0.1.9" },
     { name = "structlog", specifier = ">=25.5.0" },

@@ -525,8 +525,8 @@ class LoadTester:
                 "avg_latency_ms": self.results.avg_latency_ms,
                 "error_rate": self.results.error_rate,
                 "total_events": self.results.total_events,
-                "passed_target": self.results.passed_target,
-                "passed_latency": self.results.passed_latency,
+                "passed_target": bool(self.results.passed_target),
+                "passed_latency": bool(self.results.passed_latency),
             },
             "step_results": [
                 {k: v for k, v in sr.items() if k != "latencies"}

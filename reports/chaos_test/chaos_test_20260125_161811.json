@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-01-25T16:18:07.557482+00:00",
+  "total_tests": 9,
+  "passed_tests": 6,
+  "failed_tests": 3,
+  "success_rate": 0.6666666666666666,
+  "results": [
+    {
+      "name": "Fail-Open on Classifier Error",
+      "passed": false,
+      "duration": 0.0016943910000009055,
+      "details": {
+        "total_logs": 3,
+        "classified_count": 3,
+        "critical_or_suspicious": 0
+      },
+      "error": "Graceful degradation not working correctly"
+    },
+    {
+      "name": "Circuit Breaker Opens on Failures",
+      "passed": true,
+      "duration": 0.00017908500012708828,
+      "details": {
+        "failures_before_open": 3,
+        "circuit_opened": true,
+        "expected_threshold": 3
+      },
+      "error": null
+    },
+    {
+      "name": "Circuit Breaker Fail-Open Mode",
+      "passed": true,
+      "duration": 0.00010927800030913204,
+      "details": {
+        "circuit_state": "OPEN",
+        "result": {
+          "category": "critical",
+          "reason": "fail_open"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "High Latency Handling",
+      "passed": true,
+      "duration": 1.0009180049996758,
+      "details": {
+        "timed_out": true,
+        "elapsed_seconds": 1.0009089820000554,
+        "timeout_threshold": 1.0
+      },
+      "error": null
+    },
+    {
+      "name": "Concurrent Load Handling",
+      "passed": true,
+      "duration": 0.015810323000096105,
+      "details": {
+        "total_requests": 100,
+        "successful": 100,
+        "failed": 0,
+        "elapsed_seconds": 0.01575223800000458,
+        "throughput": 6348.3042853955685
+      },
+      "error": null
+    },
+    {
+      "name": "Memory Pressure Resilience",
+      "passed": true,
+      "duration": 0.051793736000036006,
+      "details": {
+        "initial_objects": 159153,
+        "final_objects": 154481,
+        "object_delta": -4672,
+        "classifier_works": true
+      },
+      "error": null
+    },
+    {
+      "name": "Critical Recall Under Stress",
+      "passed": false,
+      "duration": 0.8294884580000144,
+      "details": {
+        "total_critical_logs": 100,
+        "critical_detected": 30,
+        "critical_missed": 70,
+        "recall": 0.3,
+        "target_recall": 0.995
+      },
+      "error": "Critical recall 30.00% below target 99.5%"
+    },
+    {
+      "name": "Graceful Degradation",
+      "passed": false,
+      "duration": 0.0006963480000194977,
+      "details": {
+        "result_category": "routine",
+        "degraded_mode": true
+      },
+      "error": "Graceful degradation failed"
+    },
+    {
+      "name": "Recovery After Failure",
+      "passed": true,
+      "duration": 1.5023271629997907,
+      "details": {
+        "initial_state": "OPEN",
+        "final_state": "CLOSED",
+        "recovery_success": true,
+        "total_calls": 7
+      },
+      "error": null
+    }
+  ]
+}

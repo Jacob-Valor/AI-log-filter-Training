@@ -97,10 +97,10 @@ models/**/*
 !models/*/.gitkeep
 !models/**/.gitkeep
 
-data/**/*
-!data/.gitkeep
-!data/*/.gitkeep
-!data/**/.gitkeep
+# data/**/*
+# !data/.gitkeep
+# !data/*/.gitkeep
+# !data/**/.gitkeep
 
 processed/**/*
 !processed/.gitkeep

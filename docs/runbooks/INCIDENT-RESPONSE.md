@@ -46,10 +46,10 @@ This runbook provides procedures for responding to incidents affecting the AI Lo
 
 | Severity            | Description                                      | Response Time | Examples                                   |
 | ------------------- | ------------------------------------------------ | ------------- | ------------------------------------------ |
-| **SEV1 - Critical** | Complete service outage; no logs reaching QRadar | 15 minutes    | All classifiers down, circuit breaker open |
-| **SEV2 - High**     | Major degradation; some logs blocked             | 1 hour        | High latency, partial failures             |
-| **SEV3 - Medium**   | Minor degradation; increased noise               | 4 hours       | Metrics spikes, model degradation          |
-| **SEV4 - Low**      | Minor issues; no business impact                 | 24 hours      | Logging issues, minor errors               |
+| **SEV1 - Critical** | Complete service outage; no logs reaching QRadar | 5 minutes     | All classifiers down, circuit breaker open |
+| **SEV2 - High**     | Major degradation; some logs blocked             | 5 minutes     | High latency, partial failures             |
+| **SEV3 - Medium**   | Minor degradation; increased noise               | 5 minutes     | Metrics spikes, model degradation          |
+| **SEV4 - Low**      | Minor issues; no business impact                 | 5 minutes     | Logging issues, minor errors               |
 
 ---
 

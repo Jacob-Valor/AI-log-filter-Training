@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-01-25T16:13:58.393481+00:00",
+  "config": {
+    "target_eps": 100,
+    "duration_seconds": 5,
+    "warmup_seconds": 10
+  },
+  "results": {
+    "target_eps": 100,
+    "achieved_eps": 1200.0,
+    "max_achieved_eps": 149.997966172576,
+    "p50_latency_ms": 0.2106229999299103,
+    "p95_latency_ms": 0.43696110039945807,
+    "p99_latency_ms": 0.5068798701222477,
+    "max_latency_ms": 1.2602489996424993,
+    "avg_latency_ms": 0.20579322033305894,
+    "error_rate": 0.0,
+    "total_events": 6000,
+    "passed_target": true,
+    "passed_latency": 

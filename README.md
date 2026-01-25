@@ -238,9 +238,15 @@ ai-log-filter/
 │   └── samples/                  # Sample data
 │
 ├── scripts/                      # Utility scripts
+│   ├── generate_sample_data.py   # Generate synthetic training data
+│   ├── train.py                  # Basic model training
+│   ├── training_pipeline.py      # Full training pipeline
+│   ├── evaluate.py               # Model evaluation
 │   ├── validate_models.py        # Model artifact validation
 │   ├── shadow_validation.py      # Shadow mode testing
 │   ├── load_test.py              # Performance testing
+│   ├── chaos_test.py             # Chaos/resilience testing
+│   ├── cost_report.py            # Cost savings report
 │   ├── integration_tests.py      # Integration testing
 │   └── cleanup.sh                # Project cleanup
 │
@@ -266,6 +272,292 @@ ai-log-filter/
 ├── pyproject.toml               # Project metadata
 └── CHANGELOG.md                 # Version history
 ```
+
+---
+
+## 📜 Scripts Reference
+
+All scripts are located in the `scripts/` directory. Run them from the project root.
+
+### Data Generation & Preparation
+
+#### `generate_sample_data.py` - Generate Synthetic Training Data
+
+Creates synthetic labeled log data for training and testing.
+
+```bash
+# Generate 10,000 samples (default)
+python scripts/generate_sample_data.py
+
+# Generate custom sample size with test split
+python scripts/generate_sample_data.py --samples 5000 --test-split
+
+# Specify output path
+python scripts/generate_sample_data.py --output data/labeled/custom_train.csv --samples 2000
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--output` | `data/labeled/train.csv` | Output CSV file path |
+| `--samples` | `10000` | Number of samples to generate |
+| `--test-split` | `false` | Also generate test.csv file (20% of samples) |
+
+---
+
+### Model Training
+
+#### `train.py` - Basic Model Training
+
+Train classification models on labeled data.
+
+```bash
+# Train all models (TF-IDF + Anomaly Detector)
+python scripts/train.py --model-type all
+
+# Train specific model type
+python scripts/train.py --model-type tfidf
+python scripts/train.py --model-type anomaly
+
+# Custom output directory
+python scripts/train.py --model-type all --output models/custom
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--config` | `configs/model_config.yaml` | Path to model configuration |
+| `--model-type` | `all` | Model type: `tfidf`, `anomaly`, `ensemble`, `all` |
+| `--output` | `models` | Output directory for trained models |
+
+---
+
+#### `training_pipeline.py` - Full Training Pipeline
+
+Complete end-to-end training with preprocessing, training, evaluation, and validation.
+
+```bash
+# Train from labeled CSV
+python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v1
+
+# Train from HDFS data with auto-labeling
+python scripts/training_pipeline.py --hdfs HDFS_v3_TraceBench/ --auto-label --output models/v1
+
+# Custom recall threshold
+python scripts/training_pipeline.py --data data/labeled/train.csv --min-recall 0.995 --output models/v2
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--data` | - | Path to labeled CSV file |
+| `--hdfs` | - | Path to HDFS TraceBench directory |
+| `--auto-label` | `false` | Auto-label data using pattern matching |
+| `--output` | `models/v1` | Output directory for trained models |
+| `--min-recall` | `0.99` | Minimum required critical recall |
+
+---
+
+#### `evaluate.py` - Model Evaluation
+
+Evaluate trained models on test data.
+
+```bash
+# Evaluate model
+python scripts/evaluate.py --model models/latest --test-data data/labeled/test.csv
+
+# Save results to JSON
+python scripts/evaluate.py --model models/v1 --test-data data/labeled/test.csv --output results.json
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--model` | `models/latest` | Path to model directory |
+| `--test-data` | `data/labeled/test.csv` | Path to test data CSV |
+| `--output` | - | Output file for results (JSON) |
+
+---
+
+### Validation & Testing
+
+#### `validate_models.py` - Model Artifact Validation
+
+Validates model artifacts and checks for completeness.
+
+```bash
+# Run validation
+python scripts/validate_models.py
+```
+
+**Expected Output:**
+```
+======================================================================
+MODEL ARTIFACT VALIDATION REPORT
+======================================================================
+Model Version: v1
+Overall Status: ✅ VALID
+
+📋 Checks:
+  ✅ model_info.json
+  ✅ training_results.json
+  ✅ tfidf_xgboost/model.joblib
+  ✅ anomaly_detector/model.joblib
+  ...
+```
+
+---
+
+#### `shadow_validation.py` - Shadow Mode Testing
+
+Test model accuracy against labeled data in shadow mode.
+
+```bash
+# Basic validation
+python scripts/shadow_validation.py
+
+# Custom model and data
+python scripts/shadow_validation.py --model-path models/v2 --test-data data/labeled/test.csv
+
+# Custom recall target
+python scripts/shadow_validation.py --target-recall 0.995 --min-samples 500
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--model-path` | `models/v1` | Path to model directory |
+| `--test-data` | `data/labeled/test.csv` | Path to test data |
+| `--output` | `reports/shadow_validation` | Output directory |
+| `--target-recall` | `0.995` | Target critical recall |
+| `--min-samples` | `1000` | Minimum samples required |
+
+---
+
+#### `load_test.py` - Performance/Load Testing
+
+Test system throughput and latency under load.
+
+```bash
+# Quick load test (100 EPS, 5 second duration)
+python scripts/load_test.py --target-eps 100 --duration 5
+
+# Full load test (10K EPS target)
+python scripts/load_test.py --target-eps 10000 --duration 60
+
+# Custom warmup period
+python scripts/load_test.py --target-eps 5000 --duration 30 --warmup 20
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--target-eps` | `10000` | Target events per second |
+| `--duration` | `60` | Test duration in seconds |
+| `--warmup` | `10` | Warmup period in seconds |
+| `--output` | `reports/load_test` | Output directory for reports |
+
+---
+
+#### `chaos_test.py` - Chaos/Resilience Testing
+
+Test system behavior under failure conditions.
+
+```bash
+# Run chaos tests
+python scripts/chaos_test.py
+
+# Verbose output
+python scripts/chaos_test.py --verbose
+
+# Custom output directory
+python scripts/chaos_test.py -o reports/chaos_custom
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--verbose, -v` | `false` | Verbose output |
+| `--output, -o` | `reports/chaos_test` | Output directory |
+
+**Tests Included:**
+- Fail-Open on Classifier Error
+- Circuit Breaker Opens on Failures
+- High Latency Handling
+- Concurrent Load Handling
+- Memory Pressure Resilience
+- Critical Recall Under Stress
+- Graceful Degradation
+- Recovery After Failure
+
+---
+
+#### `integration_tests.py` - Integration Testing
+
+Test integrations with external services.
+
+```bash
+# Test Kafka integration
+python scripts/integration_tests.py --kafka --kafka-brokers localhost:9092
+
+# Test QRadar integration
+python scripts/integration_tests.py --qradar --qradar-host qradar.example.com --qradar-token YOUR_TOKEN
+
+# Test S3 integration
+python scripts/integration_tests.py --s3 --s3-bucket your-bucket-name
+
+# Test all integrations
+python scripts/integration_tests.py --kafka --qradar --s3
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--kafka / --no-kafka` | `false` | Test Kafka integration |
+| `--qradar / --no-qradar` | `false` | Test QRadar integration |
+| `--s3 / --no-s3` | `false` | Test S3 integration |
+| `--kafka-brokers` | - | Kafka broker addresses |
+| `--qradar-host` | - | QRadar host address |
+| `--qradar-token` | - | QRadar API token |
+| `--s3-bucket` | - | S3 bucket name |
+
+---
+
+### Reports & Utilities
+
+#### `cost_report.py` - Cost Savings Report
+
+Generate cost savings analysis report.
+
+```bash
+# Terminal output
+python scripts/cost_report.py --format terminal
+
+# Markdown report
+python scripts/cost_report.py --format markdown --output docs/COST_REPORT.md
+
+# JSON format
+python scripts/cost_report.py --format json --output reports/cost.json
+
+# Custom QRadar EPS
+python scripts/cost_report.py --qradar-eps 20000
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--format` | `terminal` | Output format: `text`, `markdown`, `json`, `terminal` |
+| `--output` | - | Output file path (prints to stdout if not specified) |
+| `--qradar-eps` | `15000` | Current QRadar EPS capacity |
+
+---
+
+#### `cleanup.sh` - Project Cleanup
+
+Remove unnecessary files and reduce project size. **Interactive script.**
+
+```bash
+# Run cleanup (interactive)
+bash scripts/cleanup.sh
+```
+
+**Removes:**
+- `.venv/` - Virtual environment
+- `HDFS_v3_TraceBench.zip` - Benchmark data
+- `htmlcov/` - Coverage reports
+- `.pytest_cache/` - Test cache
+- `__pycache__/` - Python cache
 
 ---
 
