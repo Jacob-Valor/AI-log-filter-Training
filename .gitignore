@@ -238,3 +238,7 @@ temp/
 tmp/
 .Temp/
 .Temporary/
+
+
+# log hub
+HDFS_v3_TraceBench
