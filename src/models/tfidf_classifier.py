@@ -110,6 +110,17 @@ class TFIDFClassifier(BaseClassifier):
             flags=re.IGNORECASE,
         )
 
+        # Normalize emails
+        text = re.sub(r"[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}", "<EMAIL>", text)
+
+        # Normalize MAC addresses
+        text = re.sub(r"\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b", "<MAC>", text, flags=re.I)
+
+        # Normalize hashes (MD5/SHA1/SHA256)
+        text = re.sub(r"\b[a-f0-9]{32}\b", "<HASH>", text, flags=re.I)
+        text = re.sub(r"\b[a-f0-9]{40}\b", "<HASH>", text, flags=re.I)
+        text = re.sub(r"\b[a-f0-9]{64}\b", "<HASH>", text, flags=re.I)
+
         # Normalize paths
         text = re.sub(r"(/[\w\-./]+)+", "<PATH>", text)
 
@@ -159,11 +170,12 @@ class TFIDFClassifier(BaseClassifier):
         results = []
         for _i, (pred_idx, prob) in enumerate(zip(predictions, proba, strict=False)):
             category = self.label_encoder.inverse_transform([pred_idx])[0]
-            confidence = float(np.max(prob))
 
-            probabilities = {
+            raw_probabilities = {
                 cat: float(p) for cat, p in zip(self.label_encoder.classes_, prob, strict=False)
             }
+            probabilities = {cat: raw_probabilities.get(cat, 0.0) for cat in self.CATEGORIES}
+            confidence = max(probabilities.values()) if probabilities else 0.0
 
             results.append(
                 Prediction(

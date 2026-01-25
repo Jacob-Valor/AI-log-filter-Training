@@ -155,6 +155,12 @@ class AnomalyDetector(BaseClassifier):
                     category="routine",
                     confidence=0.5,
                     model=self.name,
+                    probabilities={
+                        "critical": 0.0,
+                        "suspicious": 0.5,
+                        "routine": 0.5,
+                        "noise": 0.0,
+                    },
                     explanation={"note": "Model not trained", "is_anomaly": False},
                 )
                 for _ in texts
@@ -173,15 +179,28 @@ class AnomalyDetector(BaseClassifier):
             if is_anomaly:
                 category = "suspicious"
                 confidence = min(0.9, 0.5 + abs(score))
+                probabilities = {
+                    "critical": 0.0,
+                    "suspicious": confidence,
+                    "routine": 1 - confidence,
+                    "noise": 0.0,
+                }
             else:
                 category = "routine"  # Let other models decide
                 confidence = 0.5
+                probabilities = {
+                    "critical": 0.0,
+                    "suspicious": 1 - confidence,
+                    "routine": confidence,
+                    "noise": 0.0,
+                }
 
             results.append(
                 Prediction(
                     category=category,
                     confidence=confidence,
                     model=self.name,
+                    probabilities=probabilities,
                     explanation={"is_anomaly": is_anomaly, "anomaly_score": float(score)},
                 )
             )

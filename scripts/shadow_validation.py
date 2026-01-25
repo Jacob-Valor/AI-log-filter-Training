@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class ValidationConfig:
     """Configuration for shadow mode validation."""
 
-    model_path: str = "models/v1"
+    model_path: str = "models/latest"
     test_data_path: str = "data/labeled/test.csv"
     output_path: str = "reports/shadow_validation"
     min_samples: int = 1000
@@ -517,7 +517,7 @@ async def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Shadow Mode Validation")
-    parser.add_argument("--model-path", default="models/v1")
+    parser.add_argument("--model-path", default="models/latest")
     parser.add_argument("--test-data", default="data/labeled/test.csv")
     parser.add_argument("--output", default="reports/shadow_validation")
     parser.add_argument("--target-recall", type=float, default=0.995)

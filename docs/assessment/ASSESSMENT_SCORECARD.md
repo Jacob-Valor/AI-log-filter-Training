@@ -57,7 +57,9 @@
 | Evidence Artifact | Location | Purpose |
 |------------------|----------|---------|
 | Shadow validation results | `reports/shadow_validation/validation_20260125_162107.json` | Accuracy and recall proof |
+| Shadow validation results (latest) | `reports/shadow_validation/validation_20260125_201007.json` | Accuracy and recall proof |
 | False negative review | `reports/shadow_validation/false_negatives_20260125_162107.csv` | Critical FN evidence |
+| False negative review (latest) | `reports/shadow_validation/false_negatives_20260125_201007.csv` | Critical FN evidence |
 | Load test summary | `reports/load_test/load_test_20260125_162617.json` | Throughput/latency proof |
 | Load test step metrics | `reports/load_test/load_test_steps_20260125_162617.csv` | Step-by-step latency detail |
 | Chaos test summary | `reports/chaos_test/chaos_test_20260125_161846.json` | Resilience proof |
@@ -113,6 +115,7 @@ graph LR
 | ⚡ Modern FastAPI Patterns  | ✅ Implemented | Migrated to lifespan context manager         |
 | 🧹 Deprecation Fixes        | ✅ Complete    | Eliminated 20,600+ warnings                  |
 | 🧪 Test Suite Expansion     | ✅ Complete    | 100 → 129 tests (+29 new)                    |
+| 📜 Rule-based Ruleset       | ✅ NEW         | `configs/rules.yaml` baseline patterns       |
 | 💥 Chaos Testing            | ✅ NEW         | 9 resilience tests                           |
 | 📈 Load Test Fixes          | ✅ NEW         | Fixed datetime deprecations                  |
 | 🔧 Integration Test Fixes   | ✅ NEW         | Fixed 4x datetime.utcnow() deprecations      |
@@ -125,6 +128,7 @@ graph LR
 | `datetime.utcnow()`             | `datetime.now(timezone.utc)`    | Future-proof      |
 | `asyncio.iscoroutinefunction()` | `inspect.iscoroutinefunction()` | Python 3.16 ready |
 | `@app.on_event("startup")`      | `lifespan` context manager      | Modern FastAPI    |
+| `models/v1` defaults            | `models/latest` defaults        | Consistent validation |
 | 20,617 deprecation warnings     | 6 warnings                      | 99.97% reduction  |
 | No rate limiting                | Full rate limiting              | API protection    |
 
