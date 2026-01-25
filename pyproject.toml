@@ -1,8 +1,24 @@
 [project]
-name = "aitdrs"
-version = "0.1.0"
-description = "Add your description here"
+name = "ai-log-filter"
+version = "1.0.0"
+description = "AI-Driven Log Filtering for SIEM Efficiency - Intelligent ML-based log classification for IBM QRadar"
 readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "AI Log Filter Contributors" }
+]
+keywords = ["siem", "log-filtering", "machine-learning", "qradar", "security", "xgboost"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+    "Topic :: System :: Logging",
+]
 requires-python = ">=3.14"
 dependencies = [
   "confluent-kafka>=2.13.0",
