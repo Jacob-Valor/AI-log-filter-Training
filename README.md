@@ -64,35 +64,97 @@ This system uses machine learning to classify incoming logs into four categories
 
 ## 🏗️ Architecture
 
+> 📚 **Full Documentation**: See [Architecture Docs](docs/architecture/) for detailed production architecture.
+
+### High-Level System Architecture
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                              LOG SOURCES                                           │
-│  Firewall  │  IDS/IPS  │  Endpoint  │  Application  │  Network  │  Cloud          │
-└────────────┴───────────┴────────────┴───────────────┴───────────┴─────────────────┘
-                                    │
-                                    ▼
+│                                   CONTROL PLANE                                      │
+│              CI/CD (GitHub Actions)  •  Model Lifecycle  •  GitOps                  │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+                                          │
+                    ┌─────────────────────┼─────────────────────┐
+                    ▼                     ▼                     ▼
+┌──────────────────────┐    ┌──────────────────────┐    ┌──────────────────────┐
+│    LOG SOURCES       │    │  EXTERNAL SERVICES   │    │    OBSERVABILITY     │
+│  • Firewalls         │    │  • Threat Intel      │    │  • Prometheus        │
+│  • IDS/IPS           │    │  • Asset CMDB        │    │  • Grafana           │
+│  • Endpoints         │    │  • Identity Provider │    │  • AlertManager      │
+│  • Cloud/Apps        │    │                      │    │  • Shadow Validator  │
+└──────────┬───────────┘    └──────────────────────┘    └──────────────────────┘
+           │
+           ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                           AI LOG FILTER ENGINE                                       │
-│                                                                                     │
-│  ┌─────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌──────────┐ │
-│  │   KAFKA    │────▶│   PREPROCESSING │────▶│     ENSEMBLE    │────▶│  ROUTER  │ │
-│  │  Consumer  │     │                 │     │   CLASSIFIER    │     │          │ │
-│  └─────────────┘     └─────────────────┘     └─────────────────┘     └──────────┘ │
-│                              │                                       │             │
-│                              │                                       ▼             │
-│                        ┌──────────┐                        ┌─────────────────┐    │
-│                        │  COLD    │◀───────────────────────│   QRADAR SIEM   │    │
-│                        │ STORAGE  │                        │                 │    │
-│                        └──────────┘                        └─────────────────┘    │
-│                                                                                     │
-│  ┌─────────────────────────────────────────────────────────────────────────────┐  │
-│  │                        COMPLIANCE BYPASS                                   │  │
-│  │  PCI-DSS │ HIPAA │ SOX │ GDPR ────▶ DIRECT TO QRADAR (NO AI FILTERING)   │  │
-│  └─────────────────────────────────────────────────────────────────────────────┘  │
+│                              INGESTION LAYER (Kafka)                                 │
+│   Topics: raw-logs (12p) │ classified-logs (12p) │ pending-qradar │ audit-decisions │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              PROCESSING LAYER                                        │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐   │
+│  │                        COMPLIANCE GATE                                       │   │
+│  │         PCI-DSS │ HIPAA │ SOX │ GDPR  →  BYPASS TO QRADAR                   │   │
+│  └─────────────────────────────────────────────────────────────────────────────┘   │
+│                                      │                                              │
+│                          ┌───────────┼───────────┐                                  │
+│                          ▼           ▼           ▼                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐   │
+│  │                   SAFE ENSEMBLE CLASSIFIER                                   │   │
+│  │   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐                       │   │
+│  │   │  Rule-Based │   │  TF-IDF +   │   │  Anomaly    │                       │   │
+│  │   │  (30%)      │   │  XGBoost    │   │  Detector   │                       │   │
+│  │   │  40+ rules  │   │  (45%)      │   │  (25%)      │                       │   │
+│  │   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘                       │   │
+│  │          └─────────────────┼─────────────────┘                              │   │
+│  │                            ▼                                                 │   │
+│  │                   Weighted Ensemble Combiner                                 │   │
+│  └─────────────────────────────────────────────────────────────────────────────┘   │
+│                                      │                                              │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐   │
+│  │                    CIRCUIT BREAKER (Fail-Open)                               │   │
+│  │   CLOSED (normal) ──failure──▶ OPEN (all logs → QRadar) ──timeout──▶ HALF   │   │
+│  └─────────────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              ROUTING LAYER                                           │
+│   CRITICAL → QRadar (immediate)  │  SUSPICIOUS → QRadar (queued)                    │
+│   ROUTINE → Cold Storage         │  NOISE → Aggregated/Discarded                    │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              DESTINATION LAYER                                       │
+│   ┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐   │
+│   │     IBM QRADAR       │   │    COLD STORAGE      │   │    AUDIT TRAIL       │   │
+│   │  • Offense Engine    │   │  • S3/Azure/GCS      │   │  • Immutable logs    │   │
+│   │  • Log Activity      │   │  • Parquet + Gzip    │   │  • 7-year retention  │   │
+│   │  • 40-60% reduction  │   │  • ALL logs archived │   │  • Chain of custody  │   │
+│   └──────────────────────┘   └──────────────────────┘   └──────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Classification Pipeline
+
+```
+Log Entry → Parse/Normalize → Compliance Check → Enrich → Classify → Route
+              (5ms)             (1ms)            (10ms)    (20ms)    (5ms)
+                                                                   ≈ 50ms total
+```
+
+### Ensemble Classifier Weights
+
+| Component          | Weight | Description                     |
+| ------------------ | ------ | ------------------------------- |
+| **Rule-Based**     | 30%    | 40+ regex patterns, known IOCs  |
+| **TF-IDF+XGBoost** | 45%    | ML model, 10K features, n-grams |
+| **Anomaly Det.**   | 25%    | Isolation Forest for outliers   |
+
 ---
+
 
 ## ✨ Features
 
