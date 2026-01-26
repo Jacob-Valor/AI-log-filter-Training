@@ -235,7 +235,7 @@ ai-log-filter/
 │   ├── labeled/                  # Labeled training data (1,500 samples)
 │   ├── processed/                # Processed data
 │   ├── raw/                      # Raw data
-│   └── samples/                  # Sample data
+│   └── samples/                  # Sample data (CEF, LEEF, JSON formats)
 │
 ├── scripts/                      # Utility scripts
 │   ├── generate_sample_data.py   # Generate synthetic training data
@@ -255,12 +255,15 @@ ai-log-filter/
 │   └── conftest.py               # Pytest configuration
 │
 ├── docs/                         # Documentation
+│   ├── API.md                    # REST API documentation
+│   ├── TROUBLESHOOTING.md        # Troubleshooting guide
 │   ├── runbooks/
 │   │   ├── incident-response.md  # Incident response guide
 │   │   └── OPERATIONS_RUNBOOK.md # Operations guide
 │   ├── training/
 │   │   └── SOC_TRAINING_GUIDE.md # SOC training (50+ pages)
-│   └── ASSESSMENT_SCORECARD.md  # Production readiness assessment
+│   └── assessment/
+│       └── ASSESSMENT_SCORECARD.md  # Production readiness assessment
 │
 ├── .github/workflows/            # CI/CD pipelines
 │   ├── ci.yml                    # CI pipeline

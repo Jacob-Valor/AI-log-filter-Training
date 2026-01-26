@@ -1,0 +1,11 @@
+# Sample LEEF (Log Event Extended Format) Logs for IBM QRadar
+# Format: LEEF:Version|Vendor|Product|Version|EventID|Key=Value pairs
+
+LEEF:2.0|IBM|QRadar|7.5|SecurityEvent|src=192.168.1.100	dst=10.0.0.5	srcPort=45123	dstPort=22	cat=Intrusion	sev=10	msg=SSH brute force detected
+LEEF:2.0|Palo Alto|Firewall|10.0|TrafficLog|src=203.0.113.50	dst=10.0.0.10	action=deny	proto=TCP	cat=Firewall	sev=7	msg=Connection blocked by policy
+LEEF:2.0|CrowdStrike|Falcon|6.0|MalwareAlert|src=ENDPOINT-PC01	file=ransomware.exe	hash=def789abc123	cat=Malware	sev=10	msg=Ransomware execution blocked
+LEEF:2.0|Okta|SSO|2023.1|AuthFail|user=admin@company.com	src=192.168.1.200	cat=Authentication	sev=6	msg=Failed login attempt
+LEEF:2.0|AWS|CloudTrail|1.0|APICall|user=iam-user	src=1.2.3.4	action=DeleteBucket	cat=CloudEvent	sev=8	msg=S3 bucket deletion attempted
+LEEF:2.0|Microsoft|Azure|2023|SignIn|user=user@tenant.com	src=10.0.1.100	cat=Authentication	sev=3	msg=Successful sign-in
+LEEF:2.0|ServiceNow|ITSM|Quebec|Incident|ticketId=INC001234	priority=P1	cat=Incident	sev=5	msg=Critical incident opened
+LEEF:2.0|Splunk|UBA|5.0|Anomaly|user=suspicious.user	score=95	cat=Behavior	sev=8	msg=Unusual data access pattern detected

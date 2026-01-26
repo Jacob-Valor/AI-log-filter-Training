@@ -1,0 +1,11 @@
+# Sample CEF (Common Event Format) Logs
+# Format: CEF:Version|Device Vendor|Device Product|Device Version|Signature ID|Name|Severity|Extension
+
+CEF:0|Security|IDS|1.0|100|Intrusion Detected|10|src=192.168.1.100 dst=10.0.0.5 spt=45123 dpt=22 msg=SSH brute force attempt
+CEF:0|Firewall|FW-01|2.0|200|Connection Blocked|7|src=203.0.113.50 dst=10.0.0.10 spt=80 dpt=8080 act=blocked reason=Policy violation
+CEF:0|Antivirus|AV-Agent|3.5|300|Malware Detected|10|src=WORKSTATION-01 fname=malicious.exe fhash=abc123def456 msg=Trojan detected and quarantined
+CEF:0|DLP|DataGuard|1.2|400|Data Exfiltration Attempt|8|src=10.0.1.25 dst=external.cloud.com msg=Sensitive file upload blocked
+CEF:0|WAF|WebShield|2.1|500|SQL Injection Blocked|9|src=192.168.100.50 dst=webserver-01 msg=UNION SELECT attack blocked
+CEF:0|IAM|IdentityMgr|1.0|600|Failed Authentication|6|suser=admin@corp.com src=192.168.1.200 msg=Invalid password attempt 5 of 5
+CEF:0|SIEM|LogCollector|1.0|700|Log Collection Started|1|msg=Log collection service started successfully
+CEF:0|LoadBalancer|LB-01|1.0|800|Health Check|1|dst=app-server-01 msg=Backend health check passed
