@@ -9,8 +9,34 @@ import json
 from pathlib import Path
 from typing import Any
 
-MODELS_DIR = Path("/home/jacob/Projects/tester/models")
-MODEL_VERSION = "v1"
+BASE_DIR = Path(__file__).resolve().parents[1]
+MODELS_DIR = Path(os.getenv("MODELS_DIR", BASE_DIR / "models"))
+MODEL_VERSION = os.getenv("MODEL_VERSION")
+MODEL_PATH_ENV = os.getenv("MODEL_PATH")
+MODEL_PATH = Path(MODEL_PATH_ENV) if MODEL_PATH_ENV else None
+
+
+def _resolve_model_path() -> tuple[Path, str]:
+    if MODEL_PATH:
+        return MODEL_PATH, MODEL_PATH.name
+    if MODEL_VERSION:
+        return MODELS_DIR / MODEL_VERSION, MODEL_VERSION
+
+    latest_path = MODELS_DIR / "latest"
+    if latest_path.exists():
+        return latest_path, "latest"
+
+    version_dirs = []
+    if MODELS_DIR.exists():
+        for entry in MODELS_DIR.iterdir():
+            if entry.is_dir() and re.fullmatch(r"v\d+", entry.name):
+                version_dirs.append(entry)
+    if version_dirs:
+        version_dirs.sort(key=lambda path: int(path.name[1:]), reverse=True)
+        chosen = version_dirs[0]
+        return chosen, chosen.name
+
+    return latest_path, "latest"
 
 
 def validate_models() -> dict[str, Any]:

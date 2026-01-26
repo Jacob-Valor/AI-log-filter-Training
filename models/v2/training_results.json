@@ -1,0 +1,70 @@
+{
+  "model_version": "20260125_232415",
+  "timestamp": "2026-01-25T23:24:15.206374",
+  "accuracy": 1.0,
+  "per_class_metrics": {
+    "critical": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 3
+    },
+    "suspicious": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 18
+    },
+    "routine": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 69
+    },
+    "noise": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 60
+    }
+  },
+  "confusion_matrix": [
+    [
+      3,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      18,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      69,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      60
+    ]
+  ],
+  "cv_scores": [
+    0.9666666666666667,
+    0.9666666666666667,
+    1.0,
+    1.0,
+    0.9333333333333333
+  ],
+  "training_samples": 749,
+  "test_samples": 150,
+  "passed_validation": true,
+  "validation_messages": [
+    "PASS: Critical recall 1.000 >= 0.99"
+  ]
+}
