@@ -6,10 +6,9 @@ Kafka, QRadar, and S3 integrations without requiring live services.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
-
+from unittest.mock import MagicMock
 
 # =============================================================================
 # Sample Log Messages
@@ -116,7 +115,7 @@ class MockKafkaProducer:
                 "topic": topic,
                 "value": value,
                 "key": key,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
         if callback:
@@ -202,7 +201,7 @@ class MockQRadarClient:
             {
                 "event_id": event_id,
                 "event": event,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
         return {"event_id": event_id, "status": "accepted"}
@@ -220,7 +219,7 @@ class MockQRadarClient:
             "description": description,
             "severity": severity,
             "status": "OPEN",
-            "created_time": datetime.now(timezone.utc).isoformat(),
+            "created_time": datetime.now(UTC).isoformat(),
         }
         self.offenses_created.append(offense)
         self._offense_id_counter += 1
@@ -262,7 +261,7 @@ class MockS3Client:
             "Key": Key,
             "Body": Body,
             "ContentType": ContentType,
-            "LastModified": datetime.now(timezone.utc).isoformat(),
+            "LastModified": datetime.now(UTC).isoformat(),
             "Size": len(Body),
         }
         self.buckets[Bucket].append(obj)
@@ -276,8 +275,10 @@ class MockS3Client:
 
         for obj in self.buckets[Bucket]:
             if obj["Key"] == Key:
+                # Capture obj in default argument to fix B023
+                body = obj["Body"]
                 return {
-                    "Body": MagicMock(read=lambda: obj["Body"]),
+                    "Body": MagicMock(read=lambda b=body: b),
                     "ContentType": obj["ContentType"],
                     "LastModified": obj["LastModified"],
                 }
@@ -363,7 +364,7 @@ def generate_batch_logs(
         )[0]
         log = templates[category].copy()
         log["id"] = f"log-{i:06d}"
-        log["timestamp"] = datetime.now(timezone.utc).isoformat()
+        log["timestamp"] = datetime.now(UTC).isoformat()
         logs.append(log)
 
     return logs
