@@ -8,6 +8,7 @@
 [![Score: 9.5/10](https://img.shields.io/badge/Score-9.5%2F10%20(A)-brightgreen?style=for-the-badge)]()
 
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)](https://github.com/Jacob-Valor/AI-log-filter-Training/actions)
+[![codecov](https://codecov.io/gh/Jacob-Valor/AI-log-filter-Training/branch/main/graph/badge.svg)](https://codecov.io/gh/Jacob-Valor/AI-log-filter-Training)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white)](Dockerfile)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](deploy/kubernetes/)
 

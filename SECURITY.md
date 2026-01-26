@@ -2,10 +2,10 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | ✅ Yes             |
-| < 1.0   | ❌ No              |
+| Version | Supported |
+| ------- | --------- |
+| 1.x.x   | ✅ Yes    |
+| < 1.0   | ❌ No     |
 
 ## Reporting a Vulnerability
 
@@ -16,6 +16,7 @@ We take security seriously. If you discover a security vulnerability, please fol
 **Do NOT create a public GitHub issue for security vulnerabilities.**
 
 Instead, please report security issues by emailing:
+
 - **Email**: security@example.com (replace with your email)
 
 ### 📋 What to Include
@@ -40,6 +41,7 @@ When reporting a vulnerability, please include:
 ### 🎁 Recognition
 
 We appreciate security researchers who help keep this project safe:
+
 - Credit in release notes (with permission)
 - Acknowledgment in SECURITY.md
 
@@ -55,6 +57,7 @@ This project handles security logs. Key security features:
 ## Dependencies
 
 We regularly update dependencies to address known vulnerabilities:
+
 - Automated dependency scanning via GitHub Actions
 - Regular security audits of third-party packages
 

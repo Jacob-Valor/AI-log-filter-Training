@@ -58,6 +58,7 @@ type(scope): description
 **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 **Examples**:
+
 ```
 feat(models): add new anomaly detection algorithm
 fix(kafka): resolve consumer lag issue
@@ -89,6 +90,7 @@ pytest tests/ --cov=src --cov-report=html
 ## 🐛 Reporting Issues
 
 When reporting bugs, include:
+
 - Python version (`python --version`)
 - Operating system
 - Steps to reproduce
@@ -98,6 +100,7 @@ When reporting bugs, include:
 ## 💡 Feature Requests
 
 For new features:
+
 - Check existing issues first
 - Describe the use case
 - Propose a solution if possible

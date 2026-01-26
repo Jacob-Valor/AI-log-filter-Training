@@ -42,6 +42,30 @@ jobs:
     strategy:
       matrix:
         test-type: [unit, integration]
+    services:
+      # Kafka service for integration tests
+      zookeeper:
+        image: confluentinc/cp-zookeeper:7.5.0
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+        options: >-
+          --health-cmd "nc -z localhost 2181"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      kafka:
+        image: confluentinc/cp-kafka:7.5.0
+        env:
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        options: >-
+          --health-cmd "kafka-broker-api-versions --bootstrap-server localhost:9092"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,12 +84,16 @@ jobs:
       - name: Run unit tests with coverage
         if: matrix.test-type == 'unit'
         run: |
-          pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+          pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml -m "not integration"
 
-      - name: Run integration tests
+      - name: Run integration tests with Kafka
         if: matrix.test-type == 'integration'
+        env:
+          KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+          KAFKA_INPUT_TOPIC: test-raw-logs
+          KAFKA_OUTPUT_TOPIC: test-filtered-logs
         run: |
-          pytest tests/ -v --ignore=tests/unit
+          pytest tests/ -v -m "integration" --timeout=60
 
       - name: Upload coverage to Codecov
         if: matrix.test-type == 'unit'
@@ -74,6 +102,7 @@ jobs:
           files: ./coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+
 
   build:
     name: Build Docker
