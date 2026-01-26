@@ -10,7 +10,7 @@ This is the main classifier to use in production environments.
 import asyncio
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.models.anomaly_detector import AnomalyDetector
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
@@ -39,21 +39,19 @@ logger = get_logger(__name__)
 @dataclass
 class ClassificationResult:
     """Result of classification including metadata."""
+
     prediction: Prediction
     processing_time_ms: float
     compliance_bypassed: bool = False
     fail_open_used: bool = False
-    models_used: List[str] = None
+    models_used: list[str] = None
 
     def __post_init__(self):
         if self.models_used is None:
             self.models_used = []
 
 
-def create_fail_open_prediction(
-    text: str,
-    reason: str = "system_error"
-) -> Prediction:
+def create_fail_open_prediction(text: str, reason: str = "system_error") -> Prediction:
     """
     Create a fail-open prediction that ensures log goes to QRadar.
 
@@ -62,14 +60,14 @@ def create_fail_open_prediction(
     """
     return Prediction(
         category="critical",  # Always forward on failure
-        confidence=0.0,       # Zero confidence indicates fail-open
+        confidence=0.0,  # Zero confidence indicates fail-open
         model="fail_open",
         probabilities={"critical": 1.0, "suspicious": 0.0, "routine": 0.0, "noise": 0.0},
         explanation={
             "fail_open": True,
             "reason": reason,
-            "note": "Log forwarded to QRadar due to system safety measure"
-        }
+            "note": "Log forwarded to QRadar due to system safety measure",
+        },
     )
 
 
@@ -101,11 +99,7 @@ class SafeEnsembleClassifier(BaseClassifier):
                 logger.warning("Fail-open was triggered")
     """
 
-    def __init__(
-        self,
-        model_path: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None
-    ):
+    def __init__(self, model_path: str | None = None, config: dict[str, Any] | None = None):
         super().__init__("safe_ensemble", config)
         self.model_path = model_path
 
@@ -115,11 +109,7 @@ class SafeEnsembleClassifier(BaseClassifier):
         self.max_batch_size = self.config.get("max_batch_size", 1000)
 
         # Model weights
-        self.weights = {
-            "rule_based": 0.30,
-            "tfidf_xgboost": 0.45,
-            "anomaly_detector": 0.25
-        }
+        self.weights = {"rule_based": 0.30, "tfidf_xgboost": 0.45, "anomaly_detector": 0.25}
         if config and "ensemble" in config:
             if "weights" in config["ensemble"]:
                 self.weights = config["ensemble"]["weights"]
@@ -130,23 +120,19 @@ class SafeEnsembleClassifier(BaseClassifier):
         )
 
         # Component classifiers
-        self.classifiers: Dict[str, BaseClassifier] = {}
+        self.classifiers: dict[str, BaseClassifier] = {}
 
         # Compliance gate
-        self.compliance_gate = ComplianceGate(
-            self.config.get("compliance", {})
-        )
+        self.compliance_gate = ComplianceGate(self.config.get("compliance", {}))
 
         # Circuit breaker for fail-open
         self.circuit_breaker = CircuitBreaker(
             name="ensemble_classifier",
             fallback=self._fail_open_fallback,
             config=CircuitBreakerConfig(
-                failure_threshold=5,
-                success_threshold=3,
-                timeout_seconds=30.0
+                failure_threshold=5, success_threshold=3, timeout_seconds=30.0
             ),
-            on_state_change=self._on_circuit_state_change
+            on_state_change=self._on_circuit_state_change,
         )
         register_circuit_breaker(self.circuit_breaker)
 
@@ -155,33 +141,27 @@ class SafeEnsembleClassifier(BaseClassifier):
             extra={
                 "model_path": model_path,
                 "timeout_seconds": self.timeout_seconds,
-                "weights": self.weights
-            }
+                "weights": self.weights,
+            },
         )
 
-    def _on_circuit_state_change(
-        self,
-        old_state: CircuitState,
-        new_state: CircuitState
-    ):
+    def _on_circuit_state_change(self, old_state: CircuitState, new_state: CircuitState):
         """Handle circuit breaker state changes."""
         state_value = {"closed": 0, "open": 1, "half_open": 2}
-        CIRCUIT_BREAKER_STATE.labels(
-            circuit_name="ensemble_classifier"
-        ).set(state_value.get(new_state.value, 0))
+        CIRCUIT_BREAKER_STATE.labels(circuit_name="ensemble_classifier").set(
+            state_value.get(new_state.value, 0)
+        )
 
         if new_state == CircuitState.OPEN:
             logger.critical(
                 "ALERT: Ensemble classifier circuit breaker OPEN - "
                 "all logs will be forwarded to QRadar",
-                extra={"old_state": old_state.value, "new_state": new_state.value}
+                extra={"old_state": old_state.value, "new_state": new_state.value},
             )
 
     async def _fail_open_fallback(
-        self,
-        texts: List[str],
-        logs: Optional[List[Dict[str, Any]]] = None
-    ) -> List[ClassificationResult]:
+        self, texts: list[str], logs: list[dict[str, Any]] | None = None
+    ) -> list[ClassificationResult]:
         """
         Fallback function when circuit is open.
 
@@ -193,12 +173,14 @@ class SafeEnsembleClassifier(BaseClassifier):
         results = []
         for text in texts:
             prediction = create_fail_open_prediction(text, "circuit_open")
-            results.append(ClassificationResult(
-                prediction=prediction,
-                processing_time_ms=0.0,
-                fail_open_used=True,
-                models_used=[]
-            ))
+            results.append(
+                ClassificationResult(
+                    prediction=prediction,
+                    processing_time_ms=0.0,
+                    fail_open_used=True,
+                    models_used=[],
+                )
+            )
 
         return results
 
@@ -246,25 +228,17 @@ class SafeEnsembleClassifier(BaseClassifier):
         # Check minimum viable configuration
         if "rule_based" not in self.classifiers:
             raise RuntimeError(
-                "Rule-based classifier is required but failed to load. "
-                f"Errors: {errors}"
+                f"Rule-based classifier is required but failed to load. Errors: {errors}"
             )
 
         self.is_loaded = True
 
         if errors:
-            logger.warning(
-                f"SafeEnsembleClassifier loaded with degraded models: {errors}"
-            )
+            logger.warning(f"SafeEnsembleClassifier loaded with degraded models: {errors}")
         else:
-            logger.info(
-                f"SafeEnsembleClassifier fully loaded with {len(self.classifiers)} models"
-            )
+            logger.info(f"SafeEnsembleClassifier fully loaded with {len(self.classifiers)} models")
 
-    async def classify_batch(
-        self,
-        logs: List[Dict[str, Any]]
-    ) -> List[ClassificationResult]:
+    async def classify_batch(self, logs: list[dict[str, Any]]) -> list[ClassificationResult]:
         """
         Classify a batch of logs with full safety measures.
 
@@ -278,7 +252,6 @@ class SafeEnsembleClassifier(BaseClassifier):
             return []
 
         start_time = time.time()
-        results = []
 
         # Separate compliance-regulated logs
         regulated_logs = []
@@ -304,15 +277,21 @@ class SafeEnsembleClassifier(BaseClassifier):
         regulated_results = []
         for log, decision in regulated_logs:
             bypass_pred = create_compliance_bypass_prediction(log, decision)
-            regulated_results.append(ClassificationResult(
-                prediction=Prediction(**{
-                    k: v for k, v in bypass_pred.items()
-                    if k in ['category', 'confidence', 'model', 'probabilities', 'explanation']
-                }),
-                processing_time_ms=0.0,
-                compliance_bypassed=True,
-                models_used=["compliance_bypass"]
-            ))
+            regulated_results.append(
+                ClassificationResult(
+                    prediction=Prediction(
+                        **{
+                            k: v
+                            for k, v in bypass_pred.items()
+                            if k
+                            in ["category", "confidence", "model", "probabilities", "explanation"]
+                        }
+                    ),
+                    processing_time_ms=0.0,
+                    compliance_bypassed=True,
+                    models_used=["compliance_bypass"],
+                )
+            )
 
         # Process regular logs through ensemble (with circuit breaker)
         regular_results = []
@@ -322,17 +301,13 @@ class SafeEnsembleClassifier(BaseClassifier):
             try:
                 # Apply timeout protection
                 regular_results = await asyncio.wait_for(
-                    self.circuit_breaker.call(
-                        self._classify_texts,
-                        texts,
-                        regular_logs
-                    ),
-                    timeout=self.timeout_seconds
+                    self.circuit_breaker.call(self._classify_texts, texts, regular_logs),
+                    timeout=self.timeout_seconds,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(
                     f"Classification timeout after {self.timeout_seconds}s",
-                    extra={"batch_size": len(texts)}
+                    extra={"batch_size": len(texts)},
                 )
                 METRICS.record_fail_open_event("timeout", len(texts))
 
@@ -342,16 +317,16 @@ class SafeEnsembleClassifier(BaseClassifier):
                         prediction=create_fail_open_prediction(text, "timeout"),
                         processing_time_ms=self.timeout_seconds * 1000,
                         fail_open_used=True,
-                        models_used=[]
+                        models_used=[],
                     )
                     for text in texts
                 ]
 
         # Merge results in original order
         all_results = [None] * len(logs)
-        for i, result in zip(regulated_indices, regulated_results):
+        for i, result in zip(regulated_indices, regulated_results, strict=False):
             all_results[i] = result
-        for i, result in zip(regular_indices, regular_results):
+        for i, result in zip(regular_indices, regular_results, strict=False):
             all_results[i] = result
 
         # Record batch metrics
@@ -361,10 +336,8 @@ class SafeEnsembleClassifier(BaseClassifier):
         return all_results
 
     async def _classify_texts(
-        self,
-        texts: List[str],
-        logs: Optional[List[Dict[str, Any]]] = None
-    ) -> List[ClassificationResult]:
+        self, texts: list[str], logs: list[dict[str, Any]] | None = None
+    ) -> list[ClassificationResult]:
         """
         Internal classification with ensemble logic.
 
@@ -376,7 +349,7 @@ class SafeEnsembleClassifier(BaseClassifier):
             await self.load()
 
         # Get predictions from all available classifiers
-        all_predictions: Dict[str, List[Prediction]] = {}
+        all_predictions: dict[str, list[Prediction]] = {}
         models_used = []
 
         for name, classifier in self.classifiers.items():
@@ -387,15 +360,11 @@ class SafeEnsembleClassifier(BaseClassifier):
 
                 # Record per-model metrics
                 for pred in preds:
-                    MODEL_PREDICTION_COUNT.labels(
-                        model=name,
-                        category=pred.category
-                    ).inc()
+                    MODEL_PREDICTION_COUNT.labels(model=name, category=pred.category).inc()
 
             except Exception as e:
                 logger.warning(
-                    f"Classifier {name} failed",
-                    extra={"error": str(e), "batch_size": len(texts)}
+                    f"Classifier {name} failed", extra={"error": str(e), "batch_size": len(texts)}
                 )
                 # Use neutral predictions for failed classifier
                 all_predictions[name] = [
@@ -403,7 +372,7 @@ class SafeEnsembleClassifier(BaseClassifier):
                         category="routine",
                         confidence=0.5,
                         model=name,
-                        explanation={"error": str(e)}
+                        explanation={"error": str(e)},
                     )
                     for _ in texts
                 ]
@@ -417,12 +386,14 @@ class SafeEnsembleClassifier(BaseClassifier):
         results = []
         for i, prediction in enumerate(combined):
             per_item_time = processing_time / len(texts)
-            results.append(ClassificationResult(
-                prediction=prediction,
-                processing_time_ms=per_item_time,
-                fail_open_used=False,
-                models_used=models_used
-            ))
+            results.append(
+                ClassificationResult(
+                    prediction=prediction,
+                    processing_time_ms=per_item_time,
+                    fail_open_used=False,
+                    models_used=models_used,
+                )
+            )
 
             # Record individual log metrics
             source = logs[i].get("source", "unknown") if logs else "unknown"
@@ -432,21 +403,19 @@ class SafeEnsembleClassifier(BaseClassifier):
                 model="safe_ensemble",
                 confidence=prediction.confidence,
                 latency_seconds=per_item_time / 1000,
-                forwarded_to_qradar=prediction.category in ["critical", "suspicious"]
+                forwarded_to_qradar=prediction.category in ["critical", "suspicious"],
             )
 
         return results
 
     def _combine_predictions(
-        self,
-        texts: List[str],
-        all_predictions: Dict[str, List[Prediction]]
-    ) -> List[Prediction]:
+        self, texts: list[str], all_predictions: dict[str, list[Prediction]]
+    ) -> list[Prediction]:
         """Combine predictions from all models using weighted average."""
         results = []
 
         for i in range(len(texts)):
-            category_scores: Dict[str, float] = {cat: 0.0 for cat in self.CATEGORIES}
+            category_scores: dict[str, float] = dict.fromkeys(self.CATEGORIES, 0.0)
             explanations = {}
 
             total_weight = 0.0
@@ -469,7 +438,7 @@ class SafeEnsembleClassifier(BaseClassifier):
                 explanations[model_name] = {
                     "prediction": pred.category,
                     "confidence": pred.confidence,
-                    "explanation": pred.explanation
+                    "explanation": pred.explanation,
                 }
 
             # Normalize scores
@@ -489,13 +458,15 @@ class SafeEnsembleClassifier(BaseClassifier):
                     final_confidence = rule_pred.confidence
                     explanations["override"] = "Rule-based critical override applied"
 
-            results.append(Prediction(
-                category=final_category,
-                confidence=final_confidence,
-                model="safe_ensemble",
-                probabilities=category_scores,
-                explanation={"model_predictions": explanations}
-            ))
+            results.append(
+                Prediction(
+                    category=final_category,
+                    confidence=final_confidence,
+                    model="safe_ensemble",
+                    probabilities=category_scores,
+                    explanation={"model_predictions": explanations},
+                )
+            )
 
         return results
 
@@ -505,13 +476,13 @@ class SafeEnsembleClassifier(BaseClassifier):
         results = await self.classify_batch([log])
         return results[0].prediction
 
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
         """Classify a batch of log messages (simple interface)."""
         logs = [{"message": text} for text in texts]
         results = await self.classify_batch(logs)
         return [r.prediction for r in results]
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get health status for monitoring."""
         circuit_stats = self.circuit_breaker.get_stats()
         compliance_stats = self.compliance_gate.get_stats()
@@ -532,15 +503,14 @@ class SafeEnsembleClassifier(BaseClassifier):
             "models": {
                 "healthy": models_healthy,
                 "unhealthy": models_unhealthy,
-                "total": len(self.classifiers)
-            }
+                "total": len(self.classifiers),
+            },
         }
 
 
 # Factory function for easy creation
 async def create_safe_classifier(
-    model_path: str = "models/latest",
-    config: Optional[Dict[str, Any]] = None
+    model_path: str = "models/latest", config: dict[str, Any] | None = None
 ) -> SafeEnsembleClassifier:
     """
     Factory function to create and initialize a SafeEnsembleClassifier.

@@ -69,9 +69,7 @@ async def evaluate_model(model_path: str, test_data_path: str):
     print(pd.DataFrame(cm, index=labels, columns=labels))
 
     # Per-class metrics
-    precision, recall, f1, support = precision_recall_fscore_support(
-        y_test, y_pred, labels=labels
-    )
+    precision, recall, f1, support = precision_recall_fscore_support(y_test, y_pred, labels=labels)
 
     logger.info("\nPer-Class Metrics:")
     for i, label in enumerate(labels):
@@ -88,14 +86,20 @@ async def evaluate_model(model_path: str, test_data_path: str):
     logger.info(f"  Max:  {np.max(confidences):.3f}")
 
     # Analyze errors
-    errors = [(x, yt, yp, c) for x, yt, yp, c in zip(X_test, y_test, y_pred, confidences) if yt != yp]
+    errors = [
+        (x, yt, yp, c)
+        for x, yt, yp, c in zip(X_test, y_test, y_pred, confidences, strict=False)
+        if yt != yp
+    ]
 
-    logger.info(f"\nTotal Errors: {len(errors)} / {len(X_test)} ({100*len(errors)/len(X_test):.2f}%)")
+    logger.info(
+        f"\nTotal Errors: {len(errors)} / {len(X_test)} ({100 * len(errors) / len(X_test):.2f}%)"
+    )
 
     if errors:
         logger.info("\nSample Errors (first 5):")
         for i, (msg, true_label, pred_label, conf) in enumerate(errors[:5]):
-            logger.info(f"  [{i+1}] True: {true_label}, Pred: {pred_label} (conf={conf:.3f})")
+            logger.info(f"  [{i + 1}] True: {true_label}, Pred: {pred_label} (conf={conf:.3f})")
             logger.info(f"      Message: {msg[:100]}...")
 
     return {
@@ -105,7 +109,7 @@ async def evaluate_model(model_path: str, test_data_path: str):
         "f1": f1.tolist(),
         "confusion_matrix": cm.tolist(),
         "total_samples": len(X_test),
-        "total_errors": len(errors)
+        "total_errors": len(errors),
     }
 
 
@@ -113,33 +117,24 @@ def main():
     """Main evaluation function."""
     parser = argparse.ArgumentParser(description="Evaluate log classification models")
     parser.add_argument(
-        "--model",
-        type=str,
-        default="models/latest",
-        help="Path to model directory"
+        "--model", type=str, default="models/latest", help="Path to model directory"
     )
     parser.add_argument(
-        "--test-data",
-        type=str,
-        default="data/labeled/test.csv",
-        help="Path to test data CSV"
+        "--test-data", type=str, default="data/labeled/test.csv", help="Path to test data CSV"
     )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default=None,
-        help="Output file for results (JSON)"
-    )
+    parser.add_argument("--output", type=str, default=None, help="Output file for results (JSON)")
 
     args = parser.parse_args()
 
     setup_logging(level="INFO")
 
     import asyncio
+
     results = asyncio.run(evaluate_model(args.model, args.test_data))
 
     if args.output:
         import json
+
         with open(args.output, "w") as f:
             json.dump(results, f, indent=2)
         logger.info(f"\nResults saved to {args.output}")

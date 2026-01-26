@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
@@ -26,6 +26,7 @@ router = APIRouter(tags=["health"])
 
 class HealthStatus(str, Enum):
     """Health check status values."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -33,31 +34,35 @@ class HealthStatus(str, Enum):
 
 class ComponentHealth(BaseModel):
     """Health status of a single component."""
+
     name: str
     status: HealthStatus
-    latency_ms: Optional[float] = None
-    message: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
+    latency_ms: float | None = None
+    message: str | None = None
+    details: dict[str, Any] | None = None
 
 
 class HealthResponse(BaseModel):
     """Full health check response."""
+
     status: HealthStatus
     timestamp: str
     version: str
     uptime_seconds: float
-    components: List[ComponentHealth]
-    metrics: Optional[Dict[str, Any]] = None
+    components: list[ComponentHealth]
+    metrics: dict[str, Any] | None = None
 
 
 class ReadinessResponse(BaseModel):
     """Readiness probe response."""
+
     ready: bool
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class LivenessResponse(BaseModel):
     """Liveness probe response."""
+
     alive: bool
 
 
@@ -73,7 +78,8 @@ class HealthChecker:
 
     Components register their health check functions here.
     """
-    _instance: Optional['HealthChecker'] = None
+
+    _instance: HealthChecker | None = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -102,7 +108,7 @@ class HealthChecker:
             return ComponentHealth(
                 name="classifier",
                 status=HealthStatus.UNHEALTHY,
-                message="Classifier not registered"
+                message="Classifier not registered",
             )
 
         try:
@@ -113,24 +119,21 @@ class HealthChecker:
                 return ComponentHealth(
                     name="classifier",
                     status=HealthStatus.UNHEALTHY,
-                    message="Classifier not loaded"
+                    message="Classifier not loaded",
                 )
 
             # Check circuit breaker
-            if hasattr(self._classifier, 'circuit_breaker'):
+            if hasattr(self._classifier, "circuit_breaker"):
                 if self._classifier.circuit_breaker.is_open:
                     return ComponentHealth(
                         name="classifier",
                         status=HealthStatus.DEGRADED,
-                        message="Circuit breaker is OPEN - fail-open mode active"
+                        message="Circuit breaker is OPEN - fail-open mode active",
                     )
 
             # Run quick inference test
             test_log = "Health check test log message"
-            prediction = await asyncio.wait_for(
-                self._classifier.predict(test_log),
-                timeout=2.0
-            )
+            prediction = await asyncio.wait_for(self._classifier.predict(test_log), timeout=2.0)
 
             latency = (time.time() - start) * 1000
 
@@ -139,66 +142,54 @@ class HealthChecker:
                 status=HealthStatus.HEALTHY,
                 latency_ms=round(latency, 2),
                 details={
-                    "models_loaded": len(self._classifier.classifiers) if hasattr(self._classifier, 'classifiers') else 1,
-                    "test_category": prediction.category
-                }
+                    "models_loaded": len(self._classifier.classifiers)
+                    if hasattr(self._classifier, "classifiers")
+                    else 1,
+                    "test_category": prediction.category,
+                },
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return ComponentHealth(
                 name="classifier",
                 status=HealthStatus.DEGRADED,
-                message="Classifier inference timeout"
+                message="Classifier inference timeout",
             )
         except Exception as e:
-            return ComponentHealth(
-                name="classifier",
-                status=HealthStatus.UNHEALTHY,
-                message=str(e)
-            )
+            return ComponentHealth(name="classifier", status=HealthStatus.UNHEALTHY, message=str(e))
 
     async def check_kafka(self) -> ComponentHealth:
         """Check Kafka consumer health."""
         if self._kafka_consumer is None:
             return ComponentHealth(
-                name="kafka",
-                status=HealthStatus.UNHEALTHY,
-                message="Kafka consumer not registered"
+                name="kafka", status=HealthStatus.UNHEALTHY, message="Kafka consumer not registered"
             )
 
         try:
             # Check if consumer is running
-            if hasattr(self._kafka_consumer, 'is_running'):
+            if hasattr(self._kafka_consumer, "is_running"):
                 if not self._kafka_consumer.is_running:
                     return ComponentHealth(
                         name="kafka",
                         status=HealthStatus.UNHEALTHY,
-                        message="Kafka consumer not running"
+                        message="Kafka consumer not running",
                     )
 
             # Check consumer lag
-            lag = getattr(self._kafka_consumer, 'current_lag', 0)
+            lag = getattr(self._kafka_consumer, "current_lag", 0)
 
             if lag > 100000:
                 return ComponentHealth(
                     name="kafka",
                     status=HealthStatus.DEGRADED,
                     message=f"High consumer lag: {lag}",
-                    details={"lag": lag}
+                    details={"lag": lag},
                 )
 
-            return ComponentHealth(
-                name="kafka",
-                status=HealthStatus.HEALTHY,
-                details={"lag": lag}
-            )
+            return ComponentHealth(name="kafka", status=HealthStatus.HEALTHY, details={"lag": lag})
 
         except Exception as e:
-            return ComponentHealth(
-                name="kafka",
-                status=HealthStatus.UNHEALTHY,
-                message=str(e)
-            )
+            return ComponentHealth(name="kafka", status=HealthStatus.UNHEALTHY, message=str(e))
 
     async def check_circuit_breakers(self) -> ComponentHealth:
         """Check all circuit breakers."""
@@ -208,7 +199,7 @@ class HealthChecker:
             return ComponentHealth(
                 name="circuit_breakers",
                 status=HealthStatus.HEALTHY,
-                message="No circuit breakers registered"
+                message="No circuit breakers registered",
             )
 
         open_breakers = []
@@ -228,18 +219,14 @@ class HealthChecker:
                 details={
                     "open": open_breakers,
                     "half_open": half_open_breakers,
-                    "total": len(breakers)
-                }
+                    "total": len(breakers),
+                },
             )
 
         return ComponentHealth(
             name="circuit_breakers",
             status=HealthStatus.HEALTHY,
-            details={
-                "open": [],
-                "half_open": half_open_breakers,
-                "total": len(breakers)
-            }
+            details={"open": [], "half_open": half_open_breakers, "total": len(breakers)},
         )
 
     async def check_all(self) -> HealthResponse:
@@ -248,18 +235,16 @@ class HealthChecker:
             self.check_classifier(),
             self.check_kafka(),
             self.check_circuit_breakers(),
-            return_exceptions=True
+            return_exceptions=True,
         )
 
         # Handle any exceptions in checks
         clean_components = []
         for c in components:
             if isinstance(c, Exception):
-                clean_components.append(ComponentHealth(
-                    name="unknown",
-                    status=HealthStatus.UNHEALTHY,
-                    message=str(c)
-                ))
+                clean_components.append(
+                    ComponentHealth(name="unknown", status=HealthStatus.UNHEALTHY, message=str(c))
+                )
             else:
                 clean_components.append(c)
 
@@ -279,7 +264,7 @@ class HealthChecker:
             version=SERVICE_VERSION,
             uptime_seconds=round(time.time() - SERVICE_START_TIME, 2),
             components=clean_components,
-            metrics=METRICS.get_summary()
+            metrics=METRICS.get_summary(),
         )
 
 
@@ -291,7 +276,7 @@ health_checker = HealthChecker()
     "/health",
     response_model=HealthResponse,
     summary="Full health check",
-    description="Comprehensive health check of all components"
+    description="Comprehensive health check of all components",
 )
 async def health_check(response: Response) -> HealthResponse:
     """
@@ -317,7 +302,7 @@ async def health_check(response: Response) -> HealthResponse:
     "/health/ready",
     response_model=ReadinessResponse,
     summary="Readiness probe",
-    description="Kubernetes readiness probe - is the service ready to receive traffic?"
+    description="Kubernetes readiness probe - is the service ready to receive traffic?",
 )
 async def readiness_probe(response: Response) -> ReadinessResponse:
     """
@@ -336,7 +321,7 @@ async def readiness_probe(response: Response) -> ReadinessResponse:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return ReadinessResponse(
             ready=False,
-            reason=f"Unhealthy components: {[c.name for c in result.components if c.status == HealthStatus.UNHEALTHY]}"
+            reason=f"Unhealthy components: {[c.name for c in result.components if c.status == HealthStatus.UNHEALTHY]}",
         )
 
     return ReadinessResponse(ready=True)
@@ -346,7 +331,7 @@ async def readiness_probe(response: Response) -> ReadinessResponse:
     "/health/live",
     response_model=LivenessResponse,
     summary="Liveness probe",
-    description="Kubernetes liveness probe - is the service alive?"
+    description="Kubernetes liveness probe - is the service alive?",
 )
 async def liveness_probe() -> LivenessResponse:
     """
@@ -363,11 +348,8 @@ async def liveness_probe() -> LivenessResponse:
 @router.get(
     "/health/metrics-summary",
     summary="Metrics summary",
-    description="Summary of key operational metrics"
+    description="Summary of key operational metrics",
 )
-async def metrics_summary() -> Dict[str, Any]:
+async def metrics_summary() -> dict[str, Any]:
     """Get summary of key metrics."""
-    return {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        **METRICS.get_summary()
-    }
+    return {"timestamp": datetime.utcnow().isoformat() + "Z", **METRICS.get_summary()}

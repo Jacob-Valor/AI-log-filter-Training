@@ -28,7 +28,7 @@ class TestCircuitBreakerStates:
             failure_threshold=3,
             success_threshold=2,
             timeout_seconds=0.1,  # Fast timeout for tests
-            half_open_max_calls=2
+            half_open_max_calls=2,
         )
         return CircuitBreaker(name="test_breaker", config=config)
 
@@ -42,6 +42,7 @@ class TestCircuitBreakerStates:
     @pytest.mark.asyncio
     async def test_successful_calls_keep_circuit_closed(self, breaker):
         """Successful calls should keep circuit closed."""
+
         async def success_func():
             return "success"
 
@@ -56,11 +57,12 @@ class TestCircuitBreakerStates:
     @pytest.mark.asyncio
     async def test_failures_open_circuit(self, breaker):
         """Failures above threshold should open circuit."""
+
         async def failing_func():
             raise ValueError("Test failure")
 
         # Should fail 3 times then circuit opens
-        for i in range(3):
+        for _i in range(3):
             with pytest.raises(ValueError):
                 await breaker.call(failing_func)
 
@@ -111,6 +113,7 @@ class TestCircuitBreakerStates:
     @pytest.mark.asyncio
     async def test_circuit_transitions_to_half_open_after_timeout(self, breaker):
         """Circuit should transition to half-open after timeout."""
+
         async def failing_func():
             raise ValueError("Test failure")
 
@@ -130,13 +133,14 @@ class TestCircuitBreakerStates:
         async def success_func():
             return "success"
 
-        result = await breaker.call(success_func)
+        await breaker.call(success_func)
         # After successful call in half-open, may transition based on success_threshold
         assert breaker.state in [CircuitState.HALF_OPEN, CircuitState.CLOSED]
 
     @pytest.mark.asyncio
     async def test_half_open_closes_on_success(self, breaker):
         """Circuit should close after success_threshold successes in half-open."""
+
         async def failing_func():
             raise ValueError("Test failure")
 
@@ -162,6 +166,7 @@ class TestCircuitBreakerStates:
     @pytest.mark.asyncio
     async def test_manual_reset(self, breaker):
         """Manual reset should close circuit."""
+
         async def failing_func():
             raise ValueError("Test failure")
 

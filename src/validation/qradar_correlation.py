@@ -17,7 +17,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -30,10 +30,11 @@ logger = get_logger(__name__)
 @dataclass
 class ClassificationRecord:
     """Record of an AI classification decision."""
+
     log_id: str
     timestamp: datetime
     message_hash: str
-    source_ip: Optional[str]
+    source_ip: str | None
     source: str
     category: str
     confidence: float
@@ -43,23 +44,25 @@ class ClassificationRecord:
 @dataclass
 class QRadarOffense:
     """QRadar offense data."""
+
     offense_id: int
     description: str
     offense_type: int
     offense_type_name: str
     severity: int
     status: str
-    source_ips: List[str]
-    log_sources: List[str]
+    source_ips: list[str]
+    log_sources: list[str]
     start_time: datetime
     last_updated: datetime
     event_count: int
-    categories: List[str]
+    categories: list[str]
 
 
 @dataclass
 class CorrelationMatch:
     """A match between an AI decision and a QRadar offense."""
+
     classification_record: ClassificationRecord
     offense: QRadarOffense
     correlation_type: str  # 'ip_match', 'message_match', 'source_match', 'time_window'
@@ -70,13 +73,13 @@ class CorrelationMatch:
 class QRadarClient:
     """Client for QRadar API interactions."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.host = config.get("host", "localhost")
         self.port = config.get("port", 443)
         self.token = config.get("token")
         self.verify_ssl = config.get("verify_ssl", True)
         self.timeout = config.get("timeout", 30)
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client."""
@@ -88,18 +91,18 @@ class QRadarClient:
                 headers={
                     "SEC": self.token,
                     "Accept": "application/json",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
         return self._client
 
     async def get_offenses(
         self,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
         status: str = "OPEN",
-        limit: int = 100
-    ) -> List[QRadarOffense]:
+        limit: int = 100,
+    ) -> list[QRadarOffense]:
         """Fetch offenses from QRadar."""
         client = await self._get_client()
 
@@ -116,10 +119,7 @@ class QRadarClient:
 
         filter_str = " AND ".join(filters) if filters else ""
 
-        params = {
-            "filter": filter_str,
-            "Range": f"items=0-{limit-1}"
-        }
+        params = {"filter": filter_str, "Range": f"items=0-{limit - 1}"}
 
         try:
             response = await client.get("/siem/offenses", params=params)
@@ -140,7 +140,7 @@ class QRadarClient:
                     start_time=datetime.fromtimestamp(data["start_time"] / 1000),
                     last_updated=datetime.fromtimestamp(data["last_updated_time"] / 1000),
                     event_count=data.get("event_count", 0),
-                    categories=data.get("categories", [])
+                    categories=data.get("categories", []),
                 )
                 offenses.append(offense)
 
@@ -154,11 +154,7 @@ class QRadarClient:
             logger.error(f"Failed to fetch offenses: {e}")
             raise
 
-    async def get_offense_events(
-        self,
-        offense_id: int,
-        limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    async def get_offense_events(self, offense_id: int, limit: int = 100) -> list[dict[str, Any]]:
         """Get events associated with an offense."""
         client = await self._get_client()
 
@@ -172,10 +168,7 @@ class QRadarClient:
 
         try:
             # Start search
-            response = await client.post(
-                "/ariel/searches",
-                json={"query_expression": aql}
-            )
+            response = await client.post("/ariel/searches", json={"query_expression": aql})
             response.raise_for_status()
             search_id = response.json()["search_id"]
 
@@ -223,9 +216,7 @@ class OffenseCorrelator:
     """
 
     def __init__(
-        self,
-        qradar_config: Dict[str, Any],
-        correlation_config: Optional[Dict[str, Any]] = None
+        self, qradar_config: dict[str, Any], correlation_config: dict[str, Any] | None = None
     ):
         self.qradar = QRadarClient(qradar_config)
         self.config = correlation_config or {}
@@ -238,13 +229,13 @@ class OffenseCorrelator:
         self.min_correlation_confidence = self.config.get("min_correlation_confidence", 0.6)
 
         # Storage for classification records
-        self.classifications: Dict[str, ClassificationRecord] = {}
-        self.classifications_by_ip: Dict[str, List[str]] = defaultdict(list)
-        self.classifications_by_source: Dict[str, List[str]] = defaultdict(list)
+        self.classifications: dict[str, ClassificationRecord] = {}
+        self.classifications_by_ip: dict[str, list[str]] = defaultdict(list)
+        self.classifications_by_source: dict[str, list[str]] = defaultdict(list)
 
         # Results
-        self.matches: List[CorrelationMatch] = []
-        self.false_negatives: List[CorrelationMatch] = []
+        self.matches: list[CorrelationMatch] = []
+        self.false_negatives: list[CorrelationMatch] = []
 
         # Stats
         self.stats = {
@@ -253,7 +244,7 @@ class OffenseCorrelator:
             "total_correlations": 0,
             "false_negatives_detected": 0,
             "by_offense_type": defaultdict(int),
-            "by_original_category": defaultdict(int)
+            "by_original_category": defaultdict(int),
         }
 
         logger.info("OffenseCorrelator initialized")
@@ -265,8 +256,8 @@ class OffenseCorrelator:
         source: str,
         category: str,
         confidence: float,
-        source_ip: Optional[str] = None,
-        timestamp: Optional[datetime] = None
+        source_ip: str | None = None,
+        timestamp: datetime | None = None,
     ):
         """Record an AI classification for later correlation."""
         record = ClassificationRecord(
@@ -277,7 +268,7 @@ class OffenseCorrelator:
             source=source,
             category=category,
             confidence=confidence,
-            message_preview=message[:200]
+            message_preview=message[:200],
         )
 
         self.classifications[log_id] = record
@@ -298,8 +289,7 @@ class OffenseCorrelator:
         cutoff = datetime.utcnow() - timedelta(hours=max_age_hours)
 
         to_remove = [
-            log_id for log_id, record in self.classifications.items()
-            if record.timestamp < cutoff
+            log_id for log_id, record in self.classifications.items() if record.timestamp < cutoff
         ]
 
         for log_id in to_remove:
@@ -309,10 +299,7 @@ class OffenseCorrelator:
             if log_id in self.classifications_by_source[record.source]:
                 self.classifications_by_source[record.source].remove(log_id)
 
-    async def correlate_with_offenses(
-        self,
-        lookback_hours: int = 1
-    ) -> List[CorrelationMatch]:
+    async def correlate_with_offenses(self, lookback_hours: int = 1) -> list[CorrelationMatch]:
         """
         Fetch recent offenses and correlate with stored classifications.
 
@@ -322,9 +309,7 @@ class OffenseCorrelator:
 
         try:
             offenses = await self.qradar.get_offenses(
-                start_time=start_time,
-                status="OPEN",
-                limit=100
+                start_time=start_time, status="OPEN", limit=100
             )
         except Exception as e:
             logger.error(f"Failed to fetch offenses for correlation: {e}")
@@ -350,7 +335,7 @@ class OffenseCorrelator:
                     FALSE_NEGATIVES_TOTAL.labels(
                         original_category=match.classification_record.category,
                         offense_type=offense.offense_type_name,
-                        severity=str(offense.severity)
+                        severity=str(offense.severity),
                     ).inc()
 
                     # Log the false negative
@@ -364,8 +349,8 @@ class OffenseCorrelator:
                             "offense_type": offense.offense_type_name,
                             "offense_severity": offense.severity,
                             "correlation_type": match.correlation_type,
-                            "correlation_confidence": match.confidence
-                        }
+                            "correlation_confidence": match.confidence,
+                        },
                     )
 
                 new_matches.append(match)
@@ -373,7 +358,7 @@ class OffenseCorrelator:
         self.matches.extend(new_matches)
         return new_matches
 
-    def _find_correlations(self, offense: QRadarOffense) -> List[CorrelationMatch]:
+    def _find_correlations(self, offense: QRadarOffense) -> list[CorrelationMatch]:
         """Find classification records that correlate with an offense."""
         matches = []
         checked_log_ids = set()
@@ -395,19 +380,19 @@ class OffenseCorrelator:
                     continue
 
                 # Calculate correlation confidence
-                confidence = self._calculate_correlation_confidence(
-                    record, offense, "ip_match"
-                )
+                confidence = self._calculate_correlation_confidence(record, offense, "ip_match")
 
                 if confidence >= self.min_correlation_confidence:
                     is_false_negative = record.category in ["routine", "noise"]
-                    matches.append(CorrelationMatch(
-                        classification_record=record,
-                        offense=offense,
-                        correlation_type="ip_match",
-                        confidence=confidence,
-                        is_false_negative=is_false_negative
-                    ))
+                    matches.append(
+                        CorrelationMatch(
+                            classification_record=record,
+                            offense=offense,
+                            correlation_type="ip_match",
+                            confidence=confidence,
+                            is_false_negative=is_false_negative,
+                        )
+                    )
 
         # Strategy 2: Log source matching
         for log_source in offense.log_sources:
@@ -433,13 +418,15 @@ class OffenseCorrelator:
 
                         if confidence >= self.min_correlation_confidence:
                             is_false_negative = record.category in ["routine", "noise"]
-                            matches.append(CorrelationMatch(
-                                classification_record=record,
-                                offense=offense,
-                                correlation_type="source_match",
-                                confidence=confidence,
-                                is_false_negative=is_false_negative
-                            ))
+                            matches.append(
+                                CorrelationMatch(
+                                    classification_record=record,
+                                    offense=offense,
+                                    correlation_type="source_match",
+                                    confidence=confidence,
+                                    is_false_negative=is_false_negative,
+                                )
+                            )
 
         # Strategy 3: Time window for unchecked high-severity offenses
         if offense.severity >= 7:  # High severity
@@ -454,21 +441,20 @@ class OffenseCorrelator:
                         confidence = 0.5  # Lower confidence for time-only match
 
                         if confidence >= self.min_correlation_confidence:
-                            matches.append(CorrelationMatch(
-                                classification_record=record,
-                                offense=offense,
-                                correlation_type="time_window",
-                                confidence=confidence,
-                                is_false_negative=True
-                            ))
+                            matches.append(
+                                CorrelationMatch(
+                                    classification_record=record,
+                                    offense=offense,
+                                    correlation_type="time_window",
+                                    confidence=confidence,
+                                    is_false_negative=True,
+                                )
+                            )
 
         return matches
 
     def _calculate_correlation_confidence(
-        self,
-        record: ClassificationRecord,
-        offense: QRadarOffense,
-        correlation_type: str
+        self, record: ClassificationRecord, offense: QRadarOffense, correlation_type: str
     ) -> float:
         """Calculate confidence score for a correlation."""
         confidence = 0.0
@@ -494,7 +480,7 @@ class OffenseCorrelator:
 
         return min(confidence, 1.0)
 
-    def get_false_negative_report(self) -> Dict[str, Any]:
+    def get_false_negative_report(self) -> dict[str, Any]:
         """Generate a report of detected false negatives."""
         return {
             "timestamp": datetime.utcnow().isoformat(),
@@ -504,9 +490,9 @@ class OffenseCorrelator:
                 "total_correlations": self.stats["total_correlations"],
                 "false_negatives_detected": self.stats["false_negatives_detected"],
                 "false_negative_rate": (
-                    self.stats["false_negatives_detected"] /
-                    max(self.stats["total_classifications"], 1)
-                )
+                    self.stats["false_negatives_detected"]
+                    / max(self.stats["total_classifications"], 1)
+                ),
             },
             "by_offense_type": dict(self.stats["by_offense_type"]),
             "by_original_category": dict(self.stats["by_original_category"]),
@@ -521,16 +507,14 @@ class OffenseCorrelator:
                     "offense_type": fn.offense.offense_type_name,
                     "offense_severity": fn.offense.severity,
                     "correlation_type": fn.correlation_type,
-                    "correlation_confidence": fn.confidence
+                    "correlation_confidence": fn.confidence,
                 }
                 for fn in self.false_negatives[-20:]  # Last 20
-            ]
+            ],
         }
 
     async def run_continuous_correlation(
-        self,
-        interval_seconds: int = 300,
-        callback: Optional[callable] = None
+        self, interval_seconds: int = 300, callback: callable | None = None
     ):
         """
         Run continuous correlation in the background.
@@ -567,8 +551,7 @@ class OffenseCorrelator:
 
 # Factory function
 def create_correlator(
-    qradar_config: Dict[str, Any],
-    correlation_config: Optional[Dict[str, Any]] = None
+    qradar_config: dict[str, Any], correlation_config: dict[str, Any] | None = None
 ) -> OffenseCorrelator:
     """Create an offense correlator instance."""
     return OffenseCorrelator(qradar_config, correlation_config)
@@ -586,7 +569,7 @@ class ShadowModeCorrelationIntegration:
     def __init__(
         self,
         correlator: OffenseCorrelator,
-        shadow_validator: Any  # ShadowModeValidator
+        shadow_validator: Any,  # ShadowModeValidator
     ):
         self.correlator = correlator
         self.validator = shadow_validator
@@ -594,8 +577,8 @@ class ShadowModeCorrelationIntegration:
     async def process_classification(
         self,
         log_id: str,
-        log: Dict[str, Any],
-        prediction: Any  # Prediction
+        log: dict[str, Any],
+        prediction: Any,  # Prediction
     ):
         """Process a classification and record for correlation."""
         # Extract source IP from log if present
@@ -608,13 +591,13 @@ class ShadowModeCorrelationIntegration:
             source=log.get("source", "unknown"),
             category=prediction.category,
             confidence=prediction.confidence,
-            source_ip=source_ip
+            source_ip=source_ip,
         )
 
         # Record in shadow validator
         await self.validator.record_decision(log_id, prediction, log)
 
-    def _extract_ip(self, message: str) -> Optional[str]:
+    def _extract_ip(self, message: str) -> str | None:
         """Extract first IP address from message."""
         ip_pattern = r"\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
         match = re.search(ip_pattern, message)
@@ -628,11 +611,11 @@ class ShadowModeCorrelationIntegration:
             offense_data = {
                 "offense_id": str(match.offense.offense_id),
                 "offense_type": match.offense.offense_type_name,
-                "severity": match.offense.severity
+                "severity": match.offense.severity,
             }
 
             await self.validator.record_qradar_result(
                 log_id=match.classification_record.log_id,
                 offense_generated=True,
-                offense_data=offense_data
+                offense_data=offense_data,
             )

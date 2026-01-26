@@ -1,0 +1,74 @@
+[
+  {
+    "id": "sample-001",
+    "timestamp": "2026-01-26T10:15:30.123Z",
+    "source": "firewall-01",
+    "category": "critical",
+    "message": "CRITICAL: Multiple failed login attempts from 192.168.1.100 - possible brute force attack detected",
+    "format": "syslog",
+    "expected_classification": "critical"
+  },
+  {
+    "id": "sample-002",
+    "timestamp": "2026-01-26T10:15:31.456Z",
+    "source": "ids-sensor",
+    "category": "suspicious",
+    "message": "Unusual outbound connection to known C2 server 10.0.0.55 port 443",
+    "format": "syslog",
+    "expected_classification": "suspicious"
+  },
+  {
+    "id": "sample-003",
+    "timestamp": "2026-01-26T10:15:32.789Z",
+    "source": "app-server-01",
+    "category": "routine",
+    "message": "User admin@example.com logged in successfully from 10.0.1.50",
+    "format": "json",
+    "expected_classification": "routine"
+  },
+  {
+    "id": "sample-004",
+    "timestamp": "2026-01-26T10:15:33.000Z",
+    "source": "load-balancer",
+    "category": "noise",
+    "message": "Health check passed for backend server app-01",
+    "format": "syslog",
+    "expected_classification": "noise"
+  },
+  {
+    "id": "sample-005",
+    "timestamp": "2026-01-26T10:15:34.111Z",
+    "source": "endpoint-01",
+    "category": "critical",
+    "message": "MALWARE DETECTED: Trojan.Generic found in C:\\Users\\admin\\Downloads\\payload.exe",
+    "format": "cef",
+    "expected_classification": "critical"
+  },
+  {
+    "id": "sample-006",
+    "timestamp": "2026-01-26T10:15:35.222Z",
+    "source": "database-01",
+    "category": "suspicious",
+    "message": "SQL query executed with UNION SELECT - potential SQL injection attempt",
+    "format": "json",
+    "expected_classification": "suspicious"
+  },
+  {
+    "id": "sample-007",
+    "timestamp": "2026-01-26T10:15:36.333Z",
+    "source": "pci-gateway",
+    "category": "compliance",
+    "message": "PCI-DSS: Card transaction processed for merchant 12345 - amount $99.99",
+    "format": "leef",
+    "expected_classification": "bypass_compliance"
+  },
+  {
+    "id": "sample-008",
+    "timestamp": "2026-01-26T10:15:37.444Z",
+    "source": "ehr-system",
+    "category": "compliance",
+    "message": "HIPAA: Patient record PHI accessed by user dr.smith - patient ID: 789456",
+    "format": "json",
+    "expected_classification": "bypass_compliance"
+  }
+]

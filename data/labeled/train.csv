@@ -1,0 +1,1001 @@
+timestamp,message,category,source
+2026-01-15T09:05:09.444641,TRACE: Connection pool status: 100 active,noise,log-source-10
+2026-01-01T10:12:09.444750,TRACE: Telemetry data sent,noise,log-source-1
+2025-12-27T18:07:09.444767,DEBUG: Health check endpoint called - status OK,noise,log-source-9
+2026-01-05T05:31:09.442817,NOTICE: System update applied successfully,routine,log-source-6
+2025-12-27T04:05:09.442416,INFO: Backup completed successfully - 50MB archived,routine,log-source-8
+2026-01-06T04:23:09.443896,TRACE: Heartbeat received from web-server-01,noise,log-source-4
+2026-01-18T08:17:09.442343,DEBUG: Session created for user jsmith,routine,log-source-4
+2026-01-21T14:25:09.442630,DEBUG: Session created for user root,routine,log-source-9
+2026-01-12T17:43:09.442347,NOTICE: Configuration updated for kafka,routine,log-source-1
+2026-01-06T20:31:09.442436,DEBUG: Request processed in 5ms,routine,log-source-3
+2026-01-25T17:54:09.442171,INFO: Service redis started successfully on app-node-03,routine,log-source-6
+2025-12-29T05:19:09.444548,DEBUG: Prometheus scrape completed,noise,log-source-6
+2026-01-25T17:47:09.442842,NOTICE: Password changed for user jsmith,routine,log-source-8
+2026-01-01T12:28:09.444672,DEBUG: Prometheus scrape completed,noise,log-source-6
+2026-01-17T20:10:09.441692,"ALERT: Port scan detected from 192.168.1.100 on ports 80,443,8080",suspicious,log-source-10
+2026-01-23T02:18:09.444975,TRACE: Connection pool status: 50 active,noise,log-source-4
+2026-01-22T22:23:09.443515,NOTICE: Configuration updated for kafka,routine,log-source-8
+2026-01-19T07:33:09.444516,DEBUG: Prometheus scrape completed,noise,log-source-5
+2026-01-25T18:39:09.443660,NOTICE: System update applied successfully,routine,log-source-9
+2026-01-23T17:13:09.443565,INFO: User admin logged out,routine,log-source-8
+2026-01-01T02:48:09.443272,NOTICE: Password changed for user svc_account,routine,log-source-7
+2026-01-11T09:14:09.444394,DEBUG: Metrics exported to prometheus:9090,noise,log-source-10
+2026-01-04T06:41:09.444473,DEBUG: Prometheus scrape completed,noise,log-source-1
+2026-01-21T10:49:09.442107,WARNING: Suspicious PowerShell execution on app-node-03,suspicious,log-source-1
+2026-01-02T06:14:09.444682,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-7
+2025-12-27T14:30:09.444842,DEBUG: Prometheus scrape completed,noise,log-source-7
+2025-12-27T11:58:09.442777,NOTICE: Password changed for user admin,routine,log-source-6
+2026-01-10T03:37:09.444795,TRACE: Connection pool status: 50 active,noise,log-source-7
+2026-01-03T08:38:09.444993,TRACE: Connection pool status: 10 active,noise,log-source-9
+2026-01-01T16:40:09.442461,NOTICE: System update applied successfully,routine,log-source-6
+2026-01-07T17:03:09.442110,ALERT: Port scan detected from 192.168.1.100 on ports 1-1000,suspicious,log-source-2
+2026-01-11T19:33:09.443103,DEBUG: Session created for user root,routine,log-source-8
+2025-12-31T06:34:09.443188,DEBUG: Request processed in 5ms,routine,log-source-10
+2026-01-09T13:30:09.444016,TRACE: Heartbeat received from web-server-01,noise,log-source-5
+2025-12-27T19:23:09.444703,TRACE: Heartbeat received from web-server-01,noise,log-source-3
+2026-01-19T19:18:09.445210,DEBUG: Health check endpoint called - status OK,noise,log-source-10
+2026-01-04T20:39:09.441871,ALERT: Port scan detected from 10.0.0.50 on ports 20-25,suspicious,log-source-3
+2025-12-27T12:45:09.443300,NOTICE: System update applied successfully,routine,log-source-3
+2026-01-06T05:54:09.442997,DEBUG: Session created for user jsmith,routine,log-source-9
+2026-01-19T04:53:09.444121,TRACE: Heartbeat received from db-master,noise,log-source-3
+2025-12-28T22:27:09.443063,INFO: New connection established from 192.168.1.100,routine,log-source-2
+2026-01-08T21:41:09.443653,NOTICE: Password changed for user jsmith,routine,log-source-10
+2025-12-27T04:33:09.442142,WARNING: Suspicious PowerShell execution on db-master,suspicious,log-source-10
+2026-01-04T03:04:09.443393,NOTICE: Configuration updated for redis,routine,log-source-4
+2026-01-18T18:49:09.443892,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-1
+2026-01-12T07:36:09.442039,WARNING: Unusual outbound traffic to 172.16.0.25:8080,suspicious,log-source-8
+2026-01-16T22:05:09.441594,SECURITY: Privilege escalation attempt by user jsmith on app-node-03,critical,log-source-4
+2026-01-01T06:39:09.442896,INFO: New connection established from 10.0.0.50,routine,log-source-5
+2026-01-02T16:02:09.442728,INFO: User backup_user logged in successfully from 172.16.0.25,routine,log-source-3
+2026-01-24T05:44:09.444008,TRACE: Connection pool status: 15 active,noise,log-source-4
+2026-01-01T16:50:09.441751,ALERT: Port scan detected from 198.51.100.17 on ports 20-25,suspicious,log-source-4
+2026-01-02T13:00:09.441660,SECURITY: Unauthorized root access attempt from 198.51.100.17,critical,log-source-9
+2026-01-11T03:48:09.444638,DEBUG: Health check endpoint called - status OK,noise,log-source-7
+2025-12-29T03:02:09.443974,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-8
+2025-12-28T15:32:09.442860,DEBUG: Session created for user jsmith,routine,log-source-9
+2026-01-24T11:40:09.442103,WARNING: Suspicious PowerShell execution on workstation-42,suspicious,log-source-3
+2026-01-04T12:44:09.444263,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-3
+2026-01-10T15:48:09.444493,TRACE: Heartbeat received from web-server-01,noise,log-source-4
+2026-01-20T12:24:09.444558,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-9
+2026-01-21T15:54:09.442021,NOTICE: Failed authentication from unusual location Russia,suspicious,log-source-3
+2025-12-29T23:37:09.443880,NOTICE: Password changed for user root,routine,log-source-5
+2026-01-24T14:44:09.443604,INFO: Backup completed successfully - 100MB archived,routine,log-source-4
+2025-12-31T03:52:09.443191,INFO: User svc_account logged out,routine,log-source-10
+2026-01-09T20:51:09.441780,WARNING: Unusual network activity from db-master to port 3306,suspicious,log-source-2
+2026-01-03T06:34:09.445061,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-3
+2025-12-30T16:31:09.443789,INFO: Service elasticsearch started successfully on app-node-03,routine,log-source-10
+2026-01-19T03:59:09.442486,INFO: User root logged in successfully from 172.16.0.25,routine,log-source-2
+2026-01-16T21:30:09.444534,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2026-01-08T20:41:09.442982,INFO: Service nginx started successfully on db-master,routine,log-source-7
+2026-01-18T14:13:09.442835,INFO: User root logged out,routine,log-source-1
+2026-01-03T20:41:09.443028,DEBUG: Request processed in 15ms,routine,log-source-4
+2025-12-30T02:56:09.444193,DEBUG: Health check endpoint called - status OK,noise,log-source-1
+2025-12-29T08:51:09.442276,NOTICE: Configuration updated for redis,routine,log-source-8
+2026-01-12T15:45:09.442590,INFO: User backup_user logged out,routine,log-source-10
+2025-12-30T06:52:09.444466,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-7
+2026-01-12T02:21:09.441768,NOTICE: Failed authentication from unusual location Unknown VPN,suspicious,log-source-8
+2026-01-15T13:07:09.443523,INFO: User root logged out,routine,log-source-8
+2025-12-31T06:54:09.443336,DEBUG: Session created for user svc_account,routine,log-source-3
+2026-01-02T11:53:09.443768,NOTICE: Password changed for user admin,routine,log-source-1
+2026-01-20T22:20:09.444068,TRACE: Heartbeat received from workstation-42,noise,log-source-9
+2026-01-09T02:14:09.442601,INFO: Service mysql started successfully on jumpbox,routine,log-source-6
+2026-01-11T21:39:09.442567,INFO: Service mysql started successfully on app-node-03,routine,log-source-3
+2026-01-23T17:59:09.443454,INFO: Service nginx started successfully on web-server-01,routine,log-source-7
+2026-01-17T01:22:09.444217,DEBUG: GC completed in 100ms,noise,log-source-4
+2026-01-12T00:59:09.444019,TRACE: Timer triggered for scheduled task,noise,log-source-8
+2026-01-20T21:38:09.443202,NOTICE: Configuration updated for mysql,routine,log-source-3
+2026-01-10T21:57:09.443967,TRACE: Heartbeat received from workstation-42,noise,log-source-4
+2026-01-12T22:04:09.444351,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-8
+2026-01-13T13:52:09.444604,DEBUG: Health check endpoint called - status OK,noise,log-source-5
+2026-01-23T18:11:09.443570,DEBUG: Session created for user backup_user,routine,log-source-7
+2026-01-18T01:01:09.443856,INFO: New connection established from 10.0.0.50,routine,log-source-1
+2026-01-18T04:32:09.443650,INFO: User backup_user logged in successfully from 198.51.100.17,routine,log-source-7
+2026-01-03T07:12:09.445275,TRACE: Connection pool status: 10 active,noise,log-source-6
+2026-01-04T02:58:09.444371,DEBUG: Prometheus scrape completed,noise,log-source-9
+2026-01-03T05:00:09.442986,INFO: User backup_user logged in successfully from 172.16.0.25,routine,log-source-9
+2026-01-01T04:13:09.443268,DEBUG: Request processed in 250ms,routine,log-source-4
+2026-01-09T19:14:09.444319,DEBUG: Prometheus scrape completed,noise,log-source-1
+2026-01-02T18:05:09.444713,DEBUG: Metrics exported to localhost:8080,noise,log-source-7
+2025-12-30T03:56:09.444825,DEBUG: Metrics exported to grafana:3000,noise,log-source-8
+2026-01-17T21:21:09.445288,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-3
+2026-01-23T10:45:09.442615,DEBUG: Session created for user svc_account,routine,log-source-9
+2026-01-07T14:59:09.441899,WARNING: Unusual network activity from jumpbox to port 443,suspicious,log-source-8
+2026-01-21T23:50:09.444047,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-9
+2026-01-01T03:57:09.444295,DEBUG: GC completed in 15ms,noise,log-source-4
+2026-01-16T02:55:09.442454,DEBUG: Session created for user admin,routine,log-source-4
+2026-01-14T02:50:09.443711,INFO: Service kafka started successfully on db-master,routine,log-source-3
+2026-01-04T15:40:09.442428,INFO: New connection established from 10.0.0.50,routine,log-source-1
+2026-01-17T19:21:09.441740,WARNING: Unusual network activity from db-master to port 443,suspicious,log-source-8
+2026-01-16T13:20:09.441865,NOTICE: Unauthorized access attempt to /etc/passwd,suspicious,log-source-3
+2026-01-18T08:06:09.442529,INFO: Backup completed successfully - 2048MB archived,routine,log-source-6
+2026-01-10T23:54:09.442683,INFO: Service nginx started successfully on jumpbox,routine,log-source-1
+2025-12-30T05:32:09.443941,DEBUG: Prometheus scrape completed,noise,log-source-7
+2026-01-20T18:58:09.445057,DEBUG: Prometheus scrape completed,noise,log-source-10
+2026-01-10T04:09:09.442130,NOTICE: Failed authentication from unusual location Unknown VPN,suspicious,log-source-10
+2026-01-18T10:55:09.443412,NOTICE: Configuration updated for redis,routine,log-source-4
+2026-01-04T10:21:09.444239,TRACE: Heartbeat received from workstation-42,noise,log-source-2
+2026-01-22T11:05:09.445030,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-5
+2026-01-05T01:52:09.444404,DEBUG: Cache hit for key user:123,noise,log-source-2
+2025-12-30T07:03:09.442978,INFO: New connection established from 10.0.0.50,routine,log-source-10
+2026-01-10T16:40:09.444358,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-6
+2026-01-16T18:32:09.443219,INFO: User admin logged in successfully from 192.168.1.100,routine,log-source-3
+2026-01-21T08:47:09.444274,DEBUG: Prometheus scrape completed,noise,log-source-6
+2026-01-14T16:02:09.441791,ALERT: Multiple failed SSH attempts from 198.51.100.17,suspicious,log-source-1
+2026-01-21T07:52:09.441946,WARNING: Suspicious PowerShell execution on db-master,suspicious,log-source-8
+2026-01-17T05:58:09.444245,TRACE: Telemetry data sent,noise,log-source-10
+2025-12-28T04:41:09.444163,TRACE: Connection pool status: 100 active,noise,log-source-6
+2025-12-28T17:48:09.443838,INFO: User backup_user logged out,routine,log-source-7
+2026-01-10T09:17:09.443500,INFO: Service mysql started successfully on app-node-03,routine,log-source-7
+2026-01-16T05:01:09.442905,NOTICE: Password changed for user admin,routine,log-source-4
+2026-01-11T03:06:09.444934,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-7
+2025-12-31T00:16:09.444110,TRACE: Telemetry data sent,noise,log-source-3
+2026-01-04T05:50:09.444138,DEBUG: Metrics exported to grafana:3000,noise,log-source-9
+2026-01-22T01:26:09.442010,"ALERT: Port scan detected from 203.0.113.42 on ports 80,443,8080",suspicious,log-source-9
+2026-01-20T04:35:09.441796,"ALERT: Port scan detected from 192.168.1.100 on ports 80,443,8080",suspicious,log-source-9
+2026-01-22T00:36:09.441772,WARNING: Unusual outbound traffic to 10.0.0.50:3389,suspicious,log-source-4
+2026-01-09T21:28:09.443450,NOTICE: System update applied successfully,routine,log-source-3
+2025-12-29T05:55:09.444635,DEBUG: GC completed in 100ms,noise,log-source-7
+2026-01-04T01:21:09.444050,TRACE: Connection pool status: 5 active,noise,log-source-8
+2026-01-14T03:05:09.442325,NOTICE: Configuration updated for kafka,routine,log-source-3
+2025-12-29T07:06:09.445159,TRACE: Heartbeat received from db-master,noise,log-source-1
+2026-01-17T14:35:09.442395,NOTICE: System update applied successfully,routine,log-source-10
+2026-01-17T14:12:09.444983,DEBUG: Metrics exported to localhost:8080,noise,log-source-2
+2025-12-29T09:31:09.445011,TRACE: Connection pool status: 5 active,noise,log-source-1
+2026-01-20T04:52:09.442249,DEBUG: Session created for user svc_account,routine,log-source-9
+2026-01-08T08:06:09.443114,INFO: Backup completed successfully - 2048MB archived,routine,log-source-9
+2026-01-04T04:25:09.442923,INFO: Backup completed successfully - 100MB archived,routine,log-source-6
+2026-01-14T04:34:09.443234,INFO: Service nginx started successfully on workstation-42,routine,log-source-4
+2025-12-31T14:54:09.443959,TRACE: Timer triggered for scheduled task,noise,log-source-8
+2026-01-02T02:43:09.442376,INFO: User root logged in successfully from 10.0.0.50,routine,log-source-5
+2026-01-06T07:10:09.443095,INFO: User backup_user logged out,routine,log-source-5
+2026-01-18T19:25:09.445188,DEBUG: Prometheus scrape completed,noise,log-source-2
+2026-01-22T04:00:09.444611,TRACE: Connection pool status: 10 active,noise,log-source-8
+2025-12-31T06:03:09.442314,INFO: User svc_account logged out,routine,log-source-9
+2026-01-11T21:41:09.442796,DEBUG: Request processed in 100ms,routine,log-source-9
+2026-01-05T06:16:09.442388,DEBUG: Session created for user jsmith,routine,log-source-7
+2026-01-25T15:08:09.445145,DEBUG: Metrics exported to prometheus:9090,noise,log-source-5
+2026-01-17T04:07:09.444277,DEBUG: Cache hit for key user:123,noise,log-source-9
+2025-12-30T04:32:09.442458,INFO: Service elasticsearch started successfully on web-server-01,routine,log-source-2
+2026-01-20T17:54:09.444962,DEBUG: GC completed in 50ms,noise,log-source-7
+2026-01-07T03:50:09.445265,DEBUG: Metrics exported to localhost:8080,noise,log-source-10
+2026-01-15T05:20:09.441824,WARNING: Failed login attempt for user admin from 172.16.0.25,suspicious,log-source-3
+2026-01-04T01:47:09.443056,INFO: Service elasticsearch started successfully on web-server-01,routine,log-source-8
+2026-01-14T12:22:09.444986,DEBUG: Metrics exported to prometheus:9090,noise,log-source-7
+2026-01-12T17:17:09.443373,INFO: User svc_account logged in successfully from 172.16.0.25,routine,log-source-2
+2026-01-16T21:41:09.442785,DEBUG: Session created for user admin,routine,log-source-10
+2026-01-19T17:15:09.442114,WARNING: Permission denied for backup_user on database.users,suspicious,log-source-3
+2026-01-16T20:56:09.444338,DEBUG: Health check endpoint called - status OK,noise,log-source-6
+2026-01-25T18:52:09.442623,INFO: Service kafka started successfully on workstation-42,routine,log-source-1
+2026-01-08T11:13:09.444331,DEBUG: Cache hit for key session:abc,noise,log-source-4
+2026-01-17T06:21:09.443308,INFO: New connection established from 192.168.1.100,routine,log-source-6
+2025-12-29T07:01:09.443025,NOTICE: System update applied successfully,routine,log-source-9
+2026-01-20T08:59:09.443657,INFO: Backup completed successfully - 2048MB archived,routine,log-source-2
+2025-12-31T09:11:09.443689,INFO: New connection established from 203.0.113.42,routine,log-source-7
+2026-01-24T23:30:09.443719,NOTICE: Password changed for user svc_account,routine,log-source-7
+2026-01-25T05:18:09.443088,NOTICE: Configuration updated for mysql,routine,log-source-9
+2026-01-15T12:12:09.444401,DEBUG: Prometheus scrape completed,noise,log-source-10
+2025-12-27T14:03:09.442354,INFO: Backup completed successfully - 100MB archived,routine,log-source-4
+2026-01-23T14:38:09.444764,TRACE: Timer triggered for scheduled task,noise,log-source-8
+2026-01-02T01:39:09.443340,NOTICE: Password changed for user root,routine,log-source-2
+2025-12-27T19:01:09.444858,DEBUG: Prometheus scrape completed,noise,log-source-2
+2026-01-18T13:16:09.442233,INFO: New connection established from 172.16.0.25,routine,log-source-1
+2025-12-28T07:20:09.442562,INFO: Service mysql started successfully on jumpbox,routine,log-source-9
+2026-01-07T00:24:09.444937,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2026-01-11T21:09:09.444726,TRACE: Telemetry data sent,noise,log-source-5
+2026-01-20T21:56:09.444524,TRACE: Connection pool status: 50 active,noise,log-source-5
+2025-12-31T20:22:09.445047,TRACE: Heartbeat received from workstation-42,noise,log-source-1
+2025-12-31T21:00:09.443354,DEBUG: Session created for user root,routine,log-source-1
+2025-12-29T13:40:09.441671,NOTICE: Failed authentication from unusual location Unknown VPN,suspicious,log-source-8
+2026-01-18T08:26:09.442054,NOTICE: Failed authentication from unusual location Unknown VPN,suspicious,log-source-9
+2025-12-30T17:10:09.443118,DEBUG: Session created for user root,routine,log-source-8
+2025-12-30T00:33:09.443738,INFO: User admin logged in successfully from 203.0.113.42,routine,log-source-5
+2026-01-18T10:47:09.443321,NOTICE: System update applied successfully,routine,log-source-10
+2025-12-31T08:18:09.445278,TRACE: Timer triggered for scheduled task,noise,log-source-3
+2026-01-22T15:48:09.445037,DEBUG: Metrics exported to grafana:3000,noise,log-source-5
+2026-01-19T10:37:09.444631,TRACE: Timer triggered for scheduled task,noise,log-source-2
+2026-01-09T09:23:09.442298,DEBUG: Request processed in 250ms,routine,log-source-9
+2026-01-20T02:05:09.444541,DEBUG: Cache hit for key cache:data,noise,log-source-4
+2026-01-13T06:31:09.444166,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2026-01-09T23:30:09.444594,DEBUG: GC completed in 50ms,noise,log-source-1
+2025-12-27T05:36:09.443439,INFO: Service elasticsearch started successfully on jumpbox,routine,log-source-4
+2025-12-28T07:38:09.442964,NOTICE: Configuration updated for redis,routine,log-source-10
+2026-01-01T13:25:09.444951,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-5
+2026-01-25T05:11:09.443754,INFO: New connection established from 203.0.113.42,routine,log-source-9
+2026-01-21T01:46:09.443928,DEBUG: Cache hit for key session:abc,noise,log-source-9
+2026-01-11T01:49:09.441926,WARNING: Suspicious PowerShell execution on jumpbox,suspicious,log-source-1
+2026-01-18T10:25:09.444086,TRACE: Heartbeat received from app-node-03,noise,log-source-7
+2026-01-01T04:05:09.444089,TRACE: Heartbeat received from web-server-01,noise,log-source-7
+2026-01-03T06:48:09.444761,TRACE: Connection pool status: 50 active,noise,log-source-9
+2025-12-28T14:20:09.442881,NOTICE: Configuration updated for redis,routine,log-source-5
+2026-01-16T16:54:09.445102,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-9
+2026-01-11T10:05:09.444043,TRACE: Heartbeat received from web-server-01,noise,log-source-6
+2025-12-30T18:16:09.442291,NOTICE: Configuration updated for mysql,routine,log-source-3
+2026-01-22T19:44:09.442716,INFO: Backup completed successfully - 500MB archived,routine,log-source-7
+2026-01-05T09:09:09.445192,DEBUG: Prometheus scrape completed,noise,log-source-2
+2026-01-18T07:33:09.442597,NOTICE: Configuration updated for redis,routine,log-source-5
+2025-12-29T18:04:09.443377,INFO: User root logged out,routine,log-source-10
+2026-01-10T18:00:09.443554,INFO: Service nginx started successfully on web-server-01,routine,log-source-1
+2026-01-18T04:37:09.444979,TRACE: Timer triggered for scheduled task,noise,log-source-4
+2025-12-28T14:37:09.442309,INFO: User svc_account logged in successfully from 192.168.1.100,routine,log-source-6
+2026-01-03T09:52:09.441911,WARNING: Unusual outbound traffic to 10.0.0.50:3306,suspicious,log-source-5
+2025-12-31T01:30:09.443814,DEBUG: Request processed in 100ms,routine,log-source-4
+2026-01-03T19:38:09.443730,INFO: User admin logged out,routine,log-source-3
+2026-01-07T23:22:09.441816,NOTICE: Failed authentication from unusual location Tor Exit Node,suspicious,log-source-1
+2026-01-07T07:23:09.444000,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-4
+2026-01-08T07:21:09.442099,WARNING: Permission denied for backup_user on database.users,suspicious,log-source-7
+2026-01-14T21:56:09.444923,DEBUG: Health check endpoint called - status OK,noise,log-source-3
+2026-01-13T21:59:09.443111,INFO: Service nginx started successfully on web-server-01,routine,log-source-7
+2026-01-17T08:53:09.443369,NOTICE: Configuration updated for mysql,routine,log-source-8
+2026-01-01T06:47:09.443091,NOTICE: Configuration updated for redis,routine,log-source-1
+2026-01-17T15:30:09.441612,THREAT: Cobalt Strike beacon identified on workstation-42,critical,log-source-10
+2026-01-02T22:07:09.443503,INFO: Service kafka started successfully on workstation-42,routine,log-source-6
+2026-01-25T03:01:09.442138,WARNING: Suspicious PowerShell execution on web-server-01,suspicious,log-source-4
+2026-01-25T20:22:09.444134,TRACE: Telemetry data sent,noise,log-source-1
+2026-01-07T02:18:09.443121,DEBUG: Request processed in 15ms,routine,log-source-4
+2026-01-03T02:22:09.443696,INFO: User root logged in successfully from 172.16.0.25,routine,log-source-3
+2026-01-14T09:43:09.443156,DEBUG: Request processed in 50ms,routine,log-source-5
+2026-01-06T20:10:09.441845,NOTICE: Access denied for backup_user accessing /usr/bin/suspicious,suspicious,log-source-9
+2025-12-31T19:56:09.443488,NOTICE: Password changed for user jsmith,routine,log-source-6
+2026-01-21T21:54:09.445285,TRACE: Telemetry data sent,noise,log-source-2
+2026-01-02T20:16:09.444618,DEBUG: GC completed in 50ms,noise,log-source-2
+2026-01-16T04:33:09.443253,INFO: New connection established from 192.168.1.100,routine,log-source-8
+2025-12-27T16:22:09.441857,NOTICE: Unauthorized access attempt to database.users,suspicious,log-source-7
+2026-01-23T00:26:09.443841,NOTICE: System update applied successfully,routine,log-source-5
+2026-01-18T16:21:09.444497,TRACE: Connection pool status: 100 active,noise,log-source-5
+2026-01-02T11:40:09.442063,ALERT: Port scan detected from 10.0.0.50 on ports 20-25,suspicious,log-source-9
+2026-01-19T05:01:09.442490,INFO: New connection established from 192.168.1.100,routine,log-source-4
+2026-01-15T03:54:09.443764,INFO: User backup_user logged in successfully from 10.0.0.50,routine,log-source-6
+2026-01-07T01:11:09.445182,DEBUG: Cache hit for key session:abc,noise,log-source-8
+2025-12-29T13:29:09.444228,TRACE: Connection pool status: 10 active,noise,log-source-10
+2026-01-10T04:27:09.443283,INFO: Backup completed successfully - 100MB archived,routine,log-source-10
+2026-01-18T12:20:09.445169,DEBUG: Cache hit for key session:abc,noise,log-source-1
+2026-01-13T08:07:09.444601,DEBUG: Metrics exported to localhost:8080,noise,log-source-10
+2026-01-19T13:21:09.441931,WARNING: Permission denied for svc_account on /var/log/auth.log,suspicious,log-source-9
+2026-01-25T01:32:09.444689,TRACE: Connection pool status: 100 active,noise,log-source-10
+2026-01-22T14:12:09.444452,TRACE: Telemetry data sent,noise,log-source-6
+2026-01-10T12:29:09.442545,NOTICE: Password changed for user admin,routine,log-source-7
+2025-12-31T19:56:09.444378,DEBUG: GC completed in 5ms,noise,log-source-10
+2026-01-18T23:03:09.444849,TRACE: Telemetry data sent,noise,log-source-10
+2026-01-23T16:29:09.444455,DEBUG: Prometheus scrape completed,noise,log-source-3
+2026-01-25T11:45:09.442260,INFO: New connection established from 203.0.113.42,routine,log-source-5
+2026-01-20T18:59:09.443993,DEBUG: Metrics exported to prometheus:9090,noise,log-source-4
+2026-01-16T13:52:09.441633,THREAT: Ransomware activity detected - files being encrypted in /home/user/downloads/invoice.pdf,critical,log-source-10
+2026-01-15T02:24:09.443081,INFO: Backup completed successfully - 50MB archived,routine,log-source-3
+2026-01-17T07:15:09.443074,NOTICE: Configuration updated for mysql,routine,log-source-1
+2026-01-18T20:32:09.443921,DEBUG: Prometheus scrape completed,noise,log-source-4
+2026-01-10T23:31:09.443401,INFO: New connection established from 10.0.0.50,routine,log-source-9
+2026-01-03T16:54:09.442576,NOTICE: Password changed for user root,routine,log-source-9
+2026-01-17T04:15:09.443265,NOTICE: Configuration updated for elasticsearch,routine,log-source-4
+2026-01-01T11:58:09.442002,ALERT: Multiple failed SSH attempts from 192.168.1.100,suspicious,log-source-2
+2026-01-17T09:23:09.443742,DEBUG: Request processed in 50ms,routine,log-source-3
+2026-01-25T07:37:09.443361,DEBUG: Session created for user root,routine,log-source-6
+2026-01-02T09:06:09.442765,DEBUG: Session created for user jsmith,routine,log-source-10
+2026-01-24T05:19:09.445162,TRACE: Timer triggered for scheduled task,noise,log-source-5
+2026-01-18T08:03:09.442406,INFO: User backup_user logged out,routine,log-source-9
+2025-12-31T19:09:09.444891,DEBUG: Cache hit for key cache:data,noise,log-source-2
+2026-01-04T14:13:09.443981,TRACE: Heartbeat received from web-server-01,noise,log-source-3
+2026-01-03T01:25:09.443136,INFO: User svc_account logged out,routine,log-source-2
+2026-01-06T03:04:09.443853,INFO: Backup completed successfully - 100MB archived,routine,log-source-4
+2026-01-02T05:00:09.441736,WARNING: Unusual network activity from jumpbox to port 3306,suspicious,log-source-5
+2026-01-08T17:24:09.442908,DEBUG: Request processed in 50ms,routine,log-source-6
+2026-01-12T14:27:09.445234,DEBUG: Prometheus scrape completed,noise,log-source-10
+2025-12-29T14:59:09.442867,INFO: User root logged in successfully from 10.0.0.50,routine,log-source-4
+2026-01-23T22:57:09.442877,DEBUG: Session created for user root,routine,log-source-1
+2026-01-02T11:44:09.442092,WARNING: Suspicious PowerShell execution on app-node-03,suspicious,log-source-1
+2026-01-21T10:23:09.443347,INFO: New connection established from 172.16.0.25,routine,log-source-10
+2026-01-24T23:55:09.445051,DEBUG: Cache hit for key user:123,noise,log-source-10
+2026-01-04T08:47:09.442912,INFO: User admin logged out,routine,log-source-10
+2026-01-17T20:31:09.442515,NOTICE: System update applied successfully,routine,log-source-9
+2025-12-29T01:32:09.442332,NOTICE: Configuration updated for mysql,routine,log-source-8
+2026-01-19T08:33:09.442975,NOTICE: Configuration updated for nginx,routine,log-source-1
+2026-01-14T23:56:09.442990,NOTICE: Password changed for user backup_user,routine,log-source-10
+2025-12-29T04:52:09.445023,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-4
+2025-12-31T09:13:09.442679,INFO: User svc_account logged out,routine,log-source-5
+2026-01-19T00:37:09.442746,INFO: Backup completed successfully - 50MB archived,routine,log-source-8
+2026-01-24T14:37:09.442209,INFO: User admin logged in successfully from 203.0.113.42,routine,log-source-1
+2026-01-25T04:58:09.445044,DEBUG: Cache hit for key cache:data,noise,log-source-8
+2026-01-22T12:23:09.441919,WARNING: Failed login attempt for user svc_account from 198.51.100.17,suspicious,log-source-8
+2025-12-31T11:43:09.444832,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-1
+2025-12-27T03:13:09.444235,TRACE: Heartbeat received from web-server-01,noise,log-source-3
+2026-01-09T17:34:09.444429,TRACE: Telemetry data sent,noise,log-source-7
+2026-01-07T10:25:09.445131,DEBUG: GC completed in 5ms,noise,log-source-9
+2026-01-17T14:29:09.442450,INFO: User admin logged out,routine,log-source-10
+2026-01-07T16:06:09.444723,TRACE: Heartbeat received from web-server-01,noise,log-source-5
+2026-01-23T23:35:09.443675,DEBUG: Session created for user admin,routine,log-source-4
+2026-01-21T08:04:09.442318,INFO: Service nginx started successfully on jumpbox,routine,log-source-9
+2026-01-19T09:29:09.443831,NOTICE: Configuration updated for redis,routine,log-source-3
+2026-01-03T07:45:09.442536,DEBUG: Session created for user svc_account,routine,log-source-5
+2026-01-10T05:31:09.444206,TRACE: Heartbeat received from db-master,noise,log-source-4
+2026-01-10T04:00:09.442705,NOTICE: Password changed for user admin,routine,log-source-7
+2026-01-04T19:19:09.445138,DEBUG: Cache hit for key session:abc,noise,log-source-7
+2026-01-11T07:08:09.444917,DEBUG: Metrics exported to prometheus:9090,noise,log-source-10
+2026-01-09T07:29:09.442694,NOTICE: Password changed for user backup_user,routine,log-source-8
+2026-01-05T11:59:09.441961,WARNING: Suspicious PowerShell execution on db-master,suspicious,log-source-5
+2026-01-20T06:56:09.442369,NOTICE: Password changed for user root,routine,log-source-8
+2026-01-25T05:50:09.442664,NOTICE: System update applied successfully,routine,log-source-8
+2026-01-18T15:48:09.442245,INFO: User jsmith logged out,routine,log-source-7
+2026-01-06T01:19:09.442154,NOTICE: Access denied for admin accessing /home/user/downloads/invoice.pdf,suspicious,log-source-9
+2026-01-22T15:59:09.441934,NOTICE: Unauthorized access attempt to admin_panel,suspicious,log-source-3
+2026-01-15T20:10:09.442475,INFO: Backup completed successfully - 1024MB archived,routine,log-source-5
+2026-01-07T23:19:09.445026,DEBUG: Prometheus scrape completed,noise,log-source-6
+2025-12-27T11:39:09.442413,NOTICE: Password changed for user admin,routine,log-source-7
+2026-01-12T22:38:09.443631,INFO: Service elasticsearch started successfully on workstation-42,routine,log-source-10
+2026-01-17T21:35:09.443332,NOTICE: System update applied successfully,routine,log-source-5
+2026-01-19T11:13:09.442735,INFO: User admin logged out,routine,log-source-6
+2026-01-01T09:45:09.444433,DEBUG: Metrics exported to prometheus:9090,noise,log-source-5
+2026-01-09T07:08:09.443607,DEBUG: Session created for user backup_user,routine,log-source-3
+2026-01-04T13:50:09.442946,DEBUG: Request processed in 5ms,routine,log-source-10
+2025-12-29T12:19:09.442358,INFO: Service nginx started successfully on workstation-42,routine,log-source-3
+2026-01-09T19:35:09.444555,TRACE: Connection pool status: 10 active,noise,log-source-1
+2026-01-05T10:15:09.442336,INFO: Service mysql started successfully on jumpbox,routine,log-source-2
+2026-01-17T17:15:09.445142,TRACE: Telemetry data sent,noise,log-source-3
+2025-12-31T22:27:09.445120,TRACE: Telemetry data sent,noise,log-source-1
+2026-01-11T06:53:09.442294,NOTICE: System update applied successfully,routine,log-source-4
+2026-01-17T08:28:09.441650,SECURITY: Privilege escalation attempt by user jsmith on workstation-42,critical,log-source-5
+2026-01-01T03:58:09.443530,NOTICE: Password changed for user jsmith,routine,log-source-6
+2026-01-03T08:49:09.443214,INFO: Backup completed successfully - 50MB archived,routine,log-source-7
+2026-01-07T21:46:09.444870,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-2
+2026-01-20T07:13:09.444885,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-10
+2026-01-20T18:41:09.442252,INFO: New connection established from 198.51.100.17,routine,log-source-7
+2026-01-15T19:44:09.442739,DEBUG: Session created for user root,routine,log-source-4
+2026-01-01T12:03:09.444544,DEBUG: Health check endpoint called - status OK,noise,log-source-9
+2026-01-22T07:47:09.442931,DEBUG: Session created for user admin,routine,log-source-7
+2026-01-08T23:01:09.445282,DEBUG: Health check endpoint called - status OK,noise,log-source-10
+2026-01-03T02:53:09.442443,INFO: User svc_account logged out,routine,log-source-8
+2025-12-31T20:41:09.444628,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2026-01-04T01:39:09.442871,INFO: New connection established from 198.51.100.17,routine,log-source-10
+2026-01-04T01:34:09.443997,DEBUG: GC completed in 100ms,noise,log-source-2
+2026-01-21T22:48:09.444845,TRACE: Connection pool status: 100 active,noise,log-source-7
+2025-12-28T23:32:09.444252,DEBUG: Prometheus scrape completed,noise,log-source-9
+2026-01-02T18:30:09.442559,DEBUG: Request processed in 15ms,routine,log-source-4
+2025-12-27T01:58:09.441621,CRITICAL: C2 beacon detected - host web-server-01 communicating with 203.0.113.42,critical,log-source-4
+2026-01-13T11:21:09.443181,DEBUG: Request processed in 100ms,routine,log-source-2
+2026-01-02T09:14:09.442027,NOTICE: Failed authentication from unusual location China,suspicious,log-source-1
+2026-01-06T18:39:09.442006,NOTICE: Access denied for root accessing /tmp/payload.exe,suspicious,log-source-8
+2026-01-25T15:43:09.444390,DEBUG: Prometheus scrape completed,noise,log-source-8
+2026-01-12T03:55:09.444810,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-9
+2026-01-01T16:52:09.444039,DEBUG: Prometheus scrape completed,noise,log-source-5
+2025-12-29T14:26:09.443685,INFO: New connection established from 10.0.0.50,routine,log-source-5
+2026-01-03T21:18:09.444445,TRACE: Heartbeat received from db-master,noise,log-source-7
+2026-01-20T22:38:09.444422,DEBUG: Cache hit for key user:123,noise,log-source-3
+2026-01-15T23:58:09.443616,DEBUG: Session created for user backup_user,routine,log-source-2
+2026-01-02T15:16:09.441701,NOTICE: Access denied for svc_account accessing C:\Windows\Temp\malware.dll,suspicious,log-source-8
+2026-01-19T20:38:09.443900,TRACE: Timer triggered for scheduled task,noise,log-source-6
+2025-12-27T04:10:09.443404,DEBUG: Request processed in 100ms,routine,log-source-4
+2025-12-29T17:53:09.443989,DEBUG: GC completed in 100ms,noise,log-source-1
+2026-01-17T18:52:09.442424,NOTICE: Password changed for user svc_account,routine,log-source-1
+2026-01-01T03:51:09.443325,NOTICE: Password changed for user backup_user,routine,log-source-5
+2026-01-17T00:36:09.444930,DEBUG: GC completed in 250ms,noise,log-source-1
+2025-12-27T13:22:09.444199,DEBUG: GC completed in 5ms,noise,log-source-9
+2026-01-07T15:28:09.444224,DEBUG: GC completed in 250ms,noise,log-source-6
+2026-01-11T13:40:09.444972,TRACE: Timer triggered for scheduled task,noise,log-source-2
+2026-01-24T13:42:09.444920,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2026-01-16T13:56:09.441705,WARNING: Suspicious PowerShell execution on db-master,suspicious,log-source-1
+2026-01-22T23:48:09.444124,TRACE: Heartbeat received from workstation-42,noise,log-source-8
+2026-01-17T16:46:09.443144,DEBUG: Request processed in 100ms,routine,log-source-3
+2026-01-25T06:37:09.442175,DEBUG: Session created for user svc_account,routine,log-source-6
+2025-12-30T16:37:09.442540,DEBUG: Request processed in 250ms,routine,log-source-7
+2026-01-17T13:06:09.442750,INFO: User svc_account logged out,routine,log-source-2
+2026-01-12T02:30:09.444004,DEBUG: Cache hit for key user:123,noise,log-source-1
+2026-01-13T02:43:09.443078,DEBUG: Session created for user svc_account,routine,log-source-10
+2026-01-03T20:48:09.444693,TRACE: Timer triggered for scheduled task,noise,log-source-3
+2026-01-25T04:20:09.445112,DEBUG: Metrics exported to localhost:8080,noise,log-source-3
+2026-01-20T20:41:09.444716,TRACE: Connection pool status: 10 active,noise,log-source-4
+2026-01-16T10:46:09.444368,DEBUG: Cache hit for key user:123,noise,log-source-2
+2026-01-22T23:50:09.444486,DEBUG: Prometheus scrape completed,noise,log-source-6
+2025-12-30T01:09:09.442051,WARNING: Unusual network activity from app-node-03 to port 3389,suspicious,log-source-2
+2026-01-10T19:41:09.443782,DEBUG: Request processed in 15ms,routine,log-source-3
+2026-01-13T23:02:09.444958,DEBUG: GC completed in 5ms,noise,log-source-7
+2026-01-22T05:47:09.444141,DEBUG: GC completed in 5ms,noise,log-source-9
+2026-01-02T19:03:09.443806,DEBUG: Request processed in 50ms,routine,log-source-7
+2026-01-18T02:33:09.444189,DEBUG: Prometheus scrape completed,noise,log-source-3
+2026-01-12T09:54:09.444706,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-4
+2026-01-24T14:48:09.442340,NOTICE: System update applied successfully,routine,log-source-7
+2026-01-24T21:48:09.443952,TRACE: Heartbeat received from app-node-03,noise,log-source-2
+2026-01-24T18:39:09.442196,INFO: User backup_user logged in successfully from 10.0.0.50,routine,log-source-6
+2026-01-05T05:53:09.443304,INFO: User root logged in successfully from 10.0.0.50,routine,log-source-10
+2026-01-06T18:38:09.441837,NOTICE: Unauthorized access attempt to /etc/passwd,suspicious,log-source-5
+2025-12-28T16:45:09.445071,DEBUG: Cache hit for key cache:data,noise,log-source-2
+2026-01-13T22:55:09.443012,DEBUG: Session created for user backup_user,routine,log-source-10
+2026-01-10T10:47:09.444418,DEBUG: Metrics exported to localhost:8080,noise,log-source-7
+2026-01-03T00:51:09.444489,DEBUG: GC completed in 15ms,noise,log-source-2
+2025-12-27T09:26:09.444426,DEBUG: Health check endpoint called - status OK,noise,log-source-2
+2026-01-02T02:49:09.442856,INFO: User svc_account logged in successfully from 10.0.0.50,routine,log-source-8
+2026-01-25T05:21:09.444747,DEBUG: Health check endpoint called - status OK,noise,log-source-1
+2025-12-31T08:06:09.443793,INFO: New connection established from 172.16.0.25,routine,log-source-1
+2025-12-27T09:47:09.443206,INFO: Service elasticsearch started successfully on jumpbox,routine,log-source-2
+2026-01-16T02:04:09.442604,DEBUG: Request processed in 5ms,routine,log-source-1
+2026-01-24T09:17:09.444309,TRACE: Timer triggered for scheduled task,noise,log-source-9
+2025-12-29T01:12:09.444969,DEBUG: GC completed in 15ms,noise,log-source-2
+2026-01-14T22:14:09.445081,DEBUG: Cache hit for key session:abc,noise,log-source-5
+2026-01-18T09:23:09.444176,DEBUG: GC completed in 100ms,noise,log-source-1
+2026-01-09T01:12:09.443884,DEBUG: GC completed in 5ms,noise,log-source-4
+2026-01-12T09:26:09.443623,INFO: User jsmith logged out,routine,log-source-3
+2026-01-14T15:42:09.445242,TRACE: Telemetry data sent,noise,log-source-6
+2026-01-05T07:17:09.442410,DEBUG: Session created for user root,routine,log-source-9
+2026-01-05T02:33:09.443925,TRACE: Connection pool status: 10 active,noise,log-source-9
+2026-01-14T22:52:09.444096,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-2
+2026-01-07T17:16:09.443849,NOTICE: Configuration updated for redis,routine,log-source-7
+2026-01-01T00:11:09.443329,INFO: New connection established from 198.51.100.17,routine,log-source-1
+2026-01-12T12:43:09.444182,TRACE: Telemetry data sent,noise,log-source-5
+2026-01-06T13:01:09.442478,INFO: New connection established from 172.16.0.25,routine,log-source-4
+2026-01-14T02:12:09.443914,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2026-01-05T08:56:09.441788,WARNING: Unusual outbound traffic to 192.168.1.100:22,suspicious,log-source-3
+2026-01-12T08:54:09.445296,TRACE: Heartbeat received from workstation-42,noise,log-source-7
+2026-01-09T15:39:09.442280,NOTICE: Password changed for user backup_user,routine,log-source-2
+2026-01-09T09:19:09.444685,DEBUG: Metrics exported to localhost:8080,noise,log-source-10
+2026-01-19T22:45:09.442532,INFO: User admin logged out,routine,log-source-6
+2026-01-08T12:28:09.441625,CRITICAL: Mimikatz execution detected on web-server-01,critical,log-source-3
+2026-01-05T21:06:09.443639,INFO: Backup completed successfully - 50MB archived,routine,log-source-5
+2026-01-07T01:51:09.441760,WARNING: Unusual network activity from jumpbox to port 443,suspicious,log-source-2
+2026-01-17T12:28:09.445109,DEBUG: Health check endpoint called - status OK,noise,log-source-8
+2026-01-06T04:56:09.442676,INFO: User root logged in successfully from 192.168.1.100,routine,log-source-8
+2026-01-04T15:54:09.445223,DEBUG: Metrics exported to prometheus:9090,noise,log-source-3
+2026-01-14T07:17:09.443664,INFO: User backup_user logged in successfully from 10.0.0.50,routine,log-source-2
+2025-12-29T23:48:09.441604,THREAT: Cobalt Strike beacon identified on db-master,critical,log-source-6
+2026-01-13T18:05:09.443946,TRACE: Heartbeat received from workstation-42,noise,log-source-10
+2026-01-20T07:41:09.444221,DEBUG: Prometheus scrape completed,noise,log-source-8
+2025-12-30T20:58:09.444947,DEBUG: Health check endpoint called - status OK,noise,log-source-1
+2026-01-25T04:43:09.442519,NOTICE: System update applied successfully,routine,log-source-2
+2026-01-16T10:43:09.442399,INFO: Service nginx started successfully on web-server-01,routine,log-source-1
+2026-01-12T05:42:09.443071,INFO: User backup_user logged in successfully from 172.16.0.25,routine,log-source-4
+2025-12-30T17:25:09.444054,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-9
+2025-12-31T17:06:09.441655,CRITICAL: C2 beacon detected - host jumpbox communicating with 192.168.1.100,critical,log-source-9
+2025-12-26T23:54:09.443612,NOTICE: Configuration updated for elasticsearch,routine,log-source-8
+2026-01-15T19:36:09.443956,TRACE: Telemetry data sent,noise,log-source-4
+2026-01-09T04:59:09.442522,NOTICE: System update applied successfully,routine,log-source-9
+2026-01-05T03:54:09.443778,NOTICE: Configuration updated for nginx,routine,log-source-6
+2025-12-26T23:39:09.441998,WARNING: Permission denied for root on /var/log/auth.log,suspicious,log-source-6
+2026-01-12T09:05:09.441879,WARNING: Suspicious PowerShell execution on app-node-03,suspicious,log-source-9
+2026-01-09T19:21:09.441833,NOTICE: Access denied for backup_user accessing /tmp/payload.exe,suspicious,log-source-2
+2026-01-25T16:54:09.444214,DEBUG: Health check endpoint called - status OK,noise,log-source-1
+2026-01-22T14:49:09.442031,NOTICE: Failed authentication from unusual location Russia,suspicious,log-source-8
+2026-01-02T20:02:09.443949,DEBUG: Prometheus scrape completed,noise,log-source-4
+2026-01-09T15:45:09.445040,TRACE: Timer triggered for scheduled task,noise,log-source-8
+2026-01-19T15:45:09.443704,INFO: Backup completed successfully - 1024MB archived,routine,log-source-5
+2026-01-17T09:52:09.444036,TRACE: Timer triggered for scheduled task,noise,log-source-6
+2026-01-22T00:45:09.442852,INFO: User svc_account logged out,routine,log-source-9
+2026-01-05T09:57:09.444537,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-3
+2026-01-22T09:07:09.441903,NOTICE: Unauthorized access attempt to /etc/passwd,suspicious,log-source-7
+2026-01-11T11:10:09.441555,SECURITY: Unauthorized root access attempt from 198.51.100.17,critical,log-source-1
+2026-01-07T07:52:09.444699,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2025-12-30T02:46:09.441981,WARNING: Unusual network activity from web-server-01 to port 3389,suspicious,log-source-1
+2026-01-23T20:52:09.443005,NOTICE: Configuration updated for mysql,routine,log-source-7
+2026-01-15T06:07:09.441958,ALERT: Multiple failed SSH attempts from 10.0.0.50,suspicious,log-source-3
+2026-01-06T00:55:09.445149,TRACE: Timer triggered for scheduled task,noise,log-source-4
+2026-01-02T21:22:09.443476,NOTICE: System update applied successfully,routine,log-source-1
+2026-01-07T13:45:09.442447,INFO: Service mysql started successfully on jumpbox,routine,log-source-4
+2026-01-10T12:16:09.443125,DEBUG: Request processed in 250ms,routine,log-source-1
+2025-12-31T22:27:09.445124,TRACE: Heartbeat received from web-server-01,noise,log-source-8
+2026-01-21T19:30:09.443593,INFO: Service nginx started successfully on app-node-03,routine,log-source-6
+2026-01-04T02:59:09.445105,TRACE: Heartbeat received from jumpbox,noise,log-source-6
+2025-12-28T12:05:09.444114,TRACE: Connection pool status: 10 active,noise,log-source-5
+2026-01-21T19:51:09.442757,INFO: Backup completed successfully - 1024MB archived,routine,log-source-4
+2026-01-05T00:40:09.441744,WARNING: Suspicious PowerShell execution on app-node-03,suspicious,log-source-1
+2025-12-29T16:27:09.445085,DEBUG: Prometheus scrape completed,noise,log-source-4
+2026-01-11T10:39:09.442874,NOTICE: System update applied successfully,routine,log-source-9
+2026-01-08T11:16:09.445054,DEBUG: GC completed in 5ms,noise,log-source-1
+2026-01-21T18:52:09.443667,DEBUG: Request processed in 5ms,routine,log-source-3
+2026-01-15T05:28:09.441875,NOTICE: Access denied for jsmith accessing /home/user/downloads/invoice.pdf,suspicious,log-source-6
+2026-01-23T04:01:09.442709,DEBUG: Session created for user root,routine,log-source-10
+2026-01-03T21:59:09.442939,INFO: User backup_user logged in successfully from 198.51.100.17,routine,log-source-9
+2026-01-21T11:17:09.444798,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-4
+2026-01-11T22:07:09.442329,INFO: New connection established from 198.51.100.17,routine,log-source-7
+2026-01-03T03:18:09.443876,INFO: User root logged out,routine,log-source-4
+2026-01-23T05:49:09.442656,INFO: Service mysql started successfully on db-master,routine,log-source-1
+2026-01-12T07:46:09.443042,NOTICE: Configuration updated for kafka,routine,log-source-8
+2026-01-01T15:46:09.443286,INFO: Backup completed successfully - 50MB archived,routine,log-source-4
+2026-01-19T06:05:09.444653,TRACE: Connection pool status: 100 active,noise,log-source-3
+2026-01-08T01:28:09.442361,INFO: Backup completed successfully - 2048MB archived,routine,log-source-4
+2026-01-01T19:32:09.442687,INFO: New connection established from 10.0.0.50,routine,log-source-2
+2026-01-21T19:40:09.442217,INFO: User root logged in successfully from 172.16.0.25,routine,log-source-1
+2026-01-01T01:48:09.441675,ALERT: Multiple failed SSH attempts from 203.0.113.42,suspicious,log-source-3
+2026-01-01T01:20:09.444023,TRACE: Timer triggered for scheduled task,noise,log-source-2
+2025-12-28T13:11:09.443099,INFO: Service redis started successfully on web-server-01,routine,log-source-5
+2026-01-22T10:38:09.444469,TRACE: Connection pool status: 5 active,noise,log-source-5
+2026-01-14T02:56:09.443492,INFO: New connection established from 172.16.0.25,routine,log-source-6
+2026-01-14T07:35:09.441784,ALERT: Port scan detected from 198.51.100.17 on ports 1-1000,suspicious,log-source-10
+2026-01-23T01:10:09.444675,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-3
+2025-12-28T13:40:09.444608,TRACE: Connection pool status: 15 active,noise,log-source-8
+2026-01-04T19:33:09.444873,DEBUG: Cache hit for key cache:data,noise,log-source-8
+2026-01-11T22:39:09.442365,NOTICE: Configuration updated for nginx,routine,log-source-4
+2026-01-06T08:48:09.444865,DEBUG: Cache hit for key session:abc,noise,log-source-9
+2026-01-23T01:32:09.445213,TRACE: Timer triggered for scheduled task,noise,log-source-4
+2026-01-06T17:53:09.442035,WARNING: Suspicious PowerShell execution on web-server-01,suspicious,log-source-10
+2026-01-25T09:17:09.443507,DEBUG: Session created for user jsmith,routine,log-source-8
+2026-01-22T11:10:09.442573,INFO: User svc_account logged in successfully from 172.16.0.25,routine,log-source-6
+2026-01-21T21:38:09.445152,DEBUG: Prometheus scrape completed,noise,log-source-5
+2026-01-13T14:27:09.443275,NOTICE: System update applied successfully,routine,log-source-8
+2026-01-09T11:10:09.443462,INFO: Service kafka started successfully on jumpbox,routine,log-source-5
+2026-01-17T14:04:09.444267,TRACE: Heartbeat received from jumpbox,noise,log-source-9
+2026-01-25T00:48:09.444585,TRACE: Connection pool status: 5 active,noise,log-source-1
+2026-01-12T21:36:09.441841,WARNING: Failed login attempt for user root from 10.0.0.50,suspicious,log-source-7
+2026-01-01T16:29:09.444510,TRACE: Telemetry data sent,noise,log-source-3
+2026-01-06T13:01:09.442831,NOTICE: Password changed for user svc_account,routine,log-source-2
+2026-01-12T09:10:09.443085,INFO: New connection established from 172.16.0.25,routine,log-source-7
+2026-01-20T17:14:09.444562,TRACE: Timer triggered for scheduled task,noise,log-source-8
+2026-01-07T00:21:09.444270,TRACE: Timer triggered for scheduled task,noise,log-source-9
+2026-01-25T00:44:09.444483,TRACE: Telemetry data sent,noise,log-source-3
+2026-01-24T13:32:09.445185,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-10
+2026-01-16T20:41:09.442915,DEBUG: Session created for user root,routine,log-source-8
+2026-01-11T05:20:09.443419,DEBUG: Session created for user root,routine,log-source-2
+2026-01-12T08:34:09.443619,INFO: Backup completed successfully - 50MB archived,routine,log-source-8
+2026-01-04T13:20:09.441599,CRITICAL: C2 beacon detected - host web-server-01 communicating with 10.0.0.50,critical,log-source-4
+2026-01-14T14:46:09.442088,WARNING: Unusual outbound traffic to 198.51.100.17:8080,suspicious,log-source-5
+2026-01-24T13:38:09.444944,DEBUG: GC completed in 5ms,noise,log-source-1
+2026-01-16T00:31:09.442645,NOTICE: System update applied successfully,routine,log-source-3
+2026-01-25T18:18:09.442212,NOTICE: Password changed for user admin,routine,log-source-8
+2025-12-28T05:58:09.443249,DEBUG: Request processed in 50ms,routine,log-source-4
+2026-01-06T05:53:09.443017,INFO: Backup completed successfully - 100MB archived,routine,log-source-2
+2026-01-16T09:54:09.444159,DEBUG: Prometheus scrape completed,noise,log-source-6
+2026-01-18T00:49:09.442713,NOTICE: Password changed for user svc_account,routine,log-source-3
+2026-01-05T22:48:09.443443,INFO: User admin logged in successfully from 10.0.0.50,routine,log-source-3
+2026-01-19T12:43:09.442379,NOTICE: Password changed for user svc_account,routine,log-source-4
+2025-12-27T16:37:09.443888,DEBUG: Health check endpoint called - status OK,noise,log-source-7
+2026-01-03T19:50:09.442269,INFO: Backup completed successfully - 2048MB archived,routine,log-source-7
+2025-12-29T16:49:09.441829,NOTICE: Access denied for backup_user accessing C:\Windows\Temp\malware.dll,suspicious,log-source-3
+2026-01-20T16:43:09.442552,DEBUG: Request processed in 5ms,routine,log-source-7
+2025-12-29T15:48:09.443935,TRACE: Timer triggered for scheduled task,noise,log-source-3
+2026-01-03T20:18:09.443757,NOTICE: System update applied successfully,routine,log-source-10
+2026-01-07T22:12:09.444504,DEBUG: Metrics exported to prometheus:9090,noise,log-source-4
+2026-01-18T06:51:09.445258,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2026-01-17T15:36:09.443350,DEBUG: Session created for user svc_account,routine,log-source-4
+2025-12-30T10:44:09.441719,NOTICE: Access denied for backup_user accessing /usr/bin/suspicious,suspicious,log-source-5
+2026-01-15T14:30:09.443646,NOTICE: Password changed for user backup_user,routine,log-source-5
+2026-01-23T18:06:09.443473,INFO: Backup completed successfully - 1024MB archived,routine,log-source-10
+2026-01-09T00:15:09.444787,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-10
+2026-01-24T11:39:09.442927,INFO: User jsmith logged in successfully from 198.51.100.17,routine,log-source-10
+2026-01-02T13:21:09.444679,TRACE: Heartbeat received from workstation-42,noise,log-source-6
+2026-01-12T03:51:09.443643,INFO: Backup completed successfully - 500MB archived,routine,log-source-1
+2026-01-20T01:09:09.443480,NOTICE: Password changed for user svc_account,routine,log-source-5
+2026-01-10T22:31:09.441687,NOTICE: Failed authentication from unusual location Tor Exit Node,suspicious,log-source-8
+2026-01-16T08:31:09.444365,TRACE: Timer triggered for scheduled task,noise,log-source-9
+2025-12-28T09:49:09.442501,NOTICE: Configuration updated for nginx,routine,log-source-6
+2025-12-29T14:59:09.443597,INFO: New connection established from 203.0.113.42,routine,log-source-1
+2026-01-15T10:36:09.442014,NOTICE: Unauthorized access attempt to admin_panel,suspicious,log-source-3
+2026-01-11T14:16:09.442471,NOTICE: Password changed for user root,routine,log-source-5
+2025-12-29T18:48:09.441895,WARNING: Suspicious PowerShell execution on app-node-03,suspicious,log-source-4
+2026-01-08T12:01:09.444448,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-9
+2026-01-13T21:25:09.444299,TRACE: Telemetry data sent,noise,log-source-7
+2026-01-18T07:48:09.445088,TRACE: Timer triggered for scheduled task,noise,log-source-3
+2026-01-19T20:29:09.444903,DEBUG: Metrics exported to localhost:8080,noise,log-source-10
+2025-12-29T06:49:09.444754,DEBUG: Prometheus scrape completed,noise,log-source-4
+2026-01-15T08:58:09.443715,DEBUG: Request processed in 15ms,routine,log-source-3
+2026-01-20T13:03:09.442672,INFO: User backup_user logged in successfully from 172.16.0.25,routine,log-source-1
+2026-01-03T22:10:09.443148,DEBUG: Session created for user jsmith,routine,log-source-1
+2026-01-20T02:59:09.444778,TRACE: Connection pool status: 100 active,noise,log-source-1
+2026-01-21T18:47:09.444242,DEBUG: Metrics exported to prometheus:9090,noise,log-source-4
+2026-01-15T01:36:09.443573,NOTICE: Configuration updated for elasticsearch,routine,log-source-5
+2025-12-28T06:52:09.445098,DEBUG: Cache hit for key user:123,noise,log-source-2
+2026-01-07T23:56:09.445299,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2026-01-15T10:34:09.442095,ALERT: Multiple failed SSH attempts from 192.168.1.100,suspicious,log-source-1
+2026-01-18T12:45:09.443558,NOTICE: Password changed for user admin,routine,log-source-3
+2026-01-01T08:09:09.442792,INFO: New connection established from 192.168.1.100,routine,log-source-6
+2026-01-05T12:55:09.444148,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-4
+2026-01-22T18:05:09.442760,INFO: New connection established from 203.0.113.42,routine,log-source-7
+2025-12-27T17:56:09.442166,INFO: Backup completed successfully - 100MB archived,routine,log-source-10
+2025-12-31T08:13:09.442284,NOTICE: Password changed for user admin,routine,log-source-5
+2025-12-29T11:19:09.443163,INFO: New connection established from 198.51.100.17,routine,log-source-8
+2026-01-09T14:36:09.443796,NOTICE: System update applied successfully,routine,log-source-7
+2026-01-04T09:18:09.443918,DEBUG: Cache hit for key session:abc,noise,log-source-7
+2026-01-08T22:55:09.441642,SECURITY: Privilege escalation attempt by user svc_account on jumpbox,critical,log-source-8
+2026-01-20T12:41:09.443871,INFO: New connection established from 203.0.113.42,routine,log-source-4
+2026-01-18T22:32:09.444828,TRACE: Timer triggered for scheduled task,noise,log-source-9
+2026-01-19T21:35:09.443053,INFO: Backup completed successfully - 2048MB archived,routine,log-source-9
+2026-01-23T21:40:09.444855,TRACE: Timer triggered for scheduled task,noise,log-source-2
+2025-12-30T17:18:09.443671,NOTICE: Password changed for user root,routine,log-source-8
+2025-12-29T07:49:09.441994,WARNING: Permission denied for admin on database.users,suspicious,log-source-5
+2026-01-02T21:45:09.441853,WARNING: Unusual outbound traffic to 203.0.113.42:8080,suspicious,log-source-3
+2026-01-24T15:25:09.442781,NOTICE: Configuration updated for kafka,routine,log-source-7
+2026-01-13T04:20:09.441580,THREAT: Ransomware activity detected - files being encrypted in /usr/bin/suspicious,critical,log-source-4
+2026-01-20T16:55:09.442698,NOTICE: Configuration updated for nginx,routine,log-source-8
+2026-01-05T10:18:09.441977,ALERT: Port scan detected from 198.51.100.17 on ports 20-25,suspicious,log-source-7
+2025-12-29T07:08:09.442391,DEBUG: Session created for user root,routine,log-source-4
+2026-01-14T06:20:09.443970,TRACE: Heartbeat received from app-node-03,noise,log-source-10
+2026-01-25T01:49:09.444117,TRACE: Heartbeat received from workstation-42,noise,log-source-8
+2026-01-07T00:09:09.442135,NOTICE: Access denied for admin accessing C:\Windows\Temp\malware.dll,suspicious,log-source-3
+2026-01-07T10:57:09.445252,DEBUG: GC completed in 250ms,noise,log-source-8
+2026-01-25T15:15:09.443039,INFO: User root logged out,routine,log-source-5
+2026-01-10T09:22:09.444316,DEBUG: GC completed in 100ms,noise,log-source-8
+2026-01-21T06:01:09.442667,NOTICE: Password changed for user jsmith,routine,log-source-7
+2026-01-05T02:13:09.443140,INFO: User root logged out,routine,log-source-9
+2026-01-15T18:38:09.445000,TRACE: Heartbeat received from web-server-01,noise,log-source-1
+2026-01-11T05:52:09.443985,DEBUG: GC completed in 250ms,noise,log-source-6
+2026-01-22T06:31:09.441985,WARNING: Unusual network activity from workstation-42 to port 3389,suspicious,log-source-4
+2025-12-29T14:28:09.442440,NOTICE: Password changed for user svc_account,routine,log-source-2
+2026-01-06T05:57:09.443772,DEBUG: Session created for user admin,routine,log-source-6
+2026-01-25T10:11:09.443389,NOTICE: Configuration updated for nginx,routine,log-source-2
+2025-12-31T05:54:09.441887,NOTICE: Failed authentication from unusual location Tor Exit Node,suspicious,log-source-7
+2025-12-26T22:29:09.442619,INFO: User jsmith logged out,routine,log-source-1
+2026-01-19T23:24:09.444128,DEBUG: Health check endpoint called - status OK,noise,log-source-9
+2025-12-29T00:05:09.442583,NOTICE: System update applied successfully,routine,log-source-2
+2026-01-18T03:16:09.443238,INFO: Service kafka started successfully on web-server-01,routine,log-source-4
+2026-01-24T13:48:09.442849,INFO: User backup_user logged out,routine,log-source-2
+2026-01-22T19:20:09.442611,INFO: Service elasticsearch started successfully on workstation-42,routine,log-source-10
+2026-01-14T01:39:09.445116,DEBUG: Health check endpoint called - status OK,noise,log-source-4
+2026-01-06T18:17:09.444284,DEBUG: GC completed in 100ms,noise,log-source-7
+2025-12-29T11:44:09.444744,DEBUG: GC completed in 5ms,noise,log-source-3
+2026-01-20T06:30:09.445217,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-6
+2026-01-16T16:29:09.441680,WARNING: Unusual network activity from app-node-03 to port 22,suspicious,log-source-5
+2025-12-27T10:27:09.444078,DEBUG: Cache hit for key user:123,noise,log-source-2
+2026-01-04T15:01:09.442814,INFO: New connection established from 192.168.1.100,routine,log-source-1
+2026-01-16T10:50:09.443184,DEBUG: Session created for user root,routine,log-source-5
+2026-01-04T02:41:09.444104,TRACE: Timer triggered for scheduled task,noise,log-source-5
+2026-01-04T08:08:09.444621,TRACE: Telemetry data sent,noise,log-source-3
+2026-01-14T05:29:09.444666,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-5
+2026-01-25T07:21:09.444814,DEBUG: Metrics exported to grafana:3000,noise,log-source-10
+2026-01-01T08:01:09.443035,INFO: New connection established from 192.168.1.100,routine,log-source-7
+2026-01-07T03:02:09.443170,NOTICE: Password changed for user admin,routine,log-source-6
+2026-01-22T07:30:09.443226,INFO: User svc_account logged in successfully from 198.51.100.17,routine,log-source-7
+2026-01-24T21:52:09.442691,INFO: User backup_user logged in successfully from 203.0.113.42,routine,log-source-9
+2026-01-24T15:27:09.443678,NOTICE: Configuration updated for redis,routine,log-source-4
+2026-01-05T14:53:09.444013,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-1
+2025-12-30T20:21:09.443199,DEBUG: Request processed in 100ms,routine,log-source-8
+2026-01-19T21:53:09.442994,INFO: User jsmith logged in successfully from 203.0.113.42,routine,log-source-3
+2026-01-24T00:10:09.442935,NOTICE: Password changed for user backup_user,routine,log-source-3
+2026-01-06T18:05:09.443311,INFO: Backup completed successfully - 100MB archived,routine,log-source-2
+2026-01-09T12:10:09.441710,"ALERT: Port scan detected from 192.168.1.100 on ports 3306,5432",suspicious,log-source-7
+2026-01-16T09:46:09.444839,DEBUG: Prometheus scrape completed,noise,log-source-1
+2026-01-03T16:44:09.442432,INFO: User admin logged out,routine,log-source-8
+2026-01-03T00:30:09.443537,INFO: Service mysql started successfully on app-node-03,routine,log-source-4
+2025-12-28T22:03:09.441588,CRITICAL: Mimikatz execution detected on app-node-03,critical,log-source-4
+2026-01-22T15:09:09.444381,TRACE: Timer triggered for scheduled task,noise,log-source-3
+2026-01-07T14:30:09.444507,TRACE: Telemetry data sent,noise,log-source-7
+2026-01-21T14:02:09.442649,DEBUG: Request processed in 250ms,routine,log-source-9
+2026-01-08T00:59:09.441892,WARNING: Unusual network activity from workstation-42 to port 3389,suspicious,log-source-7
+2026-01-16T11:22:09.442256,INFO: New connection established from 192.168.1.100,routine,log-source-4
+2026-01-09T01:25:09.443589,NOTICE: Password changed for user jsmith,routine,log-source-1
+2025-12-30T17:09:09.442204,INFO: Backup completed successfully - 1024MB archived,routine,log-source-4
+2026-01-24T07:44:09.444210,TRACE: Heartbeat received from db-master,noise,log-source-8
+2026-01-05T06:48:09.443867,INFO: User backup_user logged out,routine,log-source-4
+2026-01-08T08:01:09.443627,INFO: Service nginx started successfully on db-master,routine,log-source-1
+2026-01-13T19:15:09.442384,INFO: New connection established from 203.0.113.42,routine,log-source-7
+2025-12-28T02:36:09.442803,DEBUG: Request processed in 250ms,routine,log-source-9
+2026-01-15T17:50:09.442118,"ALERT: Port scan detected from 192.168.1.100 on ports 80,443,8080",suspicious,log-source-3
+2026-01-04T04:11:09.443544,INFO: New connection established from 10.0.0.50,routine,log-source-9
+2026-01-18T03:14:09.444387,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-8
+2025-12-29T05:01:09.443824,DEBUG: Request processed in 250ms,routine,log-source-6
+2026-01-01T14:18:09.444057,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-6
+2026-01-18T04:08:09.444437,DEBUG: Prometheus scrape completed,noise,log-source-5
+2026-01-15T11:48:09.443458,INFO: User jsmith logged in successfully from 198.51.100.17,routine,log-source-5
+2025-12-31T03:15:09.443343,NOTICE: Configuration updated for nginx,routine,log-source-4
+2026-01-18T16:49:09.442305,NOTICE: Configuration updated for mysql,routine,log-source-1
+2026-01-08T05:01:09.444348,TRACE: Connection pool status: 50 active,noise,log-source-3
+2026-01-11T02:28:09.442126,WARNING: Unusual network activity from workstation-42 to port 8080,suspicious,log-source-2
+2025-12-28T01:45:09.444710,TRACE: Heartbeat received from app-node-03,noise,log-source-7
+2026-01-05T09:56:09.442464,INFO: New connection established from 172.16.0.25,routine,log-source-8
+2026-01-19T04:57:09.445003,DEBUG: Metrics exported to grafana:3000,noise,log-source-10
+2026-01-02T09:18:09.445127,DEBUG: GC completed in 250ms,noise,log-source-8
+2026-01-14T17:16:09.444774,TRACE: Heartbeat received from app-node-03,noise,log-source-10
+2026-01-14T03:26:09.442626,INFO: New connection established from 172.16.0.25,routine,log-source-8
+2026-01-08T22:49:09.443211,INFO: User admin logged in successfully from 10.0.0.50,routine,log-source-7
+2026-01-16T17:27:09.442956,NOTICE: Password changed for user root,routine,log-source-2
+2026-01-08T14:34:09.443828,INFO: Backup completed successfully - 50MB archived,routine,log-source-1
+2026-01-15T08:17:09.444660,DEBUG: Cache hit for key session:abc,noise,log-source-3
+2026-01-18T19:32:09.445271,DEBUG: Health check endpoint called - status OK,noise,log-source-9
+2026-01-23T21:17:09.444821,DEBUG: Prometheus scrape completed,noise,log-source-10
+2025-12-28T05:46:09.443585,INFO: Backup completed successfully - 500MB archived,routine,log-source-5
+2026-01-07T08:54:09.442587,NOTICE: Configuration updated for kafka,routine,log-source-8
+2026-01-18T07:03:09.443962,TRACE: Telemetry data sent,noise,log-source-1
+2025-12-30T09:03:09.443511,DEBUG: Request processed in 50ms,routine,log-source-7
+2025-12-28T05:33:09.444179,TRACE: Telemetry data sent,noise,log-source-2
+2026-01-07T10:55:09.443408,INFO: User admin logged in successfully from 172.16.0.25,routine,log-source-6
+2026-01-08T21:48:09.442043,NOTICE: Failed authentication from unusual location Tor Exit Node,suspicious,log-source-6
+2026-01-02T17:09:09.444552,DEBUG: Cache hit for key user:123,noise,log-source-4
+2026-01-20T05:40:09.442188,NOTICE: Configuration updated for mysql,routine,log-source-5
+2026-01-03T14:42:09.444407,DEBUG: Prometheus scrape completed,noise,log-source-4
+2026-01-24T18:08:09.444720,DEBUG: Cache hit for key session:abc,noise,log-source-3
+2026-01-02T02:00:09.444327,TRACE: Timer triggered for scheduled task,noise,log-source-5
+2026-01-05T07:47:09.444896,DEBUG: GC completed in 250ms,noise,log-source-2
+2026-01-10T02:13:09.442652,NOTICE: Configuration updated for mysql,routine,log-source-9
+2026-01-03T21:23:09.442191,DEBUG: Session created for user root,routine,log-source-3
+2026-01-01T07:39:09.444415,TRACE: Connection pool status: 50 active,noise,log-source-8
+2025-12-27T02:37:09.443435,INFO: User svc_account logged in successfully from 203.0.113.42,routine,log-source-2
+2026-01-25T07:42:09.443230,DEBUG: Request processed in 250ms,routine,log-source-1
+2026-01-12T14:07:09.442919,INFO: User root logged out,routine,log-source-10
+2026-01-23T14:15:09.443734,NOTICE: System update applied successfully,routine,log-source-4
+2026-01-13T21:29:09.442302,NOTICE: Configuration updated for elasticsearch,routine,log-source-3
+2026-01-19T03:33:09.442824,NOTICE: System update applied successfully,routine,log-source-1
+2026-01-05T14:33:09.442240,NOTICE: Password changed for user svc_account,routine,log-source-7
+2026-01-11T22:44:09.445095,DEBUG: Health check endpoint called - status OK,noise,log-source-9
+2026-01-08T14:12:09.444783,TRACE: Heartbeat received from jumpbox,noise,log-source-5
+2025-12-30T20:03:09.444791,DEBUG: Prometheus scrape completed,noise,log-source-8
+2026-01-22T11:50:09.443785,DEBUG: Request processed in 15ms,routine,log-source-9
+2026-01-25T08:37:09.444802,TRACE: Timer triggered for scheduled task,noise,log-source-8
+2025-12-27T19:44:09.444528,DEBUG: Health check endpoint called - status OK,noise,log-source-7
+2026-01-14T19:31:09.444384,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2026-01-07T11:58:09.443384,INFO: Service redis started successfully on web-server-01,routine,log-source-9
+2026-01-23T19:24:09.444625,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-1
+2026-01-05T12:47:09.444196,DEBUG: Metrics exported to grafana:3000,noise,log-source-5
+2026-01-12T00:05:09.444696,TRACE: Connection pool status: 15 active,noise,log-source-2
+2025-12-27T10:13:09.443749,INFO: Service redis started successfully on jumpbox,routine,log-source-8
+2026-01-09T01:57:09.444312,DEBUG: Health check endpoint called - status OK,noise,log-source-9
+2026-01-09T01:46:09.442224,NOTICE: Password changed for user jsmith,routine,log-source-6
+2026-01-17T04:48:09.445207,DEBUG: Metrics exported to prometheus:9090,noise,log-source-10
+2026-01-07T18:48:09.443977,TRACE: Telemetry data sent,noise,log-source-4
+2026-01-12T07:29:09.444033,DEBUG: Health check endpoint called - status OK,noise,log-source-6
+2026-01-21T18:54:09.442828,INFO: User backup_user logged in successfully from 10.0.0.50,routine,log-source-1
+2026-01-20T10:51:09.443318,NOTICE: Configuration updated for kafka,routine,log-source-8
+2026-01-09T23:22:09.444862,DEBUG: GC completed in 15ms,noise,log-source-10
+2026-01-04T15:04:09.441951,WARNING: Permission denied for jsmith on /var/log/auth.log,suspicious,log-source-3
+2026-01-02T00:16:09.442058,"ALERT: Port scan detected from 192.168.1.100 on ports 3306,5432",suspicious,log-source-7
+2026-01-03T06:12:09.441714,WARNING: Unusual outbound traffic to 192.168.1.100:443,suspicious,log-source-3
+2026-01-04T08:21:09.441629,SECURITY: Unauthorized root access attempt from 10.0.0.50,critical,log-source-4
+2026-01-15T11:06:09.443046,NOTICE: Configuration updated for nginx,routine,log-source-6
+2026-01-11T08:41:09.444996,TRACE: Timer triggered for scheduled task,noise,log-source-3
+2026-01-13T21:01:09.444835,DEBUG: Cache hit for key cache:data,noise,log-source-8
+2026-01-03T23:35:09.443817,INFO: Service redis started successfully on db-master,routine,log-source-2
+2026-01-06T11:40:09.444462,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-5
+2026-01-09T05:49:09.444256,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2026-01-14T04:01:09.444656,DEBUG: Metrics exported to grafana:3000,noise,log-source-8
+2026-01-02T02:20:09.444589,DEBUG: Metrics exported to localhost:8080,noise,log-source-7
+2026-01-10T05:54:09.443129,INFO: New connection established from 203.0.113.42,routine,log-source-10
+2026-01-03T04:00:09.444203,DEBUG: Metrics exported to prometheus:9090,noise,log-source-4
+2026-01-22T14:03:09.442322,NOTICE: Configuration updated for nginx,routine,log-source-10
+2026-01-05T14:11:09.444520,DEBUG: Metrics exported to prometheus:9090,noise,log-source-1
+2025-12-28T05:33:09.441747,ALERT: Multiple failed SSH attempts from 203.0.113.42,suspicious,log-source-3
+2026-01-16T13:24:09.442863,INFO: Backup completed successfully - 100MB archived,routine,log-source-1
+2026-01-20T01:10:09.443257,INFO: Backup completed successfully - 50MB archived,routine,log-source-8
+2026-01-07T19:21:09.444082,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-3
+2025-12-28T22:24:09.442608,INFO: User backup_user logged out,routine,log-source-10
+2025-12-27T00:21:09.444152,TRACE: Connection pool status: 15 active,noise,log-source-8
+2026-01-04T21:11:09.442047,NOTICE: Failed authentication from unusual location Tor Exit Node,suspicious,log-source-2
+2025-12-28T13:47:09.442732,INFO: User admin logged out,routine,log-source-10
+2026-01-10T07:52:09.444740,TRACE: Heartbeat received from workstation-42,noise,log-source-2
+2025-12-31T01:39:09.444990,DEBUG: Cache hit for key user:123,noise,log-source-7
+2026-01-03T22:01:09.442773,INFO: Service redis started successfully on jumpbox,routine,log-source-4
+2026-01-22T02:48:09.444758,TRACE: Telemetry data sent,noise,log-source-6
+2026-01-15T19:29:09.444940,DEBUG: Metrics exported to prometheus:9090,noise,log-source-1
+2025-12-29T14:33:09.442807,INFO: New connection established from 198.51.100.17,routine,log-source-9
+2026-01-20T01:19:09.442638,DEBUG: Session created for user admin,routine,log-source-5
+2026-01-11T00:47:09.444663,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2026-01-21T14:15:09.444064,TRACE: Telemetry data sent,noise,log-source-2
+2026-01-14T22:43:09.445179,DEBUG: Cache hit for key session:abc,noise,log-source-3
+2026-01-07T20:40:09.444374,TRACE: Telemetry data sent,noise,log-source-8
+2026-01-19T11:59:09.444965,TRACE: Heartbeat received from workstation-42,noise,log-source-8
+2026-01-02T10:14:09.445291,DEBUG: Prometheus scrape completed,noise,log-source-10
+2026-01-21T11:00:09.442720,NOTICE: System update applied successfully,routine,log-source-3
+2026-01-21T00:18:09.442076,NOTICE: Unauthorized access attempt to /etc/passwd,suspicious,log-source-4
+2026-01-20T11:57:09.445255,DEBUG: Health check endpoint called - status OK,noise,log-source-6
+2026-01-11T22:07:09.443297,INFO: New connection established from 10.0.0.50,routine,log-source-10
+2026-01-19T03:44:09.443001,INFO: Service elasticsearch started successfully on jumpbox,routine,log-source-10
+2025-12-29T16:03:09.443635,INFO: Service redis started successfully on db-master,routine,log-source-7
+2026-01-02T11:26:09.443707,NOTICE: System update applied successfully,routine,log-source-5
+2026-01-12T11:34:09.441616,THREAT: Cobalt Strike beacon identified on app-node-03,critical,log-source-8
+2026-01-05T03:12:09.442967,NOTICE: Configuration updated for redis,routine,log-source-7
+2026-01-16T11:45:09.441638,ALERT: SQL injection attempt detected in request from 203.0.113.42,critical,log-source-4
+2026-01-06T19:32:09.441943,NOTICE: Unauthorized access attempt to admin_panel,suspicious,log-source-3
+2025-12-28T22:51:09.444341,DEBUG: Health check endpoint called - status OK,noise,log-source-10
+2026-01-03T15:39:09.443466,INFO: Service kafka started successfully on workstation-42,routine,log-source-5
+2025-12-31T11:54:09.442555,NOTICE: Configuration updated for redis,routine,log-source-6
+2026-01-10T17:43:09.444260,TRACE: Connection pool status: 15 active,noise,log-source-1
+2026-01-25T14:54:09.443907,DEBUG: Prometheus scrape completed,noise,log-source-5
+2026-01-10T06:17:09.444145,TRACE: Connection pool status: 15 active,noise,log-source-8
+2025-12-28T23:17:09.444093,DEBUG: GC completed in 5ms,noise,log-source-4
+2025-12-30T13:49:09.443428,INFO: User root logged in successfully from 172.16.0.25,routine,log-source-10
+2025-12-30T09:46:09.444513,DEBUG: Health check endpoint called - status OK,noise,log-source-8
+2026-01-09T18:08:09.442372,NOTICE: System update applied successfully,routine,log-source-4
+2025-12-27T19:04:09.443561,DEBUG: Session created for user backup_user,routine,log-source-6
+2026-01-09T09:46:09.445019,DEBUG: Cache hit for key cache:data,noise,log-source-7
+2025-12-31T20:09:09.442892,INFO: User backup_user logged in successfully from 10.0.0.50,routine,log-source-4
+2026-01-14T03:45:09.442800,INFO: New connection established from 198.51.100.17,routine,log-source-6
+2026-01-22T03:05:09.444061,TRACE: Connection pool status: 10 active,noise,log-source-2
+2025-12-30T19:47:09.443834,NOTICE: System update applied successfully,routine,log-source-1
+2026-01-03T07:42:09.442810,NOTICE: Configuration updated for kafka,routine,log-source-1
+2026-01-06T07:06:09.444075,DEBUG: GC completed in 50ms,noise,log-source-6
+2026-01-09T19:01:09.443541,NOTICE: Configuration updated for nginx,routine,log-source-4
+2026-01-10T12:46:09.444578,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-10
+2026-01-21T17:27:09.441820,NOTICE: Failed authentication from unusual location Russia,suspicious,log-source-6
+2025-12-28T10:32:09.442149,WARNING: Unusual outbound traffic to 192.168.1.100:3306,suspicious,log-source-3
+2026-01-01T00:09:09.445268,TRACE: Telemetry data sent,noise,log-source-8
+2026-01-15T11:16:09.444582,TRACE: Connection pool status: 5 active,noise,log-source-10
+2025-12-27T06:41:09.444913,TRACE: Heartbeat received from web-server-01,noise,log-source-3
+2026-01-07T08:15:09.442593,NOTICE: Password changed for user admin,routine,log-source-6
+2026-01-09T11:18:09.443519,INFO: Service mysql started successfully on jumpbox,routine,log-source-9
+2026-01-20T08:18:09.445155,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-2
+2026-01-07T10:19:09.441723,WARNING: Unusual network activity from web-server-01 to port 3389,suspicious,log-source-8
+2026-01-25T23:00:09.445078,TRACE: Heartbeat received from db-master,noise,log-source-9
+2026-01-18T10:51:09.441608,SECURITY: Privilege escalation attempt by user svc_account on workstation-42,critical,log-source-10
+2026-01-12T16:20:09.442846,DEBUG: Request processed in 50ms,routine,log-source-9
+2026-01-21T06:07:09.441804,WARNING: Permission denied for backup_user on /etc/passwd,suspicious,log-source-6
+2026-01-18T21:10:09.441907,NOTICE: Unauthorized access attempt to /etc/passwd,suspicious,log-source-7
+2026-01-06T01:18:09.443821,NOTICE: Configuration updated for kafka,routine,log-source-9
+2026-01-21T13:54:09.445175,DEBUG: Health check endpoint called - status OK,noise,log-source-3
+2026-01-12T15:10:09.445034,TRACE: Heartbeat received from app-node-03,noise,log-source-6
+2026-01-23T00:10:09.444281,DEBUG: Prometheus scrape completed,noise,log-source-4
+2026-01-09T05:50:09.441973,WARNING: Unusual network activity from web-server-01 to port 3389,suspicious,log-source-4
+2026-01-18T07:58:09.441923,NOTICE: Failed authentication from unusual location Russia,suspicious,log-source-6
+2026-01-24T14:32:09.441969,NOTICE: Access denied for jsmith accessing C:\Windows\Temp\malware.dll,suspicious,log-source-3
+2026-01-19T15:05:09.443526,INFO: New connection established from 10.0.0.50,routine,log-source-6
+2026-01-10T18:43:09.443245,INFO: User backup_user logged in successfully from 198.51.100.17,routine,log-source-7
+2026-01-13T01:47:09.442071,NOTICE: Access denied for admin accessing /tmp/payload.exe,suspicious,log-source-1
+2026-01-10T01:46:09.441755,WARNING: Unusual network activity from db-master to port 8080,suspicious,log-source-6
+2026-01-12T04:26:09.445172,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2025-12-30T10:02:09.443722,INFO: Backup completed successfully - 100MB archived,routine,log-source-8
+2026-01-04T19:31:09.445220,DEBUG: Health check endpoint called - status OK,noise,log-source-10
+2026-01-25T16:34:09.443496,INFO: User admin logged in successfully from 10.0.0.50,routine,log-source-10
+2026-01-07T13:19:09.445008,TRACE: Timer triggered for scheduled task,noise,log-source-2
+2025-12-31T15:58:09.443241,INFO: Backup completed successfully - 500MB archived,routine,log-source-9
+2025-12-30T11:53:09.444344,TRACE: Connection pool status: 100 active,noise,log-source-1
+2026-01-03T12:32:09.442236,INFO: User jsmith logged out,routine,log-source-7
+2026-01-18T19:53:09.444906,DEBUG: Prometheus scrape completed,noise,log-source-5
+2026-01-04T20:33:09.443159,NOTICE: Configuration updated for nginx,routine,log-source-3
+2026-01-22T23:16:09.444852,TRACE: Telemetry data sent,noise,log-source-4
+2026-01-19T09:18:09.442512,NOTICE: Password changed for user admin,routine,log-source-6
+2026-01-01T18:27:09.442162,DEBUG: Session created for user jsmith,routine,log-source-4
+2026-01-09T04:13:09.442264,INFO: User admin logged in successfully from 172.16.0.25,routine,log-source-8
+2025-12-31T04:17:09.445134,DEBUG: GC completed in 5ms,noise,log-source-3
+2025-12-26T23:47:09.445064,DEBUG: Cache hit for key user:123,noise,log-source-9
+2026-01-01T05:22:09.444805,TRACE: Telemetry data sent,noise,log-source-7
+2026-01-04T00:47:09.444476,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-6
+2026-01-06T08:50:09.443548,INFO: Service mysql started successfully on workstation-42,routine,log-source-10
+2026-01-22T23:11:09.441799,WARNING: Suspicious PowerShell execution on workstation-42,suspicious,log-source-5
+2026-01-23T11:11:09.442525,NOTICE: System update applied successfully,routine,log-source-4
+2025-12-31T00:50:09.441861,NOTICE: Access denied for backup_user accessing C:\Windows\Temp\malware.dll,suspicious,log-source-4
+2026-01-01T07:46:09.443060,INFO: User svc_account logged out,routine,log-source-3
+2026-01-20T23:39:09.443726,INFO: Service elasticsearch started successfully on jumpbox,routine,log-source-2
+2026-01-09T01:21:09.444817,DEBUG: Cache hit for key cache:data,noise,log-source-8
+2026-01-13T07:05:09.442200,INFO: User admin logged out,routine,log-source-5
+2026-01-23T23:58:09.445165,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2026-01-15T21:43:09.443195,NOTICE: Password changed for user jsmith,routine,log-source-6
+2026-01-16T08:49:09.444888,DEBUG: Prometheus scrape completed,noise,log-source-5
+2026-01-02T01:44:09.442701,NOTICE: Configuration updated for mysql,routine,log-source-3
+2026-01-12T21:39:09.444729,DEBUG: Health check endpoint called - status OK,noise,log-source-3
+2026-01-02T21:49:09.445198,TRACE: Timer triggered for scheduled task,noise,log-source-2
+2026-01-25T02:31:09.442820,DEBUG: Request processed in 250ms,routine,log-source-10
+2026-01-14T16:40:09.444899,TRACE: Keep-alive ping from 203.0.113.42,noise,log-source-5
+2026-01-01T23:21:09.443290,INFO: New connection established from 172.16.0.25,routine,log-source-3
+2026-01-24T07:59:09.442287,INFO: Backup completed successfully - 2048MB archived,routine,log-source-4
+2026-01-25T03:19:09.442183,DEBUG: Session created for user root,routine,log-source-3
+2025-12-29T16:00:09.444646,TRACE: Connection pool status: 10 active,noise,log-source-4
+2026-01-06T20:18:09.442421,INFO: Service kafka started successfully on db-master,routine,log-source-8
+2025-12-30T02:55:09.444131,DEBUG: GC completed in 15ms,noise,log-source-7
+2026-01-15T11:44:09.443032,INFO: New connection established from 203.0.113.42,routine,log-source-5
+2025-12-31T19:31:09.444155,TRACE: Telemetry data sent,noise,log-source-4
+2026-01-08T21:17:09.443903,DEBUG: Health check endpoint called - status OK,noise,log-source-4
+2026-01-09T12:25:09.443932,DEBUG: Cache hit for key user:123,noise,log-source-10
+2026-01-05T09:44:09.443009,INFO: User backup_user logged in successfully from 198.51.100.17,routine,log-source-2
+2026-01-24T14:43:09.444500,TRACE: Connection pool status: 10 active,noise,log-source-4
+2026-01-21T00:52:09.443581,INFO: New connection established from 192.168.1.100,routine,log-source-4
+2026-01-11T08:30:09.442067,WARNING: Suspicious PowerShell execution on db-master,suspicious,log-source-7
+2026-01-24T04:55:09.444334,TRACE: Keep-alive ping from 192.168.1.100,noise,log-source-7
+2026-01-05T21:12:09.444306,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-4
+2026-01-21T00:54:09.442971,INFO: User svc_account logged out,routine,log-source-10
+2026-01-21T00:00:09.443775,NOTICE: Configuration updated for kafka,routine,log-source-5
+2026-01-01T17:56:09.442402,INFO: Backup completed successfully - 50MB archived,routine,log-source-7
+2025-12-27T08:55:09.443357,INFO: User svc_account logged out,routine,log-source-10
+2025-12-28T06:41:09.445091,TRACE: Timer triggered for scheduled task,noise,log-source-2
+2026-01-09T17:40:09.444597,DEBUG: Health check endpoint called - status OK,noise,log-source-7
+2025-12-28T09:10:09.441697,NOTICE: Unauthorized access attempt to /var/log/auth.log,suspicious,log-source-7
+2026-01-02T12:03:09.441646,THREAT: Cobalt Strike beacon identified on web-server-01,critical,log-source-1
+2025-12-29T21:04:09.443692,NOTICE: System update applied successfully,routine,log-source-1
+2025-12-29T12:24:09.445238,DEBUG: Metrics exported to prometheus:9090,noise,log-source-4
+2026-01-14T11:56:09.445016,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-3
+2026-01-10T10:53:09.441764,"ALERT: Port scan detected from 198.51.100.17 on ports 3306,5432",suspicious,log-source-7
+2026-01-22T04:43:09.443846,DEBUG: Request processed in 50ms,routine,log-source-9
+2026-01-18T19:53:09.442960,INFO: Service mysql started successfully on jumpbox,routine,log-source-3
+2026-01-13T09:11:09.444771,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-6
+2026-01-20T10:53:09.444302,TRACE: Telemetry data sent,noise,log-source-4
+2026-01-15T09:52:09.444877,DEBUG: GC completed in 250ms,noise,log-source-10
+2026-01-01T21:36:09.443133,NOTICE: System update applied successfully,routine,log-source-2
+2025-12-27T06:03:09.443938,TRACE: Timer triggered for scheduled task,noise,log-source-7
+2026-01-17T13:39:09.444169,DEBUG: Health check endpoint called - status OK,noise,log-source-10
+2026-01-11T08:06:09.442158,INFO: Backup completed successfully - 2048MB archived,routine,log-source-10
+2026-01-06T11:43:09.441939,WARNING: Unusual outbound traffic to 192.168.1.100:3306,suspicious,log-source-5
+2026-01-22T00:02:09.444736,TRACE: Timer triggered for scheduled task,noise,log-source-10
+2026-01-04T10:46:09.443911,DEBUG: Cache hit for key cache:data,noise,log-source-10
+2026-01-16T00:26:09.443173,NOTICE: Password changed for user jsmith,routine,log-source-8
+2026-01-04T06:10:09.444927,TRACE: Keep-alive ping from 198.51.100.17,noise,log-source-6
+2026-01-25T11:58:09.443365,INFO: Service elasticsearch started successfully on jumpbox,routine,log-source-7
+2026-01-06T20:39:09.441808,NOTICE: Unauthorized access attempt to /var/log/auth.log,suspicious,log-source-7
+2026-01-25T22:56:09.444733,TRACE: Timer triggered for scheduled task,noise,log-source-4
+2026-01-06T01:50:09.442350,DEBUG: Session created for user jsmith,routine,log-source-10
+2026-01-19T22:35:09.442769,INFO: New connection established from 10.0.0.50,routine,log-source-3
+2026-01-04T08:00:09.443469,INFO: User jsmith logged in successfully from 203.0.113.42,routine,log-source-8
+2026-01-03T17:49:09.442642,INFO: Service mysql started successfully on workstation-42,routine,log-source-9
+2026-01-23T03:57:09.444249,TRACE: Heartbeat received from workstation-42,noise,log-source-4
+2026-01-16T18:56:09.442507,DEBUG: Request processed in 250ms,routine,log-source-2
+2026-01-18T05:22:09.442273,NOTICE: System update applied successfully,routine,log-source-2
+2026-01-05T17:25:09.444029,TRACE: Heartbeat received from jumpbox,noise,log-source-5
+2026-01-09T06:01:09.442789,INFO: New connection established from 203.0.113.42,routine,log-source-9
+2026-01-06T08:11:09.443682,INFO: New connection established from 203.0.113.42,routine,log-source-9
+2026-01-17T20:34:09.445261,DEBUG: Metrics exported to prometheus:9090,noise,log-source-10
+2026-01-04T13:57:09.442888,INFO: User svc_account logged out,routine,log-source-3
+2025-12-29T18:05:09.444881,DEBUG: Health check endpoint called - status OK,noise,log-source-2
+2026-01-01T15:24:09.441989,"ALERT: Port scan detected from 203.0.113.42 on ports 80,443,8080",suspicious,log-source-7
+2026-01-09T03:10:09.441776,WARNING: Suspicious PowerShell execution on workstation-42,suspicious,log-source-10
+2026-01-24T07:00:09.442017,ALERT: Port scan detected from 198.51.100.17 on ports 1-1000,suspicious,log-source-4
+2026-01-23T19:01:09.443810,INFO: Service mysql started successfully on workstation-42,routine,log-source-1
+2026-01-11T09:00:09.444172,DEBUG: GC completed in 5ms,noise,log-source-7
+2025-12-30T18:35:09.444441,TRACE: Heartbeat received from workstation-42,noise,log-source-9
+2026-01-10T05:38:09.442635,INFO: User root logged in successfully from 172.16.0.25,routine,log-source-1
+2025-12-30T22:17:09.443424,DEBUG: Request processed in 250ms,routine,log-source-5
+2026-01-04T06:55:09.443166,NOTICE: System update applied successfully,routine,log-source-8
+2026-01-14T07:08:09.442743,DEBUG: Request processed in 100ms,routine,log-source-3
+2025-12-29T06:52:09.443315,INFO: New connection established from 198.51.100.17,routine,log-source-9
+2026-01-25T00:16:09.443107,INFO: User jsmith logged in successfully from 192.168.1.100,routine,log-source-10
+2026-01-04T01:02:09.442504,NOTICE: System update applied successfully,routine,log-source-9
+2025-12-31T15:02:09.444411,DEBUG: Health check endpoint called - status OK,noise,log-source-9
+2026-01-14T16:22:09.445227,TRACE: Connection pool status: 15 active,noise,log-source-10
+2026-01-12T06:39:09.443533,INFO: New connection established from 203.0.113.42,routine,log-source-7
+2026-01-01T23:10:09.441954,NOTICE: Unauthorized access attempt to /etc/passwd,suspicious,log-source-8
+2026-01-14T08:50:09.444361,TRACE: Timer triggered for scheduled task,noise,log-source-8
+2026-01-04T19:30:09.442953,INFO: New connection established from 203.0.113.42,routine,log-source-4
+2026-01-06T01:11:09.442494,DEBUG: Request processed in 15ms,routine,log-source-9
+2026-01-21T04:07:09.442949,NOTICE: Password changed for user admin,routine,log-source-8
+2026-01-13T19:09:09.441849,WARNING: Failed login attempt for user root from 203.0.113.42,suspicious,log-source-9
+2025-12-27T19:51:09.444398,TRACE: Connection pool status: 15 active,noise,log-source-7
+2025-12-27T17:51:09.442942,DEBUG: Session created for user admin,routine,log-source-8
+2026-01-16T04:26:09.443578,DEBUG: Session created for user svc_account,routine,log-source-10
+2026-01-23T02:44:09.444649,TRACE: Timer triggered for scheduled task,noise,log-source-6
+2026-01-12T20:18:09.442838,INFO: New connection established from 172.16.0.25,routine,log-source-6
+2026-01-21T17:45:09.443260,INFO: Backup completed successfully - 50MB archived,routine,log-source-5
+2025-12-31T06:18:09.443415,INFO: New connection established from 203.0.113.42,routine,log-source-4
+2026-01-24T10:04:09.444458,TRACE: Heartbeat received from db-master,noise,log-source-2
+2025-12-31T00:40:09.443447,DEBUG: Session created for user backup_user,routine,log-source-2
+2025-12-27T18:11:09.445195,TRACE: Heartbeat received from db-master,noise,log-source-10
+2026-01-08T22:36:09.445245,DEBUG: GC completed in 50ms,noise,log-source-4
+2025-12-27T01:05:09.443222,INFO: User jsmith logged in successfully from 192.168.1.100,routine,log-source-9
+2026-01-05T16:11:09.444322,TRACE: Connection pool status: 5 active,noise,log-source-10
+2026-01-20T23:04:09.442482,INFO: Service mysql started successfully on web-server-01,routine,log-source-9
+2026-01-21T14:35:09.441915,NOTICE: Access denied for admin accessing /usr/bin/suspicious,suspicious,log-source-1
+2026-01-25T11:40:09.443397,INFO: User svc_account logged in successfully from 192.168.1.100,routine,log-source-3
+2026-01-14T21:38:09.444955,TRACE: Heartbeat received from workstation-42,noise,log-source-3
+2025-12-28T00:12:09.443601,INFO: Backup completed successfully - 2048MB archived,routine,log-source-2
+2025-12-31T05:44:09.443067,DEBUG: Session created for user admin,routine,log-source-2
+2026-01-02T15:49:09.442228,INFO: Service kafka started successfully on web-server-01,routine,log-source-1
+2025-12-30T17:35:09.444026,DEBUG: Health check endpoint called - status OK,noise,log-source-5
+2026-01-01T15:47:09.444185,DEBUG: Metrics exported to grafana:3000,noise,log-source-6
+2026-01-08T13:02:09.443803,INFO: New connection established from 198.51.100.17,routine,log-source-2
+2026-01-24T14:49:09.442901,NOTICE: Configuration updated for redis,routine,log-source-2
+2026-01-09T11:13:09.443293,NOTICE: Configuration updated for elasticsearch,routine,log-source-8
+2026-01-21T00:42:09.444909,DEBUG: GC completed in 50ms,noise,log-source-8
+2026-01-19T09:17:09.442122,NOTICE: Unauthorized access attempt to admin_panel,suspicious,log-source-8
+2026-01-09T15:57:09.442753,DEBUG: Session created for user root,routine,log-source-9
+2026-01-08T15:46:09.445067,DEBUG: Health check endpoint called - status OK,noise,log-source-8
+2026-01-09T05:44:09.444071,TRACE: Heartbeat received from app-node-03,noise,log-source-9
+2026-01-16T11:31:09.444614,TRACE: Connection pool status: 10 active,noise,log-source-7
+2026-01-10T09:47:09.441684,NOTICE: Failed authentication from unusual location Unknown VPN,suspicious,log-source-6
+2026-01-06T04:52:09.445248,TRACE: Telemetry data sent,noise,log-source-2
+2026-01-18T16:49:09.443152,INFO: Service mysql started successfully on web-server-01,routine,log-source-7
+2026-01-05T16:20:09.443021,NOTICE: Configuration updated for kafka,routine,log-source-10
+2025-12-27T01:17:09.442660,DEBUG: Session created for user root,routine,log-source-5
+2026-01-24T15:42:09.443700,INFO: User jsmith logged in successfully from 10.0.0.50,routine,log-source-3
+2025-12-28T07:00:09.444292,TRACE: Keep-alive ping from 10.0.0.50,noise,log-source-2
+2026-01-22T11:33:09.441812,NOTICE: Access denied for svc_account accessing C:\Windows\Temp\malware.dll,suspicious,log-source-1
+2025-12-29T06:51:09.445074,TRACE: Heartbeat received from db-master,noise,log-source-4
+2026-01-21T17:21:09.445202,TRACE: Heartbeat received from app-node-03,noise,log-source-6
+2026-01-06T11:51:09.444565,TRACE: Heartbeat received from workstation-42,noise,log-source-8
+2026-01-07T10:37:09.442080,WARNING: Unusual outbound traffic to 172.16.0.25:3389,suspicious,log-source-10
+2026-01-04T12:25:09.441727,WARNING: Failed login attempt for user backup_user from 203.0.113.42,suspicious,log-source-9
+2026-01-16T12:23:09.442885,INFO: User root logged in successfully from 172.16.0.25,routine,log-source-10
+2025-12-28T06:16:09.441665,CRITICAL: Brute force attack detected from 172.16.0.25 - 10 failed attempts,critical,log-source-10
+2026-01-17T15:12:09.443746,NOTICE: Configuration updated for mysql,routine,log-source-6
+2026-01-16T21:14:09.443177,NOTICE: Password changed for user svc_account,routine,log-source-2
+2026-01-23T17:15:09.442497,INFO: User backup_user logged out,routine,log-source-5
+2026-01-19T12:58:09.442084,NOTICE: Access denied for jsmith accessing /usr/bin/suspicious,suspicious,log-source-5
+2026-01-19T07:13:09.443484,INFO: User root logged out,routine,log-source-8
+2026-01-21T01:48:09.443279,DEBUG: Request processed in 100ms,routine,log-source-8
+2026-01-16T21:49:09.441884,ALERT: Multiple failed SSH attempts from 10.0.0.50,suspicious,log-source-3
+2026-01-14T06:17:09.443799,INFO: User svc_account logged out,routine,log-source-3
+2026-01-08T07:01:09.444531,DEBUG: Prometheus scrape completed,noise,log-source-8
+2026-01-10T05:11:09.444107,TRACE: Heartbeat received from app-node-03,noise,log-source-10
+2026-01-02T16:48:09.442220,INFO: User backup_user logged out,routine,log-source-3
+2025-12-27T19:29:09.444100,TRACE: Keep-alive ping from 172.16.0.25,noise,log-source-4
+2025-12-27T14:14:09.443431,NOTICE: Configuration updated for mysql,routine,log-source-4
+2026-01-24T02:21:09.443761,INFO: User svc_account logged out,routine,log-source-10
+2026-01-18T04:58:09.444231,DEBUG: Cache hit for key session:abc,noise,log-source-3
+2026-01-03T00:04:09.443380,INFO: User jsmith logged out,routine,log-source-7
+2026-01-17T04:42:09.442548,NOTICE: Configuration updated for redis,routine,log-source-2
+2026-01-17T20:50:09.443049,INFO: New connection established from 198.51.100.17,routine,log-source-5
+2026-01-14T19:55:09.442725,INFO: Service nginx started successfully on workstation-42,routine,log-source-9
+2026-01-22T01:37:09.442580,NOTICE: Password changed for user admin,routine,log-source-6
+2026-01-02T04:34:09.442468,NOTICE: System update applied successfully,routine,log-source-6
+2025-12-27T08:20:09.444479,TRACE: Telemetry data sent,noise,log-source-1
+2026-01-07T23:28:09.444355,TRACE: Heartbeat received from db-master,noise,log-source-4
+2026-01-04T05:57:09.441732,ALERT: Multiple failed SSH attempts from 10.0.0.50,suspicious,log-source-9
+2026-01-11T03:24:09.442145,ALERT: Multiple failed SSH attempts from 203.0.113.42,suspicious,log-source-7
+2026-01-24T16:11:09.442179,NOTICE: Password changed for user admin,routine,log-source-2
+2026-01-04T02:39:09.441965,WARNING: Suspicious PowerShell execution on workstation-42,suspicious,log-source-9
+2026-01-21T15:03:09.444287,DEBUG: Prometheus scrape completed,noise,log-source-2

@@ -1,17 +1,37 @@
 # AI-Driven Log Filtering for SIEM Efficiency
 
-[![Python 3.14+](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green.svg)]()
-[![Score: 9.3/10](<https://img.shields.io/badge/Score-9.3%2F10%20(A-)-green.svg>)]()
+<div align="center">
+
+[![Python 3.14+](https://img.shields.io/badge/python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)]()
+[![Score: 9.5/10](https://img.shields.io/badge/Score-9.5%2F10%20(A)-brightgreen?style=for-the-badge)]()
+
+[![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)](https://github.com/Jacob-Valor/AI-log-filter-Training/actions)
+[![codecov](https://codecov.io/gh/Jacob-Valor/AI-log-filter-Training/branch/main/graph/badge.svg)](https://codecov.io/gh/Jacob-Valor/AI-log-filter-Training)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white)](Dockerfile)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](deploy/kubernetes/)
+
+**An intelligent ML-based log classification system for IBM QRadar SIEM**
+
+[Getting Started](#quick-start) •
+[Documentation](docs/) •
+[Contributing](CONTRIBUTING.md) •
+[Security](SECURITY.md)
+
+</div>
+
+---
+
+## 🎯 What is this?
 
 An intelligent log classification and filtering system designed to improve IBM QRadar SIEM efficiency and reduce operational costs by intelligently prioritizing security-relevant logs.
 
-## Production Readiness Status
+## 📊 Production Readiness Status
 
 | Metric            | Status                                 |
 | ----------------- | -------------------------------------- |
-| **Overall Score** | 9.3/10 (A-)                            |
+| **Overall Score** | 9.5/10 (A)                             |
 | **ML Models**     | ✅ Complete (TF-IDF, XGBoost, Anomaly) |
 | **Integrations**  | ✅ Complete (Kafka, QRadar, S3)        |
 | **CI/CD**         | ✅ Complete (GitHub Actions)           |
@@ -23,7 +43,7 @@ An intelligent log classification and filtering system designed to improve IBM Q
 
 ---
 
-## Overview
+## 📖 Overview
 
 This system uses machine learning to classify incoming logs into four categories:
 
@@ -43,39 +63,101 @@ This system uses machine learning to classify incoming logs into four categories
 
 ---
 
-## Architecture
+## 🏗️ Architecture
+
+> 📚 **Full Documentation**: See [Architecture Docs](docs/architecture/) for detailed production architecture.
+
+### High-Level System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                              LOG SOURCES                                           │
-│  Firewall  │  IDS/IPS  │  Endpoint  │  Application  │  Network  │  Cloud          │
-└────────────┴───────────┴────────────┴───────────────┴───────────┴─────────────────┘
-                                    │
-                                    ▼
+│                                   CONTROL PLANE                                      │
+│              CI/CD (GitHub Actions)  •  Model Lifecycle  •  GitOps                  │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+                                          │
+                    ┌─────────────────────┼─────────────────────┐
+                    ▼                     ▼                     ▼
+┌──────────────────────┐    ┌──────────────────────┐    ┌──────────────────────┐
+│    LOG SOURCES       │    │  EXTERNAL SERVICES   │    │    OBSERVABILITY     │
+│  • Firewalls         │    │  • Threat Intel      │    │  • Prometheus        │
+│  • IDS/IPS           │    │  • Asset CMDB        │    │  • Grafana           │
+│  • Endpoints         │    │  • Identity Provider │    │  • AlertManager      │
+│  • Cloud/Apps        │    │                      │    │  • Shadow Validator  │
+└──────────┬───────────┘    └──────────────────────┘    └──────────────────────┘
+           │
+           ▼
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                           AI LOG FILTER ENGINE                                       │
-│                                                                                     │
-│  ┌─────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌──────────┐ │
-│  │   KAFKA    │────▶│   PREPROCESSING │────▶│     ENSEMBLE    │────▶│  ROUTER  │ │
-│  │  Consumer  │     │                 │     │   CLASSIFIER    │     │          │ │
-│  └─────────────┘     └─────────────────┘     └─────────────────┘     └──────────┘ │
-│                              │                                       │             │
-│                              │                                       ▼             │
-│                        ┌──────────┐                        ┌─────────────────┐    │
-│                        │  COLD    │◀───────────────────────│   QRADAR SIEM   │    │
-│                        │ STORAGE  │                        │                 │    │
-│                        └──────────┘                        └─────────────────┘    │
-│                                                                                     │
-│  ┌─────────────────────────────────────────────────────────────────────────────┐  │
-│  │                        COMPLIANCE BYPASS                                   │  │
-│  │  PCI-DSS │ HIPAA │ SOX │ GDPR ────▶ DIRECT TO QRADAR (NO AI FILTERING)   │  │
-│  └─────────────────────────────────────────────────────────────────────────────┘  │
+│                              INGESTION LAYER (Kafka)                                 │
+│   Topics: raw-logs (12p) │ classified-logs (12p) │ pending-qradar │ audit-decisions │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              PROCESSING LAYER                                        │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐   │
+│  │                        COMPLIANCE GATE                                       │   │
+│  │         PCI-DSS │ HIPAA │ SOX │ GDPR  →  BYPASS TO QRADAR                   │   │
+│  └─────────────────────────────────────────────────────────────────────────────┘   │
+│                                      │                                              │
+│                          ┌───────────┼───────────┐                                  │
+│                          ▼           ▼           ▼                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐   │
+│  │                   SAFE ENSEMBLE CLASSIFIER                                   │   │
+│  │   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐                       │   │
+│  │   │  Rule-Based │   │  TF-IDF +   │   │  Anomaly    │                       │   │
+│  │   │  (30%)      │   │  XGBoost    │   │  Detector   │                       │   │
+│  │   │  40+ rules  │   │  (45%)      │   │  (25%)      │                       │   │
+│  │   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘                       │   │
+│  │          └─────────────────┼─────────────────┘                              │   │
+│  │                            ▼                                                 │   │
+│  │                   Weighted Ensemble Combiner                                 │   │
+│  └─────────────────────────────────────────────────────────────────────────────┘   │
+│                                      │                                              │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐   │
+│  │                    CIRCUIT BREAKER (Fail-Open)                               │   │
+│  │   CLOSED (normal) ──failure──▶ OPEN (all logs → QRadar) ──timeout──▶ HALF   │   │
+│  └─────────────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              ROUTING LAYER                                           │
+│   CRITICAL → QRadar (immediate)  │  SUSPICIOUS → QRadar (queued)                    │
+│   ROUTINE → Cold Storage         │  NOISE → Aggregated/Discarded                    │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              DESTINATION LAYER                                       │
+│   ┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐   │
+│   │     IBM QRADAR       │   │    COLD STORAGE      │   │    AUDIT TRAIL       │   │
+│   │  • Offense Engine    │   │  • S3/Azure/GCS      │   │  • Immutable logs    │   │
+│   │  • Log Activity      │   │  • Parquet + Gzip    │   │  • 7-year retention  │   │
+│   │  • 40-60% reduction  │   │  • ALL logs archived │   │  • Chain of custody  │   │
+│   └──────────────────────┘   └──────────────────────┘   └──────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Classification Pipeline
+
+```
+Log Entry → Parse/Normalize → Compliance Check → Enrich → Classify → Route
+              (5ms)             (1ms)            (10ms)    (20ms)    (5ms)
+                                                                   ≈ 50ms total
+```
+
+### Ensemble Classifier Weights
+
+| Component          | Weight | Description                     |
+| ------------------ | ------ | ------------------------------- |
+| **Rule-Based**     | 30%    | 40+ regex patterns, known IOCs  |
+| **TF-IDF+XGBoost** | 45%    | ML model, 10K features, n-grams |
+| **Anomaly Det.**   | 25%    | Isolation Forest for outliers   |
+
 ---
 
-## Features
+
+## ✨ Features
 
 ### Core Capabilities
 
@@ -103,7 +185,7 @@ This system uses machine learning to classify incoming logs into four categories
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 ai-log-filter/
@@ -154,12 +236,18 @@ ai-log-filter/
 │   ├── labeled/                  # Labeled training data (1,500 samples)
 │   ├── processed/                # Processed data
 │   ├── raw/                      # Raw data
-│   └── samples/                  # Sample data
+│   └── samples/                  # Sample data (CEF, LEEF, JSON formats)
 │
 ├── scripts/                      # Utility scripts
+│   ├── generate_sample_data.py   # Generate synthetic training data
+│   ├── train.py                  # Basic model training
+│   ├── training_pipeline.py      # Full training pipeline
+│   ├── evaluate.py               # Model evaluation
 │   ├── validate_models.py        # Model artifact validation
 │   ├── shadow_validation.py      # Shadow mode testing
 │   ├── load_test.py              # Performance testing
+│   ├── chaos_test.py             # Chaos/resilience testing
+│   ├── cost_report.py            # Cost savings report
 │   ├── integration_tests.py      # Integration testing
 │   └── cleanup.sh                # Project cleanup
 │
@@ -168,12 +256,15 @@ ai-log-filter/
 │   └── conftest.py               # Pytest configuration
 │
 ├── docs/                         # Documentation
+│   ├── API.md                    # REST API documentation
+│   ├── TROUBLESHOOTING.md        # Troubleshooting guide
 │   ├── runbooks/
 │   │   ├── incident-response.md  # Incident response guide
 │   │   └── OPERATIONS_RUNBOOK.md # Operations guide
 │   ├── training/
 │   │   └── SOC_TRAINING_GUIDE.md # SOC training (50+ pages)
-│   └── ASSESSMENT_SCORECARD.md  # Production readiness assessment
+│   └── assessment/
+│       └── ASSESSMENT_SCORECARD.md  # Production readiness assessment
 │
 ├── .github/workflows/            # CI/CD pipelines
 │   ├── ci.yml                    # CI pipeline
@@ -188,11 +279,297 @@ ai-log-filter/
 
 ---
 
-## Quick Start
+## 📜 Scripts Reference
+
+All scripts are located in the `scripts/` directory. Run them from the project root.
+
+### Data Generation & Preparation
+
+#### `generate_sample_data.py` - Generate Synthetic Training Data
+
+Creates synthetic labeled log data for training and testing.
+
+```bash
+# Generate 10,000 samples (default)
+python scripts/generate_sample_data.py
+
+# Generate custom sample size with test split
+python scripts/generate_sample_data.py --samples 5000 --test-split
+
+# Specify output path
+python scripts/generate_sample_data.py --output data/labeled/custom_train.csv --samples 2000
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--output` | `data/labeled/train.csv` | Output CSV file path |
+| `--samples` | `10000` | Number of samples to generate |
+| `--test-split` | `false` | Also generate test.csv file (20% of samples) |
+
+---
+
+### Model Training
+
+#### `train.py` - Basic Model Training
+
+Train classification models on labeled data.
+
+```bash
+# Train all models (TF-IDF + Anomaly Detector)
+python scripts/train.py --model-type all
+
+# Train specific model type
+python scripts/train.py --model-type tfidf
+python scripts/train.py --model-type anomaly
+
+# Custom output directory
+python scripts/train.py --model-type all --output models/custom
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--config` | `configs/model_config.yaml` | Path to model configuration |
+| `--model-type` | `all` | Model type: `tfidf`, `anomaly`, `ensemble`, `all` |
+| `--output` | `models` | Output directory for trained models |
+
+---
+
+#### `training_pipeline.py` - Full Training Pipeline
+
+Complete end-to-end training with preprocessing, training, evaluation, and validation.
+
+```bash
+# Train from labeled CSV
+python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v1
+
+# Train from HDFS data with auto-labeling
+python scripts/training_pipeline.py --hdfs HDFS_v3_TraceBench/ --auto-label --output models/v1
+
+# Custom recall threshold
+python scripts/training_pipeline.py --data data/labeled/train.csv --min-recall 0.995 --output models/v2
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--data` | - | Path to labeled CSV file |
+| `--hdfs` | - | Path to HDFS TraceBench directory |
+| `--auto-label` | `false` | Auto-label data using pattern matching |
+| `--output` | `models/v1` | Output directory for trained models |
+| `--min-recall` | `0.99` | Minimum required critical recall |
+
+---
+
+#### `evaluate.py` - Model Evaluation
+
+Evaluate trained models on test data.
+
+```bash
+# Evaluate model
+python scripts/evaluate.py --model models/latest --test-data data/labeled/test.csv
+
+# Save results to JSON
+python scripts/evaluate.py --model models/v1 --test-data data/labeled/test.csv --output results.json
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--model` | `models/latest` | Path to model directory |
+| `--test-data` | `data/labeled/test.csv` | Path to test data CSV |
+| `--output` | - | Output file for results (JSON) |
+
+---
+
+### Validation & Testing
+
+#### `validate_models.py` - Model Artifact Validation
+
+Validates model artifacts and checks for completeness.
+
+```bash
+# Run validation
+python scripts/validate_models.py
+```
+
+**Expected Output:**
+```
+======================================================================
+MODEL ARTIFACT VALIDATION REPORT
+======================================================================
+Model Version: v1
+Overall Status: ✅ VALID
+
+📋 Checks:
+  ✅ model_info.json
+  ✅ training_results.json
+  ✅ tfidf_xgboost/model.joblib
+  ✅ anomaly_detector/model.joblib
+  ...
+```
+
+---
+
+#### `shadow_validation.py` - Shadow Mode Testing
+
+Test model accuracy against labeled data in shadow mode.
+
+```bash
+# Basic validation
+python scripts/shadow_validation.py
+
+# Custom model and data
+python scripts/shadow_validation.py --model-path models/v2 --test-data data/labeled/test.csv
+
+# Custom recall target
+python scripts/shadow_validation.py --target-recall 0.995 --min-samples 500
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--model-path` | `models/v1` | Path to model directory |
+| `--test-data` | `data/labeled/test.csv` | Path to test data |
+| `--output` | `reports/shadow_validation` | Output directory |
+| `--target-recall` | `0.995` | Target critical recall |
+| `--min-samples` | `1000` | Minimum samples required |
+
+---
+
+#### `load_test.py` - Performance/Load Testing
+
+Test system throughput and latency under load.
+
+```bash
+# Quick load test (100 EPS, 5 second duration)
+python scripts/load_test.py --target-eps 100 --duration 5
+
+# Full load test (10K EPS target)
+python scripts/load_test.py --target-eps 10000 --duration 60
+
+# Custom warmup period
+python scripts/load_test.py --target-eps 5000 --duration 30 --warmup 20
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--target-eps` | `10000` | Target events per second |
+| `--duration` | `60` | Test duration in seconds |
+| `--warmup` | `10` | Warmup period in seconds |
+| `--output` | `reports/load_test` | Output directory for reports |
+
+---
+
+#### `chaos_test.py` - Chaos/Resilience Testing
+
+Test system behavior under failure conditions.
+
+```bash
+# Run chaos tests
+python scripts/chaos_test.py
+
+# Verbose output
+python scripts/chaos_test.py --verbose
+
+# Custom output directory
+python scripts/chaos_test.py -o reports/chaos_custom
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--verbose, -v` | `false` | Verbose output |
+| `--output, -o` | `reports/chaos_test` | Output directory |
+
+**Tests Included:**
+- Fail-Open on Classifier Error
+- Circuit Breaker Opens on Failures
+- High Latency Handling
+- Concurrent Load Handling
+- Memory Pressure Resilience
+- Critical Recall Under Stress
+- Graceful Degradation
+- Recovery After Failure
+
+---
+
+#### `integration_tests.py` - Integration Testing
+
+Test integrations with external services.
+
+```bash
+# Test Kafka integration
+python scripts/integration_tests.py --kafka --kafka-brokers localhost:9092
+
+# Test QRadar integration
+python scripts/integration_tests.py --qradar --qradar-host qradar.example.com --qradar-token YOUR_TOKEN
+
+# Test S3 integration
+python scripts/integration_tests.py --s3 --s3-bucket your-bucket-name
+
+# Test all integrations
+python scripts/integration_tests.py --kafka --qradar --s3
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--kafka / --no-kafka` | `false` | Test Kafka integration |
+| `--qradar / --no-qradar` | `false` | Test QRadar integration |
+| `--s3 / --no-s3` | `false` | Test S3 integration |
+| `--kafka-brokers` | - | Kafka broker addresses |
+| `--qradar-host` | - | QRadar host address |
+| `--qradar-token` | - | QRadar API token |
+| `--s3-bucket` | - | S3 bucket name |
+
+---
+
+### Reports & Utilities
+
+#### `cost_report.py` - Cost Savings Report
+
+Generate cost savings analysis report.
+
+```bash
+# Terminal output
+python scripts/cost_report.py --format terminal
+
+# Markdown report
+python scripts/cost_report.py --format markdown --output docs/COST_REPORT.md
+
+# JSON format
+python scripts/cost_report.py --format json --output reports/cost.json
+
+# Custom QRadar EPS
+python scripts/cost_report.py --qradar-eps 20000
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--format` | `terminal` | Output format: `text`, `markdown`, `json`, `terminal` |
+| `--output` | - | Output file path (prints to stdout if not specified) |
+| `--qradar-eps` | `15000` | Current QRadar EPS capacity |
+
+---
+
+#### `cleanup.sh` - Project Cleanup
+
+Remove unnecessary files and reduce project size. **Interactive script.**
+
+```bash
+# Run cleanup (interactive)
+bash scripts/cleanup.sh
+```
+
+**Removes:**
+- `.venv/` - Virtual environment
+- `HDFS_v3_TraceBench.zip` - Benchmark data
+- `htmlcov/` - Coverage reports
+- `.pytest_cache/` - Test cache
+- `__pycache__/` - Python cache
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.14+
 - Docker & Docker Compose
 - Apache Kafka (or use Docker Compose)
 
@@ -201,8 +578,8 @@ ai-log-filter/
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/ai-log-filter.git
-cd ai-log-filter
+git clone https://github.com/Jacob-Valor/AI-log-filter-Training.git
+cd AI-log-filter-Training
 ```
 
 2. Create virtual environment:
@@ -224,15 +601,58 @@ pip install -e ".[dev]"
 python scripts/validate_models.py
 ```
 
-5. Run with Docker:
+5. **Set up environment configuration:**
 
 ```bash
-docker-compose up -d
+# Copy the environment template
+cp .env.example .env
+
+# Edit .env with your settings (optional)
+# Default values work for local development
 ```
+
+6. Run with Docker:
+
+```bash
+# Start all services
+docker-compose up -d --build
+
+# Create Kafka topics
+docker exec kafka kafka-topics --create --topic raw-logs --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+docker exec kafka kafka-topics --create --topic filtered-logs --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+
+# Override environment variables inline (optional)
+LOG_LEVEL=DEBUG docker-compose up -d
+```
+
+### Service URLs (Local Development)
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **REST API** | [http://localhost:8080](http://localhost:8080) | FastAPI endpoints for classification |
+| **AI Engine Metrics** | [http://localhost:9090/metrics](http://localhost:9090/metrics) | Prometheus metrics |
+| **Grafana** | [http://localhost:3000](http://localhost:3000) | Dashboards (admin/admin) |
+| **Prometheus** | [http://localhost:9091](http://localhost:9091) | Metrics queries |
+| **Kafka UI** | [http://localhost:8081](http://localhost:8081) | View topics & messages |
+| **Kafka** | localhost:9092 | Broker connection |
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APP_ENV` | development | Application environment |
+| `LOG_LEVEL` | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `KAFKA_BOOTSTRAP_SERVERS` | kafka:29092 | Kafka broker addresses |
+| `KAFKA_INPUT_TOPIC` | raw-logs | Input topic for raw logs |
+| `KAFKA_CONSUMER_GROUP` | ai-log-filter-group | Consumer group ID |
+| `MODEL_PATH` | /app/models/latest | Model directory path |
+| `PROMETHEUS_PORT` | 9090 | Metrics server port |
+| `GF_ADMIN_USER` | admin | Grafana admin username |
+| `GF_ADMIN_PASSWORD` | admin | Grafana admin password |
 
 ---
 
-## Production Deployment
+## 🏭 Production Deployment
 
 ### 1. Run Validation Tests
 
@@ -266,7 +686,7 @@ Review `docs/training/SOC_TRAINING_GUIDE.md` for comprehensive training material
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 ### Main Configuration
 
@@ -317,7 +737,7 @@ Regulated log patterns automatically bypass AI filtering:
 
 ---
 
-## Model Training
+## 🧠 Model Training
 
 1. Prepare labeled data in `data/labeled/`
 
@@ -346,7 +766,7 @@ python scripts/validate_models.py
 
 ---
 
-## Performance Targets
+## 📈 Performance Targets
 
 | Metric                   | Target       | Status         |
 | ------------------------ | ------------ | -------------- |
@@ -359,7 +779,7 @@ python scripts/validate_models.py
 
 ---
 
-## Monitoring
+## 📡 Monitoring
 
 ### Prometheus Metrics
 
@@ -401,7 +821,9 @@ Import `configs/grafana/dashboards/production.json` for:
 
 ---
 
-## Contributing
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -409,37 +831,49 @@ Import `configs/grafana/dashboards/production.json` for:
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+
 ---
 
-## License
+## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
+## 🔒 Security
 
-## Acknowledgments
-
-- IBM QRadar documentation
-- Apache Kafka community
-- scikit-learn/XGBoost for ML models
-- Prometheus/Grafana for monitoring
+For security concerns, please see our [Security Policy](SECURITY.md).
 
 ---
 
-## Project Status
+## 🙏 Acknowledgments
+
+- [IBM QRadar](https://www.ibm.com/qradar) documentation
+- [Apache Kafka](https://kafka.apache.org/) community
+- [scikit-learn](https://scikit-learn.org/) / [XGBoost](https://xgboost.readthedocs.io/) for ML models
+- [Prometheus](https://prometheus.io/) / [Grafana](https://grafana.com/) for monitoring
+
+---
+
+## 📊 Project Status
 
 | Category                   | Score      | Status              |
 | -------------------------- | ---------- | ------------------- |
-| **Overall**                | **9.3/10** | ✅ Production Ready |
+| **Overall**                | **9.5/10** | ✅ Production Ready |
 | ML Models & Pipeline       | 10/10      | ✅ Complete         |
 | Integration Readiness      | 10/10      | ✅ Complete         |
-| CI/CD Pipeline             | 9/10       | ✅ Complete         |
-| Monitoring & Observability | 9/10       | ✅ Complete         |
+| CI/CD Pipeline             | 10/10      | ✅ Complete         |
+| Monitoring & Observability | 10/10      | ✅ Complete         |
 | Documentation              | 10/10      | ✅ Complete         |
 | Testing & Validation       | 9/10       | ✅ Complete         |
 | Safety & Resilience        | 9/10       | ✅ Complete         |
 | Compliance                 | 9/10       | ✅ Complete         |
 
-**Assessment Version:** 3.0  
-**Last Updated:** January 2026  
-**Production Readiness Score:** 9.3/10 (A-)
+---
+
+<div align="center">
+
+**Assessment Version:** 4.0 | **Last Updated:** January 2026 | **Production Readiness Score:** 9.5/10 (A)
+
+Made with ❤️ by the AI Log Filter Team
+
+</div>

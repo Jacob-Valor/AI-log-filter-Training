@@ -10,7 +10,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from confluent_kafka import Consumer, KafkaError
 
@@ -32,10 +32,10 @@ class RawLog:
     partition: int
     offset: int
     timestamp: datetime
-    key: Optional[str] = None
-    headers: Dict[str, str] = field(default_factory=dict)
+    key: str | None = None
+    headers: dict[str, str] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "raw_message": self.raw_message,
             "topic": self.topic,
@@ -43,7 +43,7 @@ class RawLog:
             "offset": self.offset,
             "timestamp": self.timestamp.isoformat(),
             "key": self.key,
-            "headers": self.headers
+            "headers": self.headers,
         }
 
 
@@ -52,14 +52,14 @@ class ClassifiedLog:
     """Represents a classified log with prediction."""
 
     raw_log: RawLog
-    parsed_data: Dict[str, Any]
+    parsed_data: dict[str, Any]
     category: str
     confidence: float
     model_used: str
-    explanation: Optional[Dict[str, Any]] = None
+    explanation: dict[str, Any] | None = None
     processing_time_ms: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "raw_log": self.raw_log.to_dict(),
             "parsed_data": self.parsed_data,
@@ -67,7 +67,7 @@ class ClassifiedLog:
             "confidence": self.confidence,
             "model_used": self.model_used,
             "explanation": self.explanation,
-            "processing_time_ms": self.processing_time_ms
+            "processing_time_ms": self.processing_time_ms,
         }
 
 
@@ -84,11 +84,11 @@ class LogConsumer:
 
     def __init__(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         classifier: BaseClassifier,
         router: LogRouter,
         batch_size: int = 256,
-        max_wait_ms: int = 100
+        max_wait_ms: int = 100,
     ):
         self.config = config
         self.classifier = classifier
@@ -96,10 +96,10 @@ class LogConsumer:
         self.batch_size = batch_size
         self.max_wait_ms = max_wait_ms
 
-        self.consumer: Optional[Consumer] = None
+        self.consumer: Consumer | None = None
         self.parser = LogParser()
         self.running = False
-        self._processing_task: Optional[asyncio.Task] = None
+        self._processing_task: asyncio.Task | None = None
 
         # Kafka configuration
         self.kafka_config = {
@@ -148,7 +148,7 @@ class LogConsumer:
 
     async def _process_loop(self):
         """Main processing loop."""
-        batch: List[RawLog] = []
+        batch: list[RawLog] = []
         last_process_time = time.time()
 
         while self.running:
@@ -204,10 +204,10 @@ class LogConsumer:
             offset=msg.offset(),
             timestamp=datetime.fromtimestamp(msg.timestamp()[1] / 1000),
             key=msg.key().decode("utf-8") if msg.key() else None,
-            headers=headers
+            headers=headers,
         )
 
-    async def _process_batch(self, batch: List[RawLog]):
+    async def _process_batch(self, batch: list[RawLog]):
         """Process a batch of raw logs."""
         if not batch:
             return
@@ -220,14 +220,17 @@ class LogConsumer:
             parsed_logs = [self.parser.parse(log.raw_message) for log in batch]
 
             # Extract messages for classification
-            messages = [p.get("message", log.raw_message) for p, log in zip(parsed_logs, batch)]
+            messages = [
+                p.get("message", log.raw_message)
+                for p, log in zip(parsed_logs, batch, strict=False)
+            ]
 
             # Classify batch
             predictions = await self.classifier.predict_batch(messages)
 
             # Create classified logs
             classified_logs = []
-            for raw_log, parsed, pred in zip(batch, parsed_logs, predictions):
+            for raw_log, parsed, pred in zip(batch, parsed_logs, predictions, strict=False):
                 classified = ClassifiedLog(
                     raw_log=raw_log,
                     parsed_data=parsed,
@@ -235,7 +238,7 @@ class LogConsumer:
                     confidence=pred["confidence"],
                     model_used=pred.get("model", "ensemble"),
                     explanation=pred.get("explanation"),
-                    processing_time_ms=(time.time() - start_time) * 1000 / len(batch)
+                    processing_time_ms=(time.time() - start_time) * 1000 / len(batch),
                 )
                 classified_logs.append(classified)
 
@@ -253,9 +256,7 @@ class LogConsumer:
             for log in classified_logs:
                 METRICS.classification_distribution.labels(category=log.category).inc()
 
-            logger.debug(
-                f"Processed {len(batch)} logs in {processing_time*1000:.2f}ms"
-            )
+            logger.debug(f"Processed {len(batch)} logs in {processing_time * 1000:.2f}ms")
 
         except Exception as e:
             logger.error(f"Error processing batch: {e}", exc_info=True)
@@ -268,26 +269,28 @@ class LogProducer:
     Kafka producer for sending classified logs to output topics.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         from confluent_kafka import Producer
 
         self.config = config
-        self.producer = Producer({
-            "bootstrap.servers": config["bootstrap_servers"],
-            "acks": config.get("producer", {}).get("acks", "all"),
-            "retries": config.get("producer", {}).get("retries", 3),
-            "batch.size": config.get("producer", {}).get("batch_size", 16384),
-            "linger.ms": config.get("producer", {}).get("linger_ms", 10),
-        })
+        self.producer = Producer(
+            {
+                "bootstrap.servers": config["bootstrap_servers"],
+                "acks": config.get("producer", {}).get("acks", "all"),
+                "retries": config.get("producer", {}).get("retries", 3),
+                "batch.size": config.get("producer", {}).get("batch_size", 16384),
+                "linger.ms": config.get("producer", {}).get("linger_ms", 10),
+            }
+        )
 
-    def send(self, topic: str, message: Dict[str, Any], key: Optional[str] = None):
+    def send(self, topic: str, message: dict[str, Any], key: str | None = None):
         """Send message to Kafka topic."""
         try:
             self.producer.produce(
                 topic=topic,
                 key=key.encode("utf-8") if key else None,
                 value=json.dumps(message).encode("utf-8"),
-                callback=self._delivery_callback
+                callback=self._delivery_callback,
             )
             self.producer.poll(0)
         except Exception as e:

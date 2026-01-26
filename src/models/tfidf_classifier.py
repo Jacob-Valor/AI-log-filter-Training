@@ -7,7 +7,7 @@ Good balance between accuracy and speed.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import joblib
 import numpy as np
@@ -27,7 +27,7 @@ class TFIDFClassifier(BaseClassifier):
     for classification. Provides good accuracy with low latency.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         super().__init__("tfidf_xgboost", config)
         self.vectorizer = None
         self.classifier = None
@@ -74,7 +74,7 @@ class TFIDFClassifier(BaseClassifier):
             ngram_range=self.ngram_range,
             min_df=self.min_df,
             max_df=self.max_df,
-            sublinear_tf=True
+            sublinear_tf=True,
         )
 
         self.classifier = XGBClassifier(
@@ -85,7 +85,7 @@ class TFIDFClassifier(BaseClassifier):
             eval_metric="mlogloss",
             use_label_encoder=False,
             n_jobs=-1,
-            random_state=42
+            random_state=42,
         )
 
         self.label_encoder = LabelEncoder()
@@ -107,8 +107,19 @@ class TFIDFClassifier(BaseClassifier):
             r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             "<UUID>",
             text,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
+
+        # Normalize emails
+        text = re.sub(r"[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}", "<EMAIL>", text)
+
+        # Normalize MAC addresses
+        text = re.sub(r"\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b", "<MAC>", text, flags=re.I)
+
+        # Normalize hashes (MD5/SHA1/SHA256)
+        text = re.sub(r"\b[a-f0-9]{32}\b", "<HASH>", text, flags=re.I)
+        text = re.sub(r"\b[a-f0-9]{40}\b", "<HASH>", text, flags=re.I)
+        text = re.sub(r"\b[a-f0-9]{64}\b", "<HASH>", text, flags=re.I)
 
         # Normalize paths
         text = re.sub(r"(/[\w\-./]+)+", "<PATH>", text)
@@ -127,7 +138,7 @@ class TFIDFClassifier(BaseClassifier):
         predictions = await self.predict_batch([text])
         return predictions[0]
 
-    async def predict_batch(self, texts: List[str]) -> List[Prediction]:
+    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
         """Classify a batch of log messages."""
         if not self.is_loaded:
             await self.load()
@@ -143,7 +154,7 @@ class TFIDFClassifier(BaseClassifier):
                     category="routine",
                     confidence=0.5,
                     model=self.name,
-                    explanation={"note": "Model not trained"}
+                    explanation={"note": "Model not trained"},
                 )
                 for _ in texts
             ]
@@ -157,25 +168,27 @@ class TFIDFClassifier(BaseClassifier):
 
         # Create prediction objects
         results = []
-        for i, (pred_idx, prob) in enumerate(zip(predictions, proba)):
+        for _i, (pred_idx, prob) in enumerate(zip(predictions, proba, strict=False)):
             category = self.label_encoder.inverse_transform([pred_idx])[0]
-            confidence = float(np.max(prob))
 
-            probabilities = {
-                cat: float(p)
-                for cat, p in zip(self.label_encoder.classes_, prob)
+            raw_probabilities = {
+                cat: float(p) for cat, p in zip(self.label_encoder.classes_, prob, strict=False)
             }
+            probabilities = {cat: raw_probabilities.get(cat, 0.0) for cat in self.CATEGORIES}
+            confidence = max(probabilities.values()) if probabilities else 0.0
 
-            results.append(Prediction(
-                category=category,
-                confidence=confidence,
-                model=self.name,
-                probabilities=probabilities
-            ))
+            results.append(
+                Prediction(
+                    category=category,
+                    confidence=confidence,
+                    model=self.name,
+                    probabilities=probabilities,
+                )
+            )
 
         return results
 
-    def train(self, texts: List[str], labels: List[str]):
+    def train(self, texts: list[str], labels: list[str]):
         """Train the classifier on labeled data."""
         from sklearn.model_selection import train_test_split
 
@@ -189,10 +202,7 @@ class TFIDFClassifier(BaseClassifier):
 
         # Split for validation
         X_train, X_val, y_train, y_val = train_test_split(
-            processed, encoded_labels,
-            test_size=0.1,
-            random_state=42,
-            stratify=encoded_labels
+            processed, encoded_labels, test_size=0.1, random_state=42, stratify=encoded_labels
         )
 
         # Vectorize
@@ -200,11 +210,7 @@ class TFIDFClassifier(BaseClassifier):
         X_val_vec = self.vectorizer.transform(X_val)
 
         # Train with early stopping
-        self.classifier.fit(
-            X_train_vec, y_train,
-            eval_set=[(X_val_vec, y_val)],
-            verbose=False
-        )
+        self.classifier.fit(X_train_vec, y_train, eval_set=[(X_val_vec, y_val)], verbose=False)
 
         logger.info("Training complete")
 
@@ -217,13 +223,13 @@ class TFIDFClassifier(BaseClassifier):
             "vectorizer": self.vectorizer,
             "classifier": self.classifier,
             "label_encoder": self.label_encoder,
-            "config": self.config
+            "config": self.config,
         }
 
         joblib.dump(artifacts, save_path / "model.joblib")
         logger.info(f"Model saved to {save_path}")
 
-    def get_feature_importance(self) -> Optional[Dict[str, float]]:
+    def get_feature_importance(self) -> dict[str, float] | None:
         """Get feature importance from XGBoost."""
         if not hasattr(self.classifier, "feature_importances_"):
             return None
@@ -234,7 +240,4 @@ class TFIDFClassifier(BaseClassifier):
         # Get top features
         indices = np.argsort(importances)[::-1][:50]
 
-        return {
-            feature_names[i]: float(importances[i])
-            for i in indices
-        }
+        return {feature_names[i]: float(importances[i]) for i in indices}

@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 def load_config(config_path: str) -> dict:
     """Load training configuration."""
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         return yaml.safe_load(f)
 
 
@@ -56,7 +56,7 @@ def load_data(config: dict) -> tuple:
         return (
             (train_df[text_col], train_df[label_col]),
             (val_df[text_col], val_df[label_col]),
-            (test_df[text_col], test_df[label_col])
+            (test_df[text_col], test_df[label_col]),
         )
     except FileNotFoundError as e:
         logger.warning(f"Data file not found: {e}")
@@ -106,22 +106,31 @@ def generate_synthetic_data() -> tuple:
         for _ in range(200):
             template = np.random.choice(templates)
             # Add some variation
-            log = template.replace("<IP>", f"{np.random.randint(1,255)}.{np.random.randint(0,255)}.{np.random.randint(0,255)}.{np.random.randint(1,255)}")
+            log = template.replace(
+                "<IP>",
+                f"{np.random.randint(1, 255)}.{np.random.randint(0, 255)}.{np.random.randint(0, 255)}.{np.random.randint(1, 255)}",
+            )
             data.append({"message": log, "category": category})
 
     df = pd.DataFrame(data)
     df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
     # Split data
-    train_df, temp_df = train_test_split(df, test_size=0.3, stratify=df["category"], random_state=42)
-    val_df, test_df = train_test_split(temp_df, test_size=0.5, stratify=temp_df["category"], random_state=42)
+    train_df, temp_df = train_test_split(
+        df, test_size=0.3, stratify=df["category"], random_state=42
+    )
+    val_df, test_df = train_test_split(
+        temp_df, test_size=0.5, stratify=temp_df["category"], random_state=42
+    )
 
-    logger.info(f"Generated {len(train_df)} training, {len(val_df)} validation, {len(test_df)} test samples")
+    logger.info(
+        f"Generated {len(train_df)} training, {len(val_df)} validation, {len(test_df)} test samples"
+    )
 
     return (
         (train_df["message"], train_df["category"]),
         (val_df["message"], val_df["category"]),
-        (test_df["message"], test_df["category"])
+        (test_df["message"], test_df["category"]),
     )
 
 
@@ -193,7 +202,9 @@ def evaluate_models(classifiers: dict, test_data: tuple):
         print(classification_report(y_test, pred_labels))
 
         # Confusion matrix
-        cm = confusion_matrix(y_test, pred_labels, labels=["critical", "suspicious", "routine", "noise"])
+        cm = confusion_matrix(
+            y_test, pred_labels, labels=["critical", "suspicious", "routine", "noise"]
+        )
         logger.info(f"\nConfusion Matrix:\n{cm}")
 
 
@@ -204,20 +215,17 @@ def main():
         "--config",
         type=str,
         default="configs/model_config.yaml",
-        help="Path to model configuration file"
+        help="Path to model configuration file",
     )
     parser.add_argument(
         "--model-type",
         type=str,
         choices=["tfidf", "anomaly", "ensemble", "all"],
         default="all",
-        help="Model type to train"
+        help="Model type to train",
     )
     parser.add_argument(
-        "--output",
-        type=str,
-        default="models",
-        help="Output directory for trained models"
+        "--output", type=str, default="models", help="Output directory for trained models"
     )
 
     args = parser.parse_args()
@@ -240,6 +248,7 @@ def main():
 
     # Train models
     import asyncio
+
     classifiers = {}
 
     if args.model_type in ["tfidf", "all"]:

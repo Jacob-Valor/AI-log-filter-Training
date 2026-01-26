@@ -67,7 +67,12 @@ TEMPLATES = {
 # Sample values for template substitution
 SAMPLE_VALUES = {
     "malware_type": ["Trojan.Generic", "Ransomware.WannaCry", "Backdoor.Cobalt", "Worm.Conficker"],
-    "path": ["/usr/bin/suspicious", "/tmp/payload.exe", "/home/user/downloads/invoice.pdf", "C:\\Windows\\Temp\\malware.dll"],
+    "path": [
+        "/usr/bin/suspicious",
+        "/tmp/payload.exe",
+        "/home/user/downloads/invoice.pdf",
+        "C:\\Windows\\Temp\\malware.dll",
+    ],
     "ip": ["192.168.1.100", "10.0.0.50", "172.16.0.25", "203.0.113.42", "198.51.100.17"],
     "count": ["5", "10", "15", "50", "100"],
     "user": ["admin", "root", "jsmith", "svc_account", "backup_user"],
@@ -97,19 +102,15 @@ def generate_log(category: str) -> str:
     return template
 
 
-def generate_dataset(
-    output_path: str,
-    total_samples: int = 10000,
-    distribution: dict = None
-):
+def generate_dataset(output_path: str, total_samples: int = 10000, distribution: dict = None):
     """Generate a labeled dataset."""
     if distribution is None:
         # Realistic distribution
         distribution = {
-            "critical": 0.02,    # 2%
+            "critical": 0.02,  # 2%
             "suspicious": 0.12,  # 12%
-            "routine": 0.46,     # 46%
-            "noise": 0.40,       # 40%
+            "routine": 0.46,  # 46%
+            "noise": 0.40,  # 40%
         }
 
     samples = []
@@ -120,14 +121,16 @@ def generate_dataset(
             message = generate_log(category)
             timestamp = datetime.now() - timedelta(
                 hours=random.randint(0, 720),  # Last 30 days
-                minutes=random.randint(0, 59)
+                minutes=random.randint(0, 59),
             )
-            samples.append({
-                "timestamp": timestamp.isoformat(),
-                "message": message,
-                "category": category,
-                "source": f"log-source-{random.randint(1, 10)}"
-            })
+            samples.append(
+                {
+                    "timestamp": timestamp.isoformat(),
+                    "message": message,
+                    "category": category,
+                    "source": f"log-source-{random.randint(1, 10)}",
+                }
+            )
 
     # Shuffle
     random.shuffle(samples)
@@ -145,28 +148,16 @@ def generate_dataset(
     print("Distribution:")
     for category in ["critical", "suspicious", "routine", "noise"]:
         count = sum(1 for s in samples if s["category"] == category)
-        print(f"  {category}: {count} ({count/len(samples)*100:.1f}%)")
+        print(f"  {category}: {count} ({count / len(samples) * 100:.1f}%)")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate sample training data")
     parser.add_argument(
-        "--output",
-        type=str,
-        default="data/labeled/train.csv",
-        help="Output CSV file path"
+        "--output", type=str, default="data/labeled/train.csv", help="Output CSV file path"
     )
-    parser.add_argument(
-        "--samples",
-        type=int,
-        default=10000,
-        help="Number of samples to generate"
-    )
-    parser.add_argument(
-        "--test-split",
-        action="store_true",
-        help="Also generate test.csv file"
-    )
+    parser.add_argument("--samples", type=int, default=10000, help="Number of samples to generate")
+    parser.add_argument("--test-split", action="store_true", help="Also generate test.csv file")
 
     args = parser.parse_args()
 

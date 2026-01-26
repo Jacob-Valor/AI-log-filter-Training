@@ -9,10 +9,11 @@ are forwarded directly to QRadar (fail-safe behavior).
 import asyncio
 import inspect
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, TypeVar
 
 from src.utils.logging import get_logger
 
@@ -46,7 +47,7 @@ class CircuitBreakerStats:
     state: CircuitState = CircuitState.CLOSED
     failure_count: int = 0
     success_count: int = 0
-    last_failure_time: Optional[float] = None
+    last_failure_time: float | None = None
     last_state_change: float = field(default_factory=time.time)
     total_failures: int = 0
     total_successes: int = 0
@@ -80,9 +81,9 @@ class CircuitBreaker:
     def __init__(
         self,
         name: str,
-        fallback: Optional[Callable] = None,
-        config: Optional[CircuitBreakerConfig] = None,
-        on_state_change: Optional[Callable[[CircuitState, CircuitState], None]] = None,
+        fallback: Callable | None = None,
+        config: CircuitBreakerConfig | None = None,
+        on_state_change: Callable[[CircuitState, CircuitState], None] | None = None,
     ):
         self.name = name
         self.fallback = fallback
@@ -298,7 +299,7 @@ class CircuitOpenError(Exception):
 _circuit_breakers: dict[str, CircuitBreaker] = {}
 
 
-def get_circuit_breaker(name: str) -> Optional[CircuitBreaker]:
+def get_circuit_breaker(name: str) -> CircuitBreaker | None:
     """Get circuit breaker by name."""
     return _circuit_breakers.get(name)
 

@@ -6,14 +6,14 @@ Handles loading and validation of configuration from files and environment.
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
-def load_config(config_path: str = "configs/config.yaml") -> Dict[str, Any]:
+def load_config(config_path: str = "configs/config.yaml") -> dict[str, Any]:
     """
     Load configuration from YAML file with environment variable substitution.
 
@@ -28,7 +28,7 @@ def load_config(config_path: str = "configs/config.yaml") -> Dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
-    with open(path, "r") as f:
+    with open(path) as f:
         config = yaml.safe_load(f)
 
     # Substitute environment variables
@@ -113,7 +113,7 @@ class Settings(BaseSettings):
     # QRadar
     qradar_host: str = Field(default="qradar.example.com")
     qradar_port: int = Field(default=443)
-    qradar_token: Optional[str] = Field(default=None)
+    qradar_token: str | None = Field(default=None)
 
     # Model
     model_path: str = Field(default="models/ensemble_latest")

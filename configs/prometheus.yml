@@ -1,0 +1,19 @@
+# Prometheus Configuration for AI Log Filter
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'ai-engine'
+    static_configs:
+      - targets: ['ai-engine:9090']
+    metrics_path: /metrics
+
+  - job_name: 'api'
+    static_configs:
+      - targets: ['api:8000']
+    metrics_path: /metrics

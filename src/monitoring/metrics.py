@@ -25,11 +25,7 @@ class MetricsServer:
     async def start(self):
         """Start the metrics server."""
         try:
-            from prometheus_client import (
-                CONTENT_TYPE_LATEST,
-                generate_latest,
-                start_http_server,
-            )
+            from prometheus_client import start_http_server
 
             # Start prometheus HTTP server in a thread
             start_http_server(self.port, addr=self.host)
@@ -59,10 +55,7 @@ class HealthChecker:
 
     async def check_health(self) -> dict:
         """Run all health checks and return status."""
-        results = {
-            "status": "healthy",
-            "checks": {}
-        }
+        results = {"status": "healthy", "checks": {}}
 
         for name, check_func in self.checks.items():
             try:
@@ -73,17 +66,14 @@ class HealthChecker:
 
                 results["checks"][name] = {
                     "status": "healthy" if result else "unhealthy",
-                    "details": result
+                    "details": result,
                 }
 
                 if not result:
                     results["status"] = "unhealthy"
 
             except Exception as e:
-                results["checks"][name] = {
-                    "status": "unhealthy",
-                    "error": str(e)
-                }
+                results["checks"][name] = {"status": "unhealthy", "error": str(e)}
                 results["status"] = "unhealthy"
 
         return results

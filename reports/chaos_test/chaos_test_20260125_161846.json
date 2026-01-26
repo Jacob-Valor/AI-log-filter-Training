@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-01-25T16:18:43.865643+00:00",
+  "total_tests": 9,
+  "passed_tests": 5,
+  "failed_tests": 4,
+  "success_rate": 0.5555555555555556,
+  "results": [
+    {
+      "name": "Fail-Open on Classifier Error",
+      "passed": false,
+      "duration": 0.0001747679998516105,
+      "details": {},
+      "error": "No module named 'joblib'"
+    },
+    {
+      "name": "Circuit Breaker Opens on Failures",
+      "passed": true,
+      "duration": 0.0010597479999887582,
+      "details": {
+        "failures_before_open": 3,
+        "circuit_opened": true,
+        "expected_threshold": 3
+      },
+      "error": null
+    },
+    {
+      "name": "Circuit Breaker Fail-Open Mode",
+      "passed": true,
+      "duration": 7.315599987123278e-05,
+      "details": {
+        "circuit_state": "OPEN",
+        "result": {
+          "category": "critical",
+          "reason": "fail_open"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "High Latency Handling",
+      "passed": true,
+      "duration": 1.0013765620001323,
+      "details": {
+        "timed_out": true,
+        "elapsed_seconds": 1.0013660139998137,
+        "timeout_threshold": 1.0
+      },
+      "error": null
+    },
+    {
+      "name": "Concurrent Load Handling",
+      "passed": false,
+      "duration": 5.276000138110248e-06,
+      "details": {},
+      "error": "Classifier not initialized"
+    },
+    {
+      "name": "Memory Pressure Resilience",
+      "passed": true,
+      "duration": 0.015105343999948673,
+      "details": {
+        "initial_objects": 19894,
+        "final_objects": 19133,
+        "object_delta": -761,
+        "classifier_works": true
+      },
+      "error": null
+    },
+    {
+      "name": "Critical Recall Under Stress",
+      "passed": false,
+      "duration": 3.1919998946250416e-06,
+      "details": {},
+      "error": "Classifier not initialized"
+    },
+    {
+      "name": "Graceful Degradation",
+      "passed": false,
+      "duration": 0.0006336619999274262,
+      "details": {},
+      "error": "No module named 'joblib'"
+    },
+    {
+      "name": "Recovery After Failure",
+      "passed": true,
+      "duration": 1.5034343890001765,
+      "details": {
+        "initial_state": "OPEN",
+        "final_state": "CLOSED",
+        "recovery_success": true,
+        "total_calls": 7
+      },
+      "error": null
+    }
+  ]
+}

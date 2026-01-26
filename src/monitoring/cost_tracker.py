@@ -14,12 +14,12 @@ Key Features:
 
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from threading import Lock
-from typing import Any, Dict, Optional
+from typing import Any
 
-from prometheus_client import Counter, Gauge, Histogram, Info
+from prometheus_client import Gauge
 
 from src.utils.logging import get_logger
 
@@ -36,134 +36,108 @@ QRADAR_PRICING_TIERS = {
     "basic": {
         "max_eps": 5_000,
         "annual_cost": 150_000,  # $150K/year
-        "description": "Basic SIEM license"
+        "description": "Basic SIEM license",
     },
     "standard": {
         "max_eps": 15_000,
         "annual_cost": 450_000,  # $450K/year
-        "description": "Standard SIEM license"
+        "description": "Standard SIEM license",
     },
     "enterprise": {
         "max_eps": 50_000,
         "annual_cost": 1_200_000,  # $1.2M/year
-        "description": "Enterprise SIEM license"
+        "description": "Enterprise SIEM license",
     },
     "premium": {
         "max_eps": 100_000,
         "annual_cost": 2_500_000,  # $2.5M/year
-        "description": "Premium SIEM license"
-    }
+        "description": "Premium SIEM license",
+    },
 }
 
 # AI Filter Infrastructure Costs (annual)
 INFRASTRUCTURE_COSTS = {
     "kafka_cluster": {
         "annual_cost": 12_000,  # Kafka infrastructure
-        "description": "Kafka cluster hosting"
+        "description": "Kafka cluster hosting",
     },
     "compute": {
         "annual_cost": 24_000,  # AI engine compute
-        "description": "AI filter compute instances"
+        "description": "AI filter compute instances",
     },
     "storage": {
-        "annual_cost": 8_000,   # S3 cold storage
-        "description": "Cold storage for logs"
+        "annual_cost": 8_000,  # S3 cold storage
+        "description": "Cold storage for logs",
     },
     "monitoring": {
-        "annual_cost": 6_000,   # Prometheus/Grafana
-        "description": "Monitoring infrastructure"
+        "annual_cost": 6_000,  # Prometheus/Grafana
+        "description": "Monitoring infrastructure",
     },
     "support": {
         "annual_cost": 10_000,  # Engineering support
-        "description": "Ongoing support and maintenance"
-    }
+        "description": "Ongoing support and maintenance",
+    },
 }
 
 # Calculate total annual infrastructure cost
-TOTAL_INFRASTRUCTURE_COST = sum(
-    item["annual_cost"] for item in INFRASTRUCTURE_COSTS.values()
-)
+TOTAL_INFRASTRUCTURE_COST = sum(item["annual_cost"] for item in INFRASTRUCTURE_COSTS.values())
 
 # =============================================================================
 # PROMETHEUS METRICS
 # =============================================================================
 
 # Cost Savings Metrics
-COST_SAVINGS_HOURLY = Gauge(
-    'ai_filter_cost_savings_hourly_usd',
-    'Hourly cost savings in USD'
-)
+COST_SAVINGS_HOURLY = Gauge("ai_filter_cost_savings_hourly_usd", "Hourly cost savings in USD")
 
-COST_SAVINGS_DAILY = Gauge(
-    'ai_filter_cost_savings_daily_usd',
-    'Daily cost savings in USD'
-)
+COST_SAVINGS_DAILY = Gauge("ai_filter_cost_savings_daily_usd", "Daily cost savings in USD")
 
-COST_SAVINGS_MONTHLY = Gauge(
-    'ai_filter_cost_savings_monthly_usd',
-    'Monthly cost savings in USD'
-)
+COST_SAVINGS_MONTHLY = Gauge("ai_filter_cost_savings_monthly_usd", "Monthly cost savings in USD")
 
 COST_SAVINGS_ANNUAL = Gauge(
-    'ai_filter_cost_savings_annual_usd',
-    'Projected annual cost savings in USD'
+    "ai_filter_cost_savings_annual_usd", "Projected annual cost savings in USD"
 )
 
 # License Tier Metrics
 QRADAR_CURRENT_TIER = Gauge(
-    'ai_filter_qradar_current_tier',
-    'Current QRadar license tier (1=basic, 2=standard, 3=enterprise, 4=premium)'
+    "ai_filter_qradar_current_tier",
+    "Current QRadar license tier (1=basic, 2=standard, 3=enterprise, 4=premium)",
 )
 
 QRADAR_NEXT_LOWER_TIER = Gauge(
-    'ai_filter_qradar_next_lower_tier',
-    'Next lower QRadar license tier (0=none, 1-4)'
+    "ai_filter_qradar_next_lower_tier", "Next lower QRadar license tier (0=none, 1-4)"
 )
 
 # Infrastructure Cost Metrics
 INFRASTRUCTURE_COST_TOTAL = Gauge(
-    'ai_filter_infrastructure_cost_annual_usd',
-    'Total annual infrastructure cost for AI filter'
+    "ai_filter_infrastructure_cost_annual_usd", "Total annual infrastructure cost for AI filter"
 )
 
 # ROI Metrics
 ROI_DAYS_TO_BREAK_EVEN = Gauge(
-    'ai_filter_roi_days_to_break_even',
-    'Days to break even on infrastructure investment'
+    "ai_filter_roi_days_to_break_even", "Days to break even on infrastructure investment"
 )
 
-ROI_PERCENTAGE = Gauge(
-    'ai_filter_roi_percentage',
-    'Return on investment percentage'
-)
+ROI_PERCENTAGE = Gauge("ai_filter_roi_percentage", "Return on investment percentage")
 
 # Cost per EPS Metrics
-COST_PER_EPS_SAVED = Gauge(
-    'ai_filter_cost_per_eps_saved_usd',
-    'Cost per EPS of logs saved'
-)
+COST_PER_EPS_SAVED = Gauge("ai_filter_cost_per_eps_saved_usd", "Cost per EPS of logs saved")
 
 COST_PER_PROCESSED_EVENT = Gauge(
-    'ai_filter_cost_per_processed_event_usd',
-    'Cost per event processed by AI filter'
+    "ai_filter_cost_per_processed_event_usd", "Cost per event processed by AI filter"
 )
 
 # Cost Trends
 COST_SAVINGS_TREND_7D = Gauge(
-    'ai_filter_cost_savings_trend_7d_usd',
-    '7-day cost savings trend (average daily savings)'
+    "ai_filter_cost_savings_trend_7d_usd", "7-day cost savings trend (average daily savings)"
 )
 
 COST_SAVINGS_TREND_30D = Gauge(
-    'ai_filter_cost_savings_trend_30d_usd',
-    '30-day cost savings trend (average daily savings)'
+    "ai_filter_cost_savings_trend_30d_usd", "30-day cost savings trend (average daily savings)"
 )
 
 # Cost Breakdown by Category
 COST_SAVINGS_BY_CATEGORY = Gauge(
-    'ai_filter_cost_savings_by_category_usd',
-    'Cost savings by log category',
-    ['category']
+    "ai_filter_cost_savings_by_category_usd", "Cost savings by log category", ["category"]
 )
 
 
@@ -171,9 +145,11 @@ COST_SAVINGS_BY_CATEGORY = Gauge(
 # COST CALCULATOR CLASS
 # =============================================================================
 
+
 @dataclass
 class CostSnapshot:
     """Snapshot of cost data at a point in time."""
+
     timestamp: float
     eps_before_filter: float
     eps_after_filter: float
@@ -211,7 +187,7 @@ class CostTracker:
 
         # EPS tracking windows
         self.eps_before_window = deque(maxlen=60)  # 60 seconds
-        self.eps_after_window = deque(maxlen=60)   # 60 seconds
+        self.eps_after_window = deque(maxlen=60)  # 60 seconds
 
         # Cost history for trend analysis
         self.cost_history_7d = deque(maxlen=7 * 24 * 60)  # 7 days (minute granularity)
@@ -235,8 +211,8 @@ class CostTracker:
             extra={
                 "current_qradar_eps": current_qradar_eps,
                 "infrastructure_cost": self.infrastructure_cost,
-                "current_tier": self.current_qradar_tier
-            }
+                "current_tier": self.current_qradar_tier,
+            },
         )
 
     def _determine_tier(self, eps: int) -> str:
@@ -258,7 +234,7 @@ class CostTracker:
         """Get max EPS for a given tier."""
         return QRADAR_PRICING_TIERS.get(tier, {}).get("max_eps", 0)
 
-    def _get_next_lower_tier(self, current_tier: str) -> Optional[str]:
+    def _get_next_lower_tier(self, current_tier: str) -> str | None:
         """Get the next lower pricing tier."""
         tiers = ["basic", "standard", "enterprise", "premium"]
         current_index = tiers.index(current_tier)
@@ -284,10 +260,7 @@ class CostTracker:
             QRADAR_NEXT_LOWER_TIER.set(0)
 
     def record_eps_data(
-        self,
-        eps_before_filter: float,
-        eps_after_filter: float,
-        eps_reduction_ratio: float
+        self, eps_before_filter: float, eps_after_filter: float, eps_reduction_ratio: float
     ):
         """
         Record EPS data for cost calculation.
@@ -304,9 +277,7 @@ class CostTracker:
 
             # Calculate cost savings
             cost_data = self._calculate_cost_savings(
-                eps_before_filter,
-                eps_after_filter,
-                eps_reduction_ratio
+                eps_before_filter, eps_after_filter, eps_reduction_ratio
             )
 
             # Store in history for trend analysis
@@ -322,11 +293,8 @@ class CostTracker:
             self._update_all_metrics(cost_data)
 
     def _calculate_cost_savings(
-        self,
-        eps_before: float,
-        eps_after: float,
-        reduction_ratio: float
-    ) -> Dict[str, Any]:
+        self, eps_before: float, eps_after: float, reduction_ratio: float
+    ) -> dict[str, Any]:
         """
         Calculate cost savings based on EPS reduction.
 
@@ -363,10 +331,14 @@ class CostTracker:
 
         # Calculate cost per EPS saved (per second)
         eps_saved = eps_before - eps_after
-        cost_per_eps_saved = (self.infrastructure_cost / (365 * 24 * 3600)) / eps_saved if eps_saved > 0 else 0
+        cost_per_eps_saved = (
+            (self.infrastructure_cost / (365 * 24 * 3600)) / eps_saved if eps_saved > 0 else 0
+        )
 
         # Cost per processed event (per second)
-        cost_per_event = (self.infrastructure_cost / (365 * 24 * 3600)) / eps_before if eps_before > 0 else 0
+        cost_per_event = (
+            (self.infrastructure_cost / (365 * 24 * 3600)) / eps_before if eps_before > 0 else 0
+        )
 
         return {
             "current_qradar_cost_annual": current_qradar_cost,
@@ -377,10 +349,10 @@ class CostTracker:
             "savings_annual": savings_annual,
             "infrastructure_cost": self.infrastructure_cost,
             "cost_per_eps_saved": cost_per_eps_saved,
-            "cost_per_event": cost_per_event
+            "cost_per_event": cost_per_event,
         }
 
-    def _update_all_metrics(self, cost_data: Dict[str, Any]):
+    def _update_all_metrics(self, cost_data: dict[str, Any]):
         """Update all Prometheus metrics with cost data."""
         # Cost Savings
         COST_SAVINGS_HOURLY.set(cost_data["savings_hourly"])
@@ -395,22 +367,34 @@ class CostTracker:
         # ROI
         days_running = (datetime.now() - self.start_date).days
         if days_running > 0:
-            days_to_break_even = int(self.infrastructure_cost / cost_data["savings_daily"]) if cost_data["savings_daily"] > 0 else 0
+            days_to_break_even = (
+                int(self.infrastructure_cost / cost_data["savings_daily"])
+                if cost_data["savings_daily"] > 0
+                else 0
+            )
             ROI_DAYS_TO_BREAK_EVEN.set(days_to_break_even)
 
-            roi_percentage = ((self.total_savings_cumulative - self.infrastructure_cost) / self.infrastructure_cost) * 100 if self.infrastructure_cost > 0 else 0
+            roi_percentage = (
+                (
+                    (self.total_savings_cumulative - self.infrastructure_cost)
+                    / self.infrastructure_cost
+                )
+                * 100
+                if self.infrastructure_cost > 0
+                else 0
+            )
             ROI_PERCENTAGE.set(roi_percentage)
 
         # Trends
         if len(self.cost_history_7d) > 0:
             avg_daily_7d = sum(
-                data["savings_daily"] for _, data in list(self.cost_history_7d)[-7*24*60:]
+                data["savings_daily"] for _, data in list(self.cost_history_7d)[-7 * 24 * 60 :]
             ) / min(len(self.cost_history_7d), 7 * 24 * 60)
             COST_SAVINGS_TREND_7D.set(avg_daily_7d)
 
         if len(self.cost_history_30d) > 0:
             avg_daily_30d = sum(
-                data["savings_daily"] for _, data in list(self.cost_history_30d)[-30*24*60:]
+                data["savings_daily"] for _, data in list(self.cost_history_30d)[-30 * 24 * 60 :]
             ) / min(len(self.cost_history_30d), 30 * 24 * 60)
             COST_SAVINGS_TREND_30D.set(avg_daily_30d)
 
@@ -430,7 +414,7 @@ class CostTracker:
 
         COST_SAVINGS_BY_CATEGORY.labels(category=category).set(savings_monthly)
 
-    def get_cost_report(self) -> Dict[str, Any]:
+    def get_cost_report(self) -> dict[str, Any]:
         """
         Generate comprehensive cost report.
 
@@ -439,21 +423,43 @@ class CostTracker:
         """
         with self._lock:
             # Calculate averages
-            avg_eps_before = sum(eps for _, eps in self.eps_before_window) / len(self.eps_before_window) if self.eps_before_window else 0
-            avg_eps_after = sum(eps for _, eps in self.eps_after_window) / len(self.eps_after_window) if self.eps_after_window else 0
-            avg_reduction = ((avg_eps_before - avg_eps_after) / avg_eps_before * 100) if avg_eps_before > 0 else 0
+            avg_eps_before = (
+                sum(eps for _, eps in self.eps_before_window) / len(self.eps_before_window)
+                if self.eps_before_window
+                else 0
+            )
+            avg_eps_after = (
+                sum(eps for _, eps in self.eps_after_window) / len(self.eps_after_window)
+                if self.eps_after_window
+                else 0
+            )
+            avg_reduction = (
+                ((avg_eps_before - avg_eps_after) / avg_eps_before * 100)
+                if avg_eps_before > 0
+                else 0
+            )
 
             # Get latest cost data
             latest_cost = self._calculate_cost_savings(
-                avg_eps_before,
-                avg_eps_after,
-                avg_reduction / 100
+                avg_eps_before, avg_eps_after, avg_reduction / 100
             )
 
             # ROI calculations
             days_running = (datetime.now() - self.start_date).days
-            days_to_break_even = int(self.infrastructure_cost / latest_cost["savings_daily"]) if latest_cost["savings_daily"] > 0 else 0
-            roi_percentage = ((self.total_savings_cumulative - self.infrastructure_cost) / self.infrastructure_cost * 100) if self.infrastructure_cost > 0 else 0
+            days_to_break_even = (
+                int(self.infrastructure_cost / latest_cost["savings_daily"])
+                if latest_cost["savings_daily"] > 0
+                else 0
+            )
+            roi_percentage = (
+                (
+                    (self.total_savings_cumulative - self.infrastructure_cost)
+                    / self.infrastructure_cost
+                    * 100
+                )
+                if self.infrastructure_cost > 0
+                else 0
+            )
 
             return {
                 "summary": {
@@ -461,52 +467,58 @@ class CostTracker:
                     "current_eps_capacity": self.current_qradar_eps,
                     "current_tier_cost": self._get_tier_cost(self.current_qradar_tier),
                     "infrastructure_cost": self.infrastructure_cost,
-                    "days_running": days_running
+                    "days_running": days_running,
                 },
                 "performance": {
                     "avg_eps_before": round(avg_eps_before, 2),
                     "avg_eps_after": round(avg_eps_after, 2),
                     "avg_eps_reduction_percent": round(avg_reduction, 2),
                     "eps_filtered_daily": round((avg_eps_before - avg_eps_after) * 24 * 3600, 0),
-                    "eps_filtered_monthly": round((avg_eps_before - avg_eps_after) * 30 * 24 * 3600, 0)
+                    "eps_filtered_monthly": round(
+                        (avg_eps_before - avg_eps_after) * 30 * 24 * 3600, 0
+                    ),
                 },
                 "cost_savings": {
                     "hourly": round(latest_cost["savings_hourly"], 2),
                     "daily": round(latest_cost["savings_daily"], 2),
                     "monthly": round(latest_cost["savings_monthly"], 2),
-                    "annual": round(latest_cost["savings_annual"], 2)
+                    "annual": round(latest_cost["savings_annual"], 2),
                 },
                 "roi": {
                     "days_to_break_even": days_to_break_even,
                     "days_remaining": max(0, days_to_break_even - days_running),
                     "roi_percentage": round(roi_percentage, 2),
                     "cumulative_savings": round(self.total_savings_cumulative, 2),
-                    "net_savings": round(self.total_savings_cumulative - self.infrastructure_cost, 2)
+                    "net_savings": round(
+                        self.total_savings_cumulative - self.infrastructure_cost, 2
+                    ),
                 },
                 "efficiency": {
                     "cost_per_eps_saved_usd": round(latest_cost["cost_per_eps_saved"], 6),
                     "cost_per_processed_event_usd": round(latest_cost["cost_per_event"], 6),
                     "cost_reduction_percentage": round(
-                        (latest_cost["savings_annual"] / latest_cost["current_qradar_cost_annual"] * 100)
-                        if latest_cost["current_qradar_cost_annual"] > 0 else 0,
-                        2
-                    )
+                        (
+                            latest_cost["savings_annual"]
+                            / latest_cost["current_qradar_cost_annual"]
+                            * 100
+                        )
+                        if latest_cost["current_qradar_cost_annual"] > 0
+                        else 0,
+                        2,
+                    ),
                 },
                 "infrastructure_breakdown": {
-                    category: {
-                        "cost_usd": item["annual_cost"],
-                        "description": item["description"]
-                    }
+                    category: {"cost_usd": item["annual_cost"], "description": item["description"]}
                     for category, item in INFRASTRUCTURE_COSTS.items()
                 },
                 "qradar_tiers": {
                     tier: {
                         "max_eps": item["max_eps"],
                         "annual_cost": item["annual_cost"],
-                        "description": item["description"]
+                        "description": item["description"],
                     }
                     for tier, item in QRADAR_PRICING_TIERS.items()
-                }
+                },
             }
 
     def get_cost_snapshot(self) -> CostSnapshot:
@@ -517,9 +529,19 @@ class CostTracker:
             CostSnapshot with current metrics
         """
         with self._lock:
-            avg_eps_before = sum(eps for _, eps in self.eps_before_window) / len(self.eps_before_window) if self.eps_before_window else 0
-            avg_eps_after = sum(eps for _, eps in self.eps_after_window) / len(self.eps_after_window) if self.eps_after_window else 0
-            avg_reduction = ((avg_eps_before - avg_eps_after) / avg_eps_before) if avg_eps_before > 0 else 0
+            avg_eps_before = (
+                sum(eps for _, eps in self.eps_before_window) / len(self.eps_before_window)
+                if self.eps_before_window
+                else 0
+            )
+            avg_eps_after = (
+                sum(eps for _, eps in self.eps_after_window) / len(self.eps_after_window)
+                if self.eps_after_window
+                else 0
+            )
+            avg_reduction = (
+                ((avg_eps_before - avg_eps_after) / avg_eps_before) if avg_eps_before > 0 else 0
+            )
 
             cost_data = self._calculate_cost_savings(avg_eps_before, avg_eps_after, avg_reduction)
 
@@ -534,7 +556,7 @@ class CostTracker:
                 savings_daily=cost_data["savings_daily"],
                 savings_monthly=cost_data["savings_monthly"],
                 savings_annual=cost_data["savings_annual"],
-                infrastructure_cost=cost_data["infrastructure_cost"]
+                infrastructure_cost=cost_data["infrastructure_cost"],
             )
 
 
@@ -543,7 +565,7 @@ class CostTracker:
 # =============================================================================
 
 # Global cost tracker instance (will be initialized with config)
-_cost_tracker: Optional[CostTracker] = None
+_cost_tracker: CostTracker | None = None
 _tracker_lock = Lock()
 
 
@@ -567,6 +589,6 @@ def init_cost_tracker(current_qradar_eps: int = 15_000) -> CostTracker:
     return _cost_tracker
 
 
-def get_cost_tracker() -> Optional[CostTracker]:
+def get_cost_tracker() -> CostTracker | None:
     """Get the global cost tracker instance."""
     return _cost_tracker

@@ -4,15 +4,10 @@ Tests for Health Check Endpoints
 Tests the health, readiness, and liveness probes.
 """
 
-# Mock the imports before importing the module
-import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
-sys.modules['src.utils.circuit_breaker'] = MagicMock()
-sys.modules['src.monitoring.production_metrics'] = MagicMock()
 
 
 class TestHealthChecker:
@@ -87,44 +82,46 @@ class TestHealthEndpoints:
         response = client.get("/health/live")
 
         assert response.status_code == 200
-        assert response.json()["alive"] == True
+        assert response.json()["alive"]
 
     def test_readiness_probe_healthy(self, client):
         """Readiness probe should return ready when healthy."""
-        with patch('src.api.health.health_checker') as mock_checker:
+        with patch("src.api.health.health_checker") as mock_checker:
             from src.api.health import ComponentHealth, HealthResponse, HealthStatus
 
-            mock_checker.check_all = AsyncMock(return_value=HealthResponse(
-                status=HealthStatus.HEALTHY,
-                timestamp="2024-01-01T00:00:00Z",
-                version="1.0.0",
-                uptime_seconds=100.0,
-                components=[
-                    ComponentHealth(name="classifier", status=HealthStatus.HEALTHY)
-                ]
-            ))
+            mock_checker.check_all = AsyncMock(
+                return_value=HealthResponse(
+                    status=HealthStatus.HEALTHY,
+                    timestamp="2024-01-01T00:00:00Z",
+                    version="1.0.0",
+                    uptime_seconds=100.0,
+                    components=[ComponentHealth(name="classifier", status=HealthStatus.HEALTHY)],
+                )
+            )
 
             response = client.get("/health/ready")
 
             assert response.status_code == 200
-            assert response.json()["ready"] == True
+            assert response.json()["ready"]
 
     def test_full_health_check(self, client):
         """Full health check should return comprehensive status."""
-        with patch('src.api.health.health_checker') as mock_checker:
+        with patch("src.api.health.health_checker") as mock_checker:
             from src.api.health import ComponentHealth, HealthResponse, HealthStatus
 
-            mock_checker.check_all = AsyncMock(return_value=HealthResponse(
-                status=HealthStatus.HEALTHY,
-                timestamp="2024-01-01T00:00:00Z",
-                version="1.0.0",
-                uptime_seconds=100.0,
-                components=[
-                    ComponentHealth(name="classifier", status=HealthStatus.HEALTHY),
-                    ComponentHealth(name="kafka", status=HealthStatus.HEALTHY),
-                ],
-                metrics={"eps": {"ingested": 1000}}
-            ))
+            mock_checker.check_all = AsyncMock(
+                return_value=HealthResponse(
+                    status=HealthStatus.HEALTHY,
+                    timestamp="2024-01-01T00:00:00Z",
+                    version="1.0.0",
+                    uptime_seconds=100.0,
+                    components=[
+                        ComponentHealth(name="classifier", status=HealthStatus.HEALTHY),
+                        ComponentHealth(name="kafka", status=HealthStatus.HEALTHY),
+                    ],
+                    metrics={"eps": {"ingested": 1000}},
+                )
+            )
 
             response = client.get("/health")
 
@@ -155,10 +152,7 @@ class TestComponentHealth:
         from src.api.health import ComponentHealth, HealthStatus
 
         component = ComponentHealth(
-            name="test_component",
-            status=HealthStatus.HEALTHY,
-            latency_ms=15.5,
-            message="All good"
+            name="test_component", status=HealthStatus.HEALTHY, latency_ms=15.5, message="All good"
         )
 
         assert component.name == "test_component"

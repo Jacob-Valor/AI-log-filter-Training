@@ -4,9 +4,9 @@ Prometheus Metrics
 Defines application metrics for monitoring and observability.
 """
 
-
 try:
     from prometheus_client import Counter, Gauge, Histogram, Info
+
     HAS_PROMETHEUS = True
 except ImportError:
     HAS_PROMETHEUS = False
@@ -56,92 +56,71 @@ class ApplicationMetrics:
 
         # Counters
         self.logs_processed = Counter(
-            "log_filter_logs_processed_total",
-            "Total number of logs processed",
-            ["source"]
+            "log_filter_logs_processed_total", "Total number of logs processed", ["source"]
         )
 
         self.logs_classified = Counter(
             "log_filter_logs_classified_total",
             "Total number of logs classified",
-            ["category", "model"]
+            ["category", "model"],
         )
 
         self.classification_distribution = Counter(
             "log_filter_classification_distribution",
             "Distribution of log classifications",
-            ["category"]
+            ["category"],
         )
 
-        self.kafka_errors = Counter(
-            "log_filter_kafka_errors_total",
-            "Total Kafka consumer errors"
-        )
+        self.kafka_errors = Counter("log_filter_kafka_errors_total", "Total Kafka consumer errors")
 
         self.kafka_messages_sent = Counter(
-            "log_filter_kafka_messages_sent_total",
-            "Total Kafka messages sent"
+            "log_filter_kafka_messages_sent_total", "Total Kafka messages sent"
         )
 
         self.kafka_delivery_errors = Counter(
-            "log_filter_kafka_delivery_errors_total",
-            "Total Kafka delivery errors"
+            "log_filter_kafka_delivery_errors_total", "Total Kafka delivery errors"
         )
 
         self.processing_errors = Counter(
-            "log_filter_processing_errors_total",
-            "Total processing errors"
+            "log_filter_processing_errors_total", "Total processing errors"
         )
 
         self.routing_errors = Counter(
-            "log_filter_routing_errors_total",
-            "Total routing errors",
-            ["destination"]
+            "log_filter_routing_errors_total", "Total routing errors", ["destination"]
         )
 
         # Histograms
         self.classification_latency = Histogram(
             "log_filter_classification_latency_seconds",
             "Time to classify a log message",
-            buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0]
+            buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0],
         )
 
         self.batch_processing_time = Histogram(
             "log_filter_batch_processing_seconds",
             "Time to process a batch of logs",
-            buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+            buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0],
         )
 
         self.classification_confidence = Histogram(
             "log_filter_classification_confidence",
             "Confidence scores of classifications",
-            buckets=[0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99]
+            buckets=[0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99],
         )
 
         # Gauges
         self.active_connections = Gauge(
-            "log_filter_active_connections",
-            "Number of active connections",
-            ["type"]
+            "log_filter_active_connections", "Number of active connections", ["type"]
         )
 
-        self.queue_size = Gauge(
-            "log_filter_queue_size",
-            "Current queue size",
-            ["queue_name"]
-        )
+        self.queue_size = Gauge("log_filter_queue_size", "Current queue size", ["queue_name"])
 
         self.model_loaded = Gauge(
-            "log_filter_model_loaded",
-            "Whether models are loaded",
-            ["model_name"]
+            "log_filter_model_loaded", "Whether models are loaded", ["model_name"]
         )
 
         # Info
-        self.app_info = Info(
-            "log_filter_app",
-            "Application information"
-        )
+        self.app_info = Info("log_filter_app", "Application information")
 
     def _init_placeholder_metrics(self):
         """Initialize placeholder metrics when Prometheus is not available."""
@@ -166,10 +145,7 @@ class ApplicationMetrics:
     def set_app_info(self, version: str, environment: str):
         """Set application info metric."""
         if HAS_PROMETHEUS:
-            self.app_info.info({
-                "version": version,
-                "environment": environment
-            })
+            self.app_info.info({"version": version, "environment": environment})
 
 
 # Global metrics instance

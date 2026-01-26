@@ -1,0 +1,80 @@
+settings:
+  priority_order:
+    - critical
+    - suspicious
+    - noise
+    - routine
+  default_category: routine
+  default_confidence: 0.5
+  case_insensitive: true
+
+critical:
+  - name: malware_indicators
+    confidence: 0.95
+    patterns:
+      - "\\b(malware|ransomware|trojan|backdoor|virus|c2 beacon)\\b"
+      - "\\b(command.?and.?control|c2)\\b"
+  - name: brute_force
+    confidence: 0.9
+    patterns:
+      - "brute.?force"
+      - "multiple.*failed.*(auth|login)"
+  - name: data_exfiltration
+    confidence: 0.9
+    patterns:
+      - "data exfiltration"
+      - "exfiltrat(ion|ing)"
+      - "\\b(uploaded.*(gb|mb)\\b)"
+  - name: privilege_escalation
+    confidence: 0.88
+    patterns:
+      - "privilege escalation"
+      - "sudo.*failed"
+      - "\\broot access granted\\b"
+
+suspicious:
+  - name: failed_authentication
+    confidence: 0.75
+    patterns:
+      - "failed.*(login|auth)"
+      - "authentication.*failed"
+  - name: access_denied
+    confidence: 0.7
+    patterns:
+      - "access.*denied"
+      - "permission.*denied"
+  - name: suspicious_commands
+    confidence: 0.72
+    patterns:
+      - "\\b(nc|netcat|powershell|curl|wget).*\\b"
+      - "\\b(base64|chmod 777|/etc/shadow)\\b"
+  - name: lateral_movement
+    confidence: 0.78
+    patterns:
+      - "pass.?the.?hash"
+      - "remote service created"
+
+noise:
+  - name: health_checks
+    confidence: 0.9
+    patterns:
+      - "health.?check"
+      - "heartbeat"
+      - "keep.?alive"
+  - name: debug_trace
+    confidence: 0.85
+    patterns:
+      - "^\\s*(debug|trace)"
+      - "verbose logging enabled"
+  - name: metrics
+    confidence: 0.8
+    patterns:
+      - "metrics scrape"
+      - "prometheus"
+
+routine:
+  - name: normal_operations
+    confidence: 0.6
+    patterns:
+      - "\\b(success|completed|started|connected)\\b"
+      - "\\bservice.*(ready|running)\\b"

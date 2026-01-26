@@ -7,7 +7,7 @@ Routes classified logs to appropriate destinations based on category.
 import asyncio
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from src.utils.logging import get_logger
 from src.utils.metrics import METRICS
@@ -18,12 +18,12 @@ logger = get_logger(__name__)
 class BaseDestination(ABC):
     """Base class for log destinations."""
 
-    def __init__(self, name: str, config: Dict[str, Any]):
+    def __init__(self, name: str, config: dict[str, Any]):
         self.name = name
         self.config = config
 
     @abstractmethod
-    async def send(self, logs: List[Dict[str, Any]]):
+    async def send(self, logs: list[dict[str, Any]]):
         """Send logs to destination."""
         pass
 
@@ -36,7 +36,7 @@ class BaseDestination(ABC):
 class QRadarDestination(BaseDestination):
     """Send logs to IBM QRadar SIEM."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         super().__init__("qradar", config)
         self.host = config.get("host", "localhost")
         self.port = config.get("port", 443)
@@ -50,21 +50,19 @@ class QRadarDestination(BaseDestination):
         if self._client is None:
             try:
                 import httpx
+
                 self._client = httpx.AsyncClient(
                     base_url=f"https://{self.host}:{self.port}",
                     verify=self.verify_ssl,
                     timeout=self.timeout,
-                    headers={
-                        "SEC": self.token,
-                        "Content-Type": "application/json"
-                    }
+                    headers={"SEC": self.token, "Content-Type": "application/json"},
                 )
             except ImportError:
                 logger.warning("httpx not available, QRadar destination disabled")
                 self._client = None
         return self._client
 
-    async def send(self, logs: List[Dict[str, Any]]):
+    async def send(self, logs: list[dict[str, Any]]):
         """Send logs to QRadar."""
         client = await self._get_client()
         if client is None:
@@ -84,7 +82,7 @@ class QRadarDestination(BaseDestination):
             METRICS.routing_errors.labels(destination="qradar").inc(len(logs))
             raise
 
-    def _to_leef(self, log: Dict[str, Any]) -> str:
+    def _to_leef(self, log: dict[str, Any]) -> str:
         """Convert log to LEEF format."""
         # LEEF format: LEEF:Version|Vendor|Product|Version|EventID|Attributes
         timestamp = datetime.utcnow().isoformat()
@@ -105,12 +103,7 @@ class QRadarDestination(BaseDestination):
 
     def _get_severity(self, category: str) -> int:
         """Map category to QRadar severity."""
-        severity_map = {
-            "critical": 10,
-            "suspicious": 7,
-            "routine": 3,
-            "noise": 1
-        }
+        severity_map = {"critical": 10, "suspicious": 7, "routine": 3, "noise": 1}
         return severity_map.get(category, 5)
 
     async def _send_syslog(self, message: str):
@@ -128,16 +121,16 @@ class QRadarDestination(BaseDestination):
 class ColdStorageDestination(BaseDestination):
     """Store logs in cold storage (S3, Azure Blob, etc.)."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         super().__init__("cold_storage", config)
         self.storage_type = config.get("type", "local")
         self.bucket = config.get("bucket", "log-archive")
         self.partition_by = config.get("partition_by", ["date", "category"])
         self.compression = config.get("compression", "gzip")
-        self.buffer: List[Dict[str, Any]] = []
+        self.buffer: list[dict[str, Any]] = []
         self.buffer_size = config.get("batch_size", 10000)
 
-    async def send(self, logs: List[Dict[str, Any]]):
+    async def send(self, logs: list[dict[str, Any]]):
         """Buffer logs and flush when full."""
         self.buffer.extend(logs)
 
@@ -174,12 +167,12 @@ class ColdStorageDestination(BaseDestination):
 class SummaryDestination(BaseDestination):
     """Aggregate and summarize noise logs."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         super().__init__("summary", config)
         self.window_seconds = config.get("aggregation_window_seconds", 3600)
-        self.summaries: Dict[str, Dict[str, Any]] = {}
+        self.summaries: dict[str, dict[str, Any]] = {}
 
-    async def send(self, logs: List[Dict[str, Any]]):
+    async def send(self, logs: list[dict[str, Any]]):
         """Aggregate logs into summaries."""
         for log in logs:
             # Create summary key from log template
@@ -191,7 +184,7 @@ class SummaryDestination(BaseDestination):
                     "count": 0,
                     "first_seen": datetime.utcnow().isoformat(),
                     "last_seen": None,
-                    "sample": log
+                    "sample": log,
                 }
 
             self.summaries[template]["count"] += 1
@@ -212,12 +205,12 @@ class SummaryDestination(BaseDestination):
             r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
             "<UUID>",
             template,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
 
         return template[:200]  # Limit template length
 
-    async def get_summaries(self) -> List[Dict[str, Any]]:
+    async def get_summaries(self) -> list[dict[str, Any]]:
         """Get current summaries."""
         return list(self.summaries.values())
 
@@ -238,14 +231,14 @@ class LogRouter:
     - aggregate: Summarize and discard (for noise logs)
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
-        self.destinations: Dict[str, BaseDestination] = {}
-        self.routing_rules: Dict[str, Dict[str, Any]] = config.get("rules", {})
+        self.destinations: dict[str, BaseDestination] = {}
+        self.routing_rules: dict[str, dict[str, Any]] = config.get("rules", {})
 
         # Queues for different routing strategies
-        self.queues: Dict[str, asyncio.Queue] = {}
-        self._workers: List[asyncio.Task] = []
+        self.queues: dict[str, asyncio.Queue] = {}
+        self._workers: list[asyncio.Task] = []
 
     async def initialize(self):
         """Initialize routing destinations."""
@@ -257,14 +250,10 @@ class LogRouter:
 
         # Initialize cold storage
         if "cold_storage" in self.config:
-            self.destinations["cold_storage"] = ColdStorageDestination(
-                self.config["cold_storage"]
-            )
+            self.destinations["cold_storage"] = ColdStorageDestination(self.config["cold_storage"])
 
         # Initialize summary aggregator
-        self.destinations["summary"] = SummaryDestination(
-            self.config.get("summary", {})
-        )
+        self.destinations["summary"] = SummaryDestination(self.config.get("summary", {}))
 
         # Initialize queues
         for category in ["critical", "suspicious", "routine", "noise"]:
@@ -292,7 +281,7 @@ class LogRouter:
                 try:
                     log = await asyncio.wait_for(queue.get(), timeout=5.0)
                     batch.append(log)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass
 
                 # Process batch if full or timeout
@@ -310,7 +299,7 @@ class LogRouter:
             except Exception as e:
                 logger.error(f"Error processing {category} queue: {e}")
 
-    async def route(self, log: Dict[str, Any]):
+    async def route(self, log: dict[str, Any]):
         """Route a single log to appropriate destinations."""
         category = log.get("category", "routine")
 
@@ -322,7 +311,7 @@ class LogRouter:
         else:
             await self.queues.get(category, self.queues["routine"]).put(log)
 
-    async def route_batch(self, logs: List[Any]):
+    async def route_batch(self, logs: list[Any]):
         """Route a batch of classified logs."""
         for log in logs:
             # Convert ClassifiedLog to dict if needed
@@ -333,7 +322,7 @@ class LogRouter:
 
             await self.route(log_dict)
 
-    async def _route_immediate(self, category: str, log: Dict[str, Any]):
+    async def _route_immediate(self, category: str, log: dict[str, Any]):
         """Route log immediately without queuing."""
         rule = self.routing_rules.get(category, {})
         destinations = rule.get("destinations", ["qradar"])
@@ -345,7 +334,7 @@ class LogRouter:
                 except Exception as e:
                     logger.error(f"Failed to route to {dest_name}: {e}")
 
-    async def _route_batch(self, category: str, batch: List[Dict[str, Any]]):
+    async def _route_batch(self, category: str, batch: list[dict[str, Any]]):
         """Route a batch of logs."""
         if not batch:
             return

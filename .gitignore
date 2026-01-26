@@ -92,15 +92,15 @@ local.properties
 # -----------------------------------------------------------------------------
 # Models and Data (keep structure, ignore contents)
 # -----------------------------------------------------------------------------
-models/**/*
-!models/.gitkeep
-!models/*/.gitkeep
-!models/**/.gitkeep
+#models/**/*
+#!models/.gitkeep
+#!models/*/.gitkeep
+#!models/**/.gitkeep
 
-data/**/*
-!data/.gitkeep
-!data/*/.gitkeep
-!data/**/.gitkeep
+# data/**/*
+# !data/.gitkeep
+# !data/*/.gitkeep
+# !data/**/.gitkeep
 
 processed/**/*
 !processed/.gitkeep

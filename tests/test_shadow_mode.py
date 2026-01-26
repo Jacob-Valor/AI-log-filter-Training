@@ -6,6 +6,7 @@ against QRadar offense generation.
 """
 
 import pytest
+import pytest_asyncio
 
 from src.models.base import Prediction
 from src.validation.shadow_mode import (
@@ -44,11 +45,7 @@ class TestRecordingDecisions:
     @pytest.mark.asyncio
     async def test_record_decision(self, validator):
         """Should record classification decisions."""
-        prediction = Prediction(
-            category="routine",
-            confidence=0.85,
-            model="ensemble"
-        )
+        prediction = Prediction(category="routine", confidence=0.85, model="ensemble")
         log = {"message": "User logged in", "source": "auth-server"}
 
         decision = await validator.record_decision("log-001", prediction, log)
@@ -65,15 +62,9 @@ class TestRecordingDecisions:
         categories = ["critical", "suspicious", "routine", "noise"]
 
         for i, category in enumerate(categories):
-            prediction = Prediction(
-                category=category,
-                confidence=0.8,
-                model="ensemble"
-            )
+            prediction = Prediction(category=category, confidence=0.8, model="ensemble")
             await validator.record_decision(
-                f"log-{i}",
-                prediction,
-                {"message": f"Log {i}", "source": "test"}
+                f"log-{i}", prediction, {"message": f"Log {i}", "source": "test"}
             )
 
         assert validator.stats.total_processed == 4
@@ -92,12 +83,14 @@ class TestQRadarResultRecording:
     async def test_true_positive(self, validator):
         """AI says critical, QRadar generates offense = True Positive."""
         prediction = Prediction(category="critical", confidence=0.9, model="ensemble")
-        await validator.record_decision("log-001", prediction, {"message": "Malware", "source": "av"})
+        await validator.record_decision(
+            "log-001", prediction, {"message": "Malware", "source": "av"}
+        )
 
         await validator.record_qradar_result(
             "log-001",
             offense_generated=True,
-            offense_data={"offense_id": "123", "offense_type": "Malware"}
+            offense_data={"offense_id": "123", "offense_type": "Malware"},
         )
 
         assert validator.stats.true_positives == 1
@@ -107,7 +100,9 @@ class TestQRadarResultRecording:
     async def test_true_negative(self, validator):
         """AI says routine, no offense = True Negative."""
         prediction = Prediction(category="routine", confidence=0.8, model="ensemble")
-        await validator.record_decision("log-001", prediction, {"message": "Normal", "source": "app"})
+        await validator.record_decision(
+            "log-001", prediction, {"message": "Normal", "source": "app"}
+        )
 
         await validator.record_qradar_result("log-001", offense_generated=False)
 
@@ -118,38 +113,42 @@ class TestQRadarResultRecording:
     async def test_false_negative(self, validator):
         """AI says routine, QRadar generates offense = FALSE NEGATIVE (critical!)."""
         prediction = Prediction(category="routine", confidence=0.7, model="ensemble")
-        await validator.record_decision("log-001", prediction, {"message": "Sneaky attack", "source": "fw"})
+        await validator.record_decision(
+            "log-001", prediction, {"message": "Sneaky attack", "source": "fw"}
+        )
 
         await validator.record_qradar_result(
             "log-001",
             offense_generated=True,
-            offense_data={"offense_id": "999", "offense_type": "Intrusion"}
+            offense_data={"offense_id": "999", "offense_type": "Intrusion"},
         )
 
         assert validator.stats.false_negatives == 1
         assert len(validator.stats.missed_offenses) == 1
 
         decision = validator.decisions["log-001"]
-        assert decision.is_false_negative == True
+        assert decision.is_false_negative
 
     @pytest.mark.asyncio
     async def test_false_positive(self, validator):
         """AI says critical, no offense = False Positive."""
         prediction = Prediction(category="critical", confidence=0.75, model="ensemble")
-        await validator.record_decision("log-001", prediction, {"message": "Maybe bad?", "source": "ids"})
+        await validator.record_decision(
+            "log-001", prediction, {"message": "Maybe bad?", "source": "ids"}
+        )
 
         await validator.record_qradar_result("log-001", offense_generated=False)
 
         assert validator.stats.false_positives == 1
 
         decision = validator.decisions["log-001"]
-        assert decision.is_false_positive == True
+        assert decision.is_false_positive
 
 
 class TestAccuracyMetrics:
     """Test accuracy metric calculations."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def validated_validator(self):
         """Create a validator with various outcomes."""
         validator = ShadowModeValidator()
@@ -225,7 +224,7 @@ class TestPhaseTransitions:
         """Should not be ready without enough samples."""
         ready, reason = validator.is_ready_for_next_phase()
 
-        assert ready == False
+        assert not ready
         assert "samples" in reason.lower()
 
     @pytest.mark.asyncio
@@ -247,7 +246,7 @@ class TestPhaseTransitions:
         ready, reason = validator.is_ready_for_next_phase()
 
         # Should fail on FNR or recall
-        assert ready == False
+        assert not ready
 
 
 class TestValidationReport:

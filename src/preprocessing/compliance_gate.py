@@ -9,7 +9,7 @@ guarantee compliance-critical logs are never filtered out.
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from src.utils.logging import get_logger
 
@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 
 class ComplianceFramework(Enum):
     """Supported compliance frameworks."""
+
     PCI_DSS = "pci_dss"
     HIPAA = "hipaa"
     SOX = "sox"
@@ -30,11 +31,12 @@ class ComplianceFramework(Enum):
 @dataclass
 class ComplianceRule:
     """A single compliance rule definition."""
+
     name: str
     framework: ComplianceFramework
     description: str
-    source_patterns: List[str]
-    message_patterns: List[str] = field(default_factory=list)
+    source_patterns: list[str]
+    message_patterns: list[str] = field(default_factory=list)
     minimum_retention_days: int = 365
     must_forward_to_siem: bool = True
     priority: int = 100  # Higher = more important
@@ -43,12 +45,13 @@ class ComplianceRule:
 @dataclass
 class ComplianceDecision:
     """Result of compliance check."""
+
     is_regulated: bool
-    matched_rules: List[str]
-    frameworks: Set[ComplianceFramework]
+    matched_rules: list[str]
+    frameworks: set[ComplianceFramework]
     must_forward: bool
     minimum_retention_days: int
-    bypass_reason: Optional[str] = None
+    bypass_reason: str | None = None
 
 
 class ComplianceGate:
@@ -110,7 +113,6 @@ class ComplianceGate:
             ],
             minimum_retention_days=365,
         ),
-
         # HIPAA Rules
         ComplianceRule(
             name="hipaa_phi_systems",
@@ -135,7 +137,6 @@ class ComplianceGate:
             ],
             minimum_retention_days=2190,  # 6 years for HIPAA
         ),
-
         # SOX Rules
         ComplianceRule(
             name="sox_financial_systems",
@@ -159,7 +160,6 @@ class ComplianceGate:
             ],
             minimum_retention_days=2555,  # 7 years for SOX
         ),
-
         # GDPR Rules
         ComplianceRule(
             name="gdpr_personal_data",
@@ -181,7 +181,7 @@ class ComplianceGate:
         ),
     ]
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """
         Initialize compliance gate.
 
@@ -193,8 +193,8 @@ class ComplianceGate:
         """
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)
-        self.rules: List[ComplianceRule] = []
-        self.compiled_patterns: Dict[str, List[Tuple[str, re.Pattern]]] = {}
+        self.rules: list[ComplianceRule] = []
+        self.compiled_patterns: dict[str, list[tuple[str, re.Pattern]]] = {}
 
         self._load_rules()
         self._compile_patterns()
@@ -203,12 +203,12 @@ class ComplianceGate:
         self.stats = {
             "total_checked": 0,
             "total_bypassed": 0,
-            "bypasses_by_framework": {f.value: 0 for f in ComplianceFramework}
+            "bypasses_by_framework": {f.value: 0 for f in ComplianceFramework},
         }
 
         logger.info(
             f"Compliance gate initialized with {len(self.rules)} rules",
-            extra={"enabled": self.enabled, "rule_count": len(self.rules)}
+            extra={"enabled": self.enabled, "rule_count": len(self.rules)},
         )
 
     def _load_rules(self):
@@ -220,9 +220,7 @@ class ComplianceGate:
         custom_rules = self.config.get("custom_rules", [])
         for rule_def in custom_rules:
             try:
-                framework = ComplianceFramework(
-                    rule_def.get("framework", "custom")
-                )
+                framework = ComplianceFramework(rule_def.get("framework", "custom"))
                 rule = ComplianceRule(
                     name=rule_def["name"],
                     framework=framework,
@@ -280,7 +278,7 @@ class ComplianceGate:
             f"{len(self.compiled_patterns['message'])} message patterns"
         )
 
-    def check(self, log: Dict[str, Any]) -> ComplianceDecision:
+    def check(self, log: dict[str, Any]) -> ComplianceDecision:
         """
         Check if a log should bypass AI filtering.
 
@@ -342,7 +340,7 @@ class ComplianceGate:
                     "source": source[:50],
                     "matched_rules": list(matched_rules),
                     "frameworks": [f.value for f in matched_frameworks],
-                }
+                },
             )
         else:
             bypass_reason = None
@@ -356,7 +354,7 @@ class ComplianceGate:
             bypass_reason=bypass_reason,
         )
 
-    def check_batch(self, logs: List[Dict[str, Any]]) -> List[ComplianceDecision]:
+    def check_batch(self, logs: list[dict[str, Any]]) -> list[ComplianceDecision]:
         """Check a batch of logs for compliance requirements."""
         return [self.check(log) for log in logs]
 
@@ -381,11 +379,9 @@ class ComplianceGate:
 
         logger.info(f"Added compliance rule: {rule.name}")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get compliance gate statistics."""
-        bypass_rate = (
-            self.stats["total_bypassed"] / max(self.stats["total_checked"], 1)
-        ) * 100
+        bypass_rate = (self.stats["total_bypassed"] / max(self.stats["total_checked"], 1)) * 100
 
         return {
             **self.stats,
@@ -394,17 +390,14 @@ class ComplianceGate:
             "enabled": self.enabled,
         }
 
-    def get_rules_by_framework(
-        self, framework: ComplianceFramework
-    ) -> List[ComplianceRule]:
+    def get_rules_by_framework(self, framework: ComplianceFramework) -> list[ComplianceRule]:
         """Get all rules for a specific framework."""
         return [r for r in self.rules if r.framework == framework]
 
 
 def create_compliance_bypass_prediction(
-    log: Dict[str, Any],
-    decision: ComplianceDecision
-) -> Dict[str, Any]:
+    log: dict[str, Any], decision: ComplianceDecision
+) -> dict[str, Any]:
     """
     Create a prediction object for compliance-bypassed logs.
 
@@ -425,5 +418,5 @@ def create_compliance_bypass_prediction(
         "metadata": {
             "compliance_regulated": True,
             "retention_days": decision.minimum_retention_days,
-        }
+        },
     }
