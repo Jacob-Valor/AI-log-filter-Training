@@ -274,6 +274,8 @@ ai-log-filter/
 ├── docker-compose.yml           # Local development
 ├── Makefile                     # Build automation
 ├── pyproject.toml               # Project metadata
+├── requirements.txt             # Production dependencies
+├── requirements-dev.txt         # Development dependencies
 └── CHANGELOG.md                 # Version history
 ```
 
@@ -589,10 +591,29 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-3. Install dependencies:
+3. Install dependencies (choose one method):
 
+**Method A: Editable install (recommended for development)**
 ```bash
 pip install -e ".[dev]"
+```
+
+**Method B: Using requirements files**
+```bash
+# For production
+pip install -r requirements.txt
+
+# For development (includes all production dependencies + dev tools)
+pip install -r requirements-dev.txt
+```
+
+**Method C: Direct from pyproject.toml**
+```bash
+# Production only
+pip install .
+
+# With development dependencies
+pip install ".[dev]"
 ```
 
 4. Validate models:

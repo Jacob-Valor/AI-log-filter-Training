@@ -10,9 +10,11 @@ help:
 	@echo "=================================="
 	@echo ""
 	@echo "Setup:"
-	@echo "  make install        Install production dependencies"
-	@echo "  make install-dev    Install development dependencies"
-	@echo "  make setup          Full development setup"
+	@echo "  make install              Install production dependencies (editable)"
+	@echo "  make install-dev          Install development dependencies (editable)"
+	@echo "  make install-requirements Install from requirements.txt"
+	@echo "  make install-requirements-dev Install from requirements-dev.txt"
+	@echo "  make setup                Full development setup"
 	@echo ""
 	@echo "Development:"
 	@echo "  make test           Run tests with coverage"
@@ -45,6 +47,14 @@ install:
 
 install-dev:
 	pip install -e ".[dev]"
+	pip install pre-commit
+	pre-commit install
+
+install-requirements:
+	pip install -r requirements.txt
+
+install-requirements-dev:
+	pip install -r requirements-dev.txt
 	pip install pre-commit
 	pre-commit install
 
