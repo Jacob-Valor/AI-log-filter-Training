@@ -1,20 +1,19 @@
 # =============================================================================
-# AI Log Filter - Main Configuration (Development)
+# AI Log Filter - Production Configuration
 # =============================================================================
 
 app:
   name: "AI Log Filter"
   version: "1.0.0"
-  env: ${APP_ENV:-development}
-  debug: ${DEBUG:-false}
+  env: "production"
+  debug: false
 
 logging:
   level: ${LOG_LEVEL:-INFO}
-  format: ${LOG_FORMAT:-json}
+  format: "json"
   output: "stdout"
 
 # Lightweight HTTP server for Kubernetes probes.
-# NOTE: This is separate from the full public API.
 health:
   host: "0.0.0.0"
   port: ${HEALTH_PORT:-8000}
@@ -31,7 +30,7 @@ ingestion:
     bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
     consumer:
       group_id: ${KAFKA_CONSUMER_GROUP:-ai-log-filter-group}
-      auto_offset_reset: ${KAFKA_AUTO_OFFSET_RESET:-earliest}
+      auto_offset_reset: ${KAFKA_AUTO_OFFSET_RESET:-latest}
       session_timeout_ms: 30000
       heartbeat_interval_ms: 10000
     producer:
@@ -49,7 +48,7 @@ processing:
 
 model:
   type: ${MODEL_TYPE:-safe_ensemble}
-  path: ${MODEL_PATH:-models/latest}
+  path: ${MODEL_PATH:-/app/models/latest}
   timeout_seconds: ${MODEL_TIMEOUT_SECONDS:-5.0}
   max_batch_size: ${MODEL_MAX_BATCH_SIZE:-1000}
   ensemble:

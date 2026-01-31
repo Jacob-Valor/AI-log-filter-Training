@@ -3,7 +3,7 @@ name = "ai-log-filter"
 version = "1.0.0"
 description = "AI-Driven Log Filtering for SIEM Efficiency - Intelligent ML-based log classification for IBM QRadar"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "AI Log Filter Contributors" }]
 keywords = [
@@ -21,6 +21,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
   "Topic :: Security",
   "Topic :: System :: Logging",
@@ -64,13 +65,24 @@ dev = [
   "ruff>=0.14.13",
 ]
 
+# Optional: ONNX conversion/runtime support.
+# Note: onnxruntime wheels may lag newest Python versions.
+onnx = [
+  "onnxmltools>=1.16.0",
+  "skl2onnx>=1.20.0",
+]
+
+onnxruntime = [
+  "onnxruntime>=1.23.2,<=1.24.0",
+]
+
 # =============================================================================
 # RUFF CONFIGURATION
 # =============================================================================
 
 [tool.ruff]
 line-length = 100
-target-version = "py314"
+target-version = "py313"
 exclude = [
   ".git",
   ".venv",

@@ -183,13 +183,17 @@ curl http://ai-log-filter.example.com/metrics | grep model_
 2. **Review shadow mode validation results:**
 
 ```bash
-curl http://ai-log-filter.example.com/api/v1/validation/shadow-mode/status
+# Run shadow validation against labeled data (offline)
+python scripts/shadow_validation.py --target-recall 0.995
+
+# Or review the latest evidence artifacts
+ls -la reports/shadow_validation/
 ```
 
 3. **Check for model drift:**
 
 ```bash
-curl http://ai-log-filter.example.com/api/v1/model/drift
+curl http://ai-log-filter.example.com/metrics | grep -E "model_drift|critical_recall|false_negative"
 ```
 
 **Response:**
@@ -197,14 +201,17 @@ curl http://ai-log-filter.example.com/api/v1/model/drift
 1. **Enable shadow mode** (if not already):
 
 ```bash
-curl -X POST http://ai-log-filter.example.com/api/v1/validation/shadow-mode/enable
+# Run shadow validation job and review results before changing filtering behavior
+python scripts/shadow_validation.py --target-recall 0.995
 ```
 
 2. **Retrain models:**
 
 ```bash
-make train MODEL_TYPE=ensemble
-make export MODEL_VERSION=new_version
+python scripts/train.py --config configs/model_config.yaml --model-type ensemble
+
+# Export for production deployment
+python scripts/export_model.py --model models/latest --output models/production
 ```
 
 3. **Deploy new model version:**

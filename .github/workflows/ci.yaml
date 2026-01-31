@@ -64,7 +64,7 @@ jobs:
         run: |
           echo "::group::💅 Checking code formatting"
           uv run ruff format --check src/ tests/ scripts/
-          echo "::ingroup::"
+          echo "::endgroup::"
 
       - name: 📝 Generate lint summary
         if: always()

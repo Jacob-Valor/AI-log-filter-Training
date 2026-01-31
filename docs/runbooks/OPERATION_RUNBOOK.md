@@ -219,7 +219,8 @@ LOG_LEVEL=DEBUG docker-compose up -d
 1. **Acknowledge alert** - This is fail-safe behavior, not a security risk
 2. **Check circuit breaker status:**
    ```bash
-   kubectl exec -it deploy/ai-log-filter -- curl localhost:8080/health | jq '.components[] | select(.name=="circuit_breakers")'
+   # Engine health endpoint
+   kubectl exec -it deploy/ai-log-filter -- curl -s localhost:8000/health | jq '.components[] | select(.name=="circuit_breakers")'
    ```
 3. **Review recent errors:**
    ```bash
@@ -231,9 +232,9 @@ LOG_LEVEL=DEBUG docker-compose up -d
    - Kafka connection issues → Check Kafka cluster
 5. **Recovery:**
    - Circuit auto-recovers after 30 seconds if underlying issue is resolved
-   - For manual reset:
+   - If it remains OPEN, restart the pod(s) to reset in-memory state:
    ```bash
-   kubectl exec -it deploy/ai-log-filter -- curl -X POST localhost:8000/api/v1/admin/circuit-breaker/reset
+   kubectl rollout restart deployment/ai-log-filter
    ```
 6. **Post-incident:**
    - Review logs to identify root cause
@@ -256,8 +257,11 @@ LOG_LEVEL=DEBUG docker-compose up -d
 **Response Steps:**
 
 1. **Get false negative details:**
+   - Confirm offense details in QRadar (type, severity, triggering event)
+   - Pull the raw log sample for analysis (Kafka / cold storage)
+   - Check false negative counters in metrics:
    ```bash
-   curl http://ai-filter:8000/api/v1/validation/missed-offenses | jq '.[0]'
+   kubectl exec -it deploy/ai-log-filter -- curl -s localhost:9090/metrics | grep -E "false_negative|critical_recall"
    ```
 2. **Analyze the missed log:**
    - What category did AI assign?

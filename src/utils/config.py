@@ -44,6 +44,7 @@ def _substitute_env_vars(obj: Any) -> Any:
     Supports formats:
     - ${VAR_NAME} - Required variable
     - ${VAR_NAME:default} - Variable with default value
+    - ${VAR_NAME:-default} - Variable with default value (bash-style)
     """
     if isinstance(obj, dict):
         return {k: _substitute_env_vars(v) for k, v in obj.items()}
@@ -58,11 +59,11 @@ def _expand_env_var(value: str) -> Any:
     """Expand environment variables in a string value."""
     import re
 
-    pattern = r"\$\{([^}:]+)(?::([^}]*))?\}"
+    pattern = r"\$\{([^}:]+)(?::(-)?([^}]*))?\}"
 
     def replacer(match):
         var_name = match.group(1)
-        default = match.group(2)
+        default = match.group(3)
 
         env_value = os.environ.get(var_name)
 

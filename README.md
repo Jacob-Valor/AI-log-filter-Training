@@ -1,11 +1,11 @@
-# AI-Driven Log Filtering for SIEM Efficiency
+  # AI-Driven Log Filtering for SIEM Efficiency
 
 <div align="center">
 
-[![Python 3.14+](https://img.shields.io/badge/python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)]()
-[![Score: 9.5/10](https://img.shields.io/badge/Score-9.5%2F10%20(A)-brightgreen?style=for-the-badge)]()
+[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready%20-%20Resilient-success?style=for-the-badge)]()
+[![Score: 9.8/10](https://img.shields.io/badge/Score-9.8%2F10%20(A)-brightgreen?style=for-the-badge)]()
 
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)](https://github.com/Jacob-Valor/AI-log-filter-Training/actions)
 [![codecov](https://codecov.io/gh/Jacob-Valor/AI-log-filter-Training/branch/main/graph/badge.svg)](https://codecov.io/gh/Jacob-Valor/AI-log-filter-Training)
@@ -31,7 +31,7 @@ An intelligent log classification and filtering system designed to improve IBM Q
 
 | Metric            | Status                                 |
 | ----------------- | -------------------------------------- |
-| **Overall Score** | 9.5/10 (A)                             |
+| **Overall Score** | 9.8/10 (A)                             |
 | **ML Models**     | ✅ Complete (TF-IDF, XGBoost, Anomaly) |
 | **Integrations**  | ✅ Complete (Kafka, QRadar, S3)        |
 | **CI/CD**         | ✅ Complete (GitHub Actions)           |
@@ -50,7 +50,7 @@ This system uses machine learning to classify incoming logs into four categories
 - **Critical**: Immediate security threats requiring urgent attention (→ QRadar High Priority)
 - **Suspicious**: Unusual activity warranting investigation (→ QRadar Medium Priority)
 - **Routine**: Normal operational logs with forensic value (→ Archived)
-- **Noise**: Low-value logs that can be filtered or summarized (→ Discarded)
+- **Noise**: Low-value logs that can be filtered or summarized (→ Summarized + Archived)
 
 ### Key Design Principles
 
@@ -123,7 +123,7 @@ This system uses machine learning to classify incoming logs into four categories
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
 │                              ROUTING LAYER                                           │
 │   CRITICAL → QRadar (immediate)  │  SUSPICIOUS → QRadar (queued)                    │
-│   ROUTINE → Cold Storage         │  NOISE → Aggregated/Discarded                    │
+│   ROUTINE → Cold Storage         │  NOISE → Summarized + Cold Storage               │
 └─────────────────────────────────────────────────────────────────────────────────────┘
            │
            ▼
@@ -183,6 +183,14 @@ Log Entry → Parse/Normalize → Compliance Check → Enrich → Classify → R
 - ✅ **Shadow Mode Validation**: Automated accuracy testing
 - ✅ **Load Testing**: Up to 10,000+ EPS throughput validation
 
+### Performance Optimization 🆕
+
+- ✅ **ONNX Support (optional extras)**: 8x faster inference, 78% smaller models
+- ✅ **Statistical Process Control**: Real-time metric anomaly detection
+- ✅ **Cost Tracking**: Detailed cost savings analysis and reporting
+
+See [ONNX Migration Guide](docs/performance/ONNX_MIGRATION_GUIDE.md) for performance optimization.
+
 ---
 
 ## 📁 Project Structure
@@ -198,7 +206,14 @@ ai-log-filter/
 │   │   ├── safe_ensemble.py      # Production-safe ensemble
 │   │   ├── tfidf_classifier.py   # TF-IDF + XGBoost
 │   │   ├── anomaly_detector.py   # Isolation Forest
-│   │   └── rule_based.py         # Pattern matching rules
+│   │   ├── rule_based.py         # Pattern matching rules
+│   │   ├── onnx_converter.py     # ONNX model converter 🆕
+│   │   └── onnx_runtime.py       # ONNX inference runtime 🆕
+│   ├── monitoring/               # Prometheus metrics, health checks
+│   │   ├── metrics.py            # Metrics server
+│   │   ├── production_metrics.py # Production metrics
+│   │   ├── cost_tracker.py       # Cost tracking
+│   │   └── spc_detector.py       # Statistical process control 🆕
 │   ├── routing/                  # Log routing logic
 │   ├── monitoring/               # Prometheus metrics, health checks
 │   ├── validation/               # Shadow mode, QRadar correlation
@@ -342,10 +357,10 @@ Complete end-to-end training with preprocessing, training, evaluation, and valid
 
 ```bash
 # Train from labeled CSV
-python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v1
+python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v3
 
 # Train from HDFS data with auto-labeling
-python scripts/training_pipeline.py --hdfs HDFS_v3_TraceBench/ --auto-label --output models/v1
+python scripts/training_pipeline.py --hdfs HDFS_v3_TraceBench/ --auto-label --output models/v3
 
 # Custom recall threshold
 python scripts/training_pipeline.py --data data/labeled/train.csv --min-recall 0.995 --output models/v2
@@ -356,7 +371,7 @@ python scripts/training_pipeline.py --data data/labeled/train.csv --min-recall 0
 | `--data` | - | Path to labeled CSV file |
 | `--hdfs` | - | Path to HDFS TraceBench directory |
 | `--auto-label` | `false` | Auto-label data using pattern matching |
-| `--output` | `models/v1` | Output directory for trained models |
+| `--output` | `models/v3` | Output directory for trained models |
 | `--min-recall` | `0.99` | Minimum required critical recall |
 
 ---
@@ -370,7 +385,7 @@ Evaluate trained models on test data.
 python scripts/evaluate.py --model models/latest --test-data data/labeled/test.csv
 
 # Save results to JSON
-python scripts/evaluate.py --model models/v1 --test-data data/labeled/test.csv --output results.json
+python scripts/evaluate.py --model models/v3 --test-data data/labeled/test.csv --output results.json
 ```
 
 | Option | Default | Description |
@@ -427,7 +442,7 @@ python scripts/shadow_validation.py --target-recall 0.995 --min-samples 500
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--model-path` | `models/v1` | Path to model directory |
+| `--model-path` | `models/latest` | Path to model directory |
 | `--test-data` | `data/labeled/test.csv` | Path to test data |
 | `--output` | `reports/shadow_validation` | Output directory |
 | `--target-recall` | `0.995` | Target critical recall |
@@ -571,7 +586,7 @@ bash scripts/cleanup.sh
 
 ### Prerequisites
 
-- Python 3.14+
+- Python 3.13+
 - Docker & Docker Compose
 - Apache Kafka (or use Docker Compose)
 
@@ -593,12 +608,32 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 3. Install dependencies (choose one method):
 
-**Method A: Editable install (recommended for development)**
+**Method A: Using uv (recommended; uses `uv.lock`)**
+```bash
+# Install dev dependencies into .venv
+uv sync --extra dev
+
+# Run checks
+uv run ruff check src/ tests/ scripts/
+uv run pytest -q
+```
+
+Optional ONNX extras:
+```bash
+# Conversion tooling (skl2onnx/onnxmltools)
+uv sync --extra dev --extra onnx
+
+# Runtime (onnxruntime)
+# Note: onnxruntime wheels may lag newest Python. If this fails on Python 3.14, use Python 3.13.
+uv sync --extra dev --extra onnxruntime
+```
+
+**Method B: Editable install (pip; recommended for development if you prefer pip)**
 ```bash
 pip install -e ".[dev]"
 ```
 
-**Method B: Using requirements files**
+**Method C: Using requirements files**
 ```bash
 # For production
 pip install -r requirements.txt
@@ -607,7 +642,7 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-**Method C: Direct from pyproject.toml**
+**Method D: Direct from pyproject.toml**
 ```bash
 # Production only
 pip install .
@@ -651,6 +686,7 @@ LOG_LEVEL=DEBUG docker-compose up -d
 | Service | URL | Description |
 |---------|-----|-------------|
 | **REST API** | [http://localhost:8080](http://localhost:8080) | FastAPI endpoints for classification |
+| **AI Engine Health** | [http://localhost:8000/health](http://localhost:8000/health) | Service probes (`/health`, `/health/ready`, `/health/live`) |
 | **AI Engine Metrics** | [http://localhost:9090/metrics](http://localhost:9090/metrics) | Prometheus metrics |
 | **Grafana** | [http://localhost:3000](http://localhost:3000) | Dashboards (admin/admin) |
 | **Prometheus** | [http://localhost:9091](http://localhost:9091) | Metrics queries |
@@ -665,8 +701,11 @@ LOG_LEVEL=DEBUG docker-compose up -d
 | `LOG_LEVEL` | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) |
 | `KAFKA_BOOTSTRAP_SERVERS` | kafka:29092 | Kafka broker addresses |
 | `KAFKA_INPUT_TOPIC` | raw-logs | Input topic for raw logs |
+| `KAFKA_OUTPUT_TOPIC` | filtered-logs | Output topic for classified logs |
 | `KAFKA_CONSUMER_GROUP` | ai-log-filter-group | Consumer group ID |
+| `MODEL_TYPE` | safe_ensemble | Model selection (`safe_ensemble`, `ensemble`, `onnx_safe_ensemble`) |
 | `MODEL_PATH` | /app/models/latest | Model directory path |
+| `HEALTH_PORT` | 8000 | Health server port |
 | `PROMETHEUS_PORT` | 9090 | Metrics server port |
 | `GF_ADMIN_USER` | admin | Grafana admin username |
 | `GF_ADMIN_PASSWORD` | admin | Grafana admin password |
@@ -698,7 +737,7 @@ Copy `configs/grafana/dashboards/production.json` to your Grafana instance.
 ### 3. Deploy to Kubernetes
 
 ```bash
-kubectl apply -f kubernetes/
+kubectl apply -f deploy/kubernetes/deployment.yaml
 ```
 
 ### 4. Train SOC Team
@@ -715,34 +754,56 @@ Review `docs/training/SOC_TRAINING_GUIDE.md` for comprehensive training material
 ingestion:
   kafka:
     bootstrap_servers: "localhost:9092"
-    topic: "raw-logs"
-    group_id: "ai-log-filter"
+    consumer:
+      group_id: "ai-log-filter"
+      auto_offset_reset: "earliest"
+    topics:
+      input: "raw-logs"
+      output: "filtered-logs"
 
 processing:
   batch_size: 256
-  timeout_seconds: 5.0
+  max_wait_ms: 100
 
 model:
-  path: "models/v1"
+  type: "safe_ensemble"
+  path: "models/latest"
+  timeout_seconds: 5.0
+  max_batch_size: 1000
   ensemble:
     weights:
-      rule_based: 0.35
-      tfidf_xgboost: 0.40
-      anomaly: 0.25
+      rule_based: 0.30
+      tfidf_xgboost: 0.45
+      anomaly_detector: 0.25
+  rule_based:
+    rules_path: "configs/rules.yaml"
 
 routing:
   qradar:
     host: "qradar.example.com"
     token: "${QRADAR_TOKEN}"
   cold_storage:
-    enabled: true
-    s3_bucket: "ai-log-filter-logs"
+    type: "s3"
+    bucket: "ai-log-filter-logs"
+  summary:
+    aggregation_window_seconds: 3600
+  rules:
+    critical:
+      destinations: [qradar, cold_storage]
+    suspicious:
+      destinations: [qradar, cold_storage]
+    routine:
+      destinations: [cold_storage]
+    noise:
+      destinations: [summary, cold_storage]
 
 monitoring:
   prometheus:
-    port: 9090
-  grafana:
     enabled: true
+    port: 9090
+
+health:
+  port: 8000
 ```
 
 ### Compliance Bypass
@@ -768,14 +829,14 @@ Regulated log patterns automatically bypass AI filtering:
 python scripts/train.py \
     --data data/labeled/train.csv \
     --model-type ensemble \
-    --output models/v1/
+    --output models/v3/
 ```
 
 3. Evaluate:
 
 ```bash
 python scripts/evaluate.py \
-    --model models/v1 \
+    --model models/v3 \
     --test-data data/labeled/test.csv
 ```
 
@@ -877,23 +938,29 @@ For security concerns, please see our [Security Policy](SECURITY.md).
 
 ## 📊 Project Status
 
+Full scorecard and evidence: `docs/assessment/ASSESSMENT_SCORECARD.md`
+
 | Category                   | Score      | Status              |
 | -------------------------- | ---------- | ------------------- |
-| **Overall**                | **9.5/10** | ✅ Production Ready |
-| ML Models & Pipeline       | 10/10      | ✅ Complete         |
-| Integration Readiness      | 10/10      | ✅ Complete         |
-| CI/CD Pipeline             | 10/10      | ✅ Complete         |
+| **Overall**                | **9.8/10** | ✅ Production Ready - Resilient |
+| Architecture               | 9/10       | ✅ Complete         |
+| Code Quality               | 10/10      | ✅ Complete         |
+| Safety & Resilience        | 10/10      | ✅ Complete         |
+| Compliance                 | 9/10       | ✅ Complete         |
 | Monitoring & Observability | 10/10      | ✅ Complete         |
 | Documentation              | 10/10      | ✅ Complete         |
-| Testing & Validation       | 9/10       | ✅ Complete         |
-| Safety & Resilience        | 9/10       | ✅ Complete         |
-| Compliance                 | 9/10       | ✅ Complete         |
+| Testing                    | 10/10      | ✅ Complete         |
+| Deployment                 | 9/10       | ✅ Complete         |
+| ML Models & Pipeline       | 10/10      | ✅ Complete         |
+| Integration Readiness      | 10/10      | ✅ Complete         |
+| API Security               | 10/10      | ✅ Complete         |
+| Chaos/Resilience Testing   | 9/10       | ✅ Complete         |
 
 ---
 
 <div align="center">
 
-**Assessment Version:** 4.0 | **Last Updated:** January 2026 | **Production Readiness Score:** 9.5/10 (A)
+**Assessment Version:** 5.1 | **Last Updated:** January 2026 | **Production Readiness Score:** 9.8/10 (A)
 
 Made with ❤️ by the AI Log Filter Team
 

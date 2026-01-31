@@ -9,8 +9,8 @@ import asyncio
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any
+from datetime import UTC, datetime
+from typing import Any, cast
 
 from confluent_kafka import Consumer, KafkaError
 
@@ -60,14 +60,20 @@ class ClassifiedLog:
     processing_time_ms: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
+        message = self.parsed_data.get("message") or self.raw_log.raw_message
+        source = self.parsed_data.get("source") or self.raw_log.topic
+
         return {
-            "raw_log": self.raw_log.to_dict(),
-            "parsed_data": self.parsed_data,
+            "message": message,
+            "source": source,
+            "timestamp": self.raw_log.timestamp.isoformat(),
             "category": self.category,
             "confidence": self.confidence,
-            "model_used": self.model_used,
+            "model": self.model_used,
             "explanation": self.explanation,
             "processing_time_ms": self.processing_time_ms,
+            "raw_log": self.raw_log.to_dict(),
+            "parsed_data": self.parsed_data,
         }
 
 
@@ -129,6 +135,16 @@ class LogConsumer:
         # Start processing in background
         self._processing_task = asyncio.create_task(self._process_loop())
 
+    @property
+    def is_running(self) -> bool:
+        """Compatibility for health probes."""
+        return self.running
+
+    @property
+    def current_lag(self) -> int:
+        """Best-effort Kafka lag indicator (0 if unknown)."""
+        return int(getattr(self, "_current_lag", 0))
+
     async def stop(self):
         """Stop consuming messages."""
         logger.info("Stopping Kafka consumer...")
@@ -151,10 +167,15 @@ class LogConsumer:
         batch: list[RawLog] = []
         last_process_time = time.time()
 
+        if self.consumer is None:
+            raise RuntimeError("Kafka consumer not initialized")
+
+        consumer = self.consumer
+
         while self.running:
             try:
                 # Poll for messages
-                msg = self.consumer.poll(timeout=0.1)
+                msg = consumer.poll(timeout=0.1)
 
                 if msg is None:
                     # No message, check if we should process batch
@@ -164,13 +185,18 @@ class LogConsumer:
                         last_process_time = time.time()
                     continue
 
-                if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF:
+                err = msg.error()
+                if err is not None:
+                    err = cast(KafkaError, err)
+                    partition_eof_attr = "_PARTITION_EOF"
+                    partition_eof = getattr(KafkaError, partition_eof_attr, None)
+
+                    if partition_eof is not None and err.code() == partition_eof:
                         continue
-                    else:
-                        logger.error(f"Kafka error: {msg.error()}")
-                        METRICS.kafka_errors.inc()
-                        continue
+
+                    logger.error(f"Kafka error: {err}")
+                    METRICS.kafka_errors.inc()
+                    continue
 
                 # Parse raw message
                 raw_log = self._parse_kafka_message(msg)
@@ -202,7 +228,7 @@ class LogConsumer:
             topic=msg.topic(),
             partition=msg.partition(),
             offset=msg.offset(),
-            timestamp=datetime.fromtimestamp(msg.timestamp()[1] / 1000),
+            timestamp=datetime.fromtimestamp(msg.timestamp()[1] / 1000, tz=UTC),
             key=msg.key().decode("utf-8") if msg.key() else None,
             headers=headers,
         )
@@ -234,10 +260,10 @@ class LogConsumer:
                 classified = ClassifiedLog(
                     raw_log=raw_log,
                     parsed_data=parsed,
-                    category=pred["category"],
-                    confidence=pred["confidence"],
-                    model_used=pred.get("model", "ensemble"),
-                    explanation=pred.get("explanation"),
+                    category=pred.category,
+                    confidence=pred.confidence,
+                    model_used=pred.model,
+                    explanation=pred.explanation,
                     processing_time_ms=(time.time() - start_time) * 1000 / len(batch),
                 )
                 classified_logs.append(classified)
@@ -246,11 +272,13 @@ class LogConsumer:
             await self.router.route_batch(classified_logs)
 
             # Commit offsets
+            if self.consumer is None:
+                raise RuntimeError("Kafka consumer not initialized")
             self.consumer.commit(asynchronous=False)
 
             # Update metrics
             processing_time = time.time() - start_time
-            METRICS.logs_processed.inc(len(batch))
+            METRICS.logs_processed.labels(source=self.input_topic).inc(len(batch))
             METRICS.batch_processing_time.observe(processing_time)
 
             for log in classified_logs:

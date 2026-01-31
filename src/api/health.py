@@ -5,12 +5,13 @@ Production-ready health, readiness, and liveness probes
 for Kubernetes and monitoring systems.
 """
 
+from __future__ import annotations
+
 import asyncio
 import time
-from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
 
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
@@ -71,7 +72,6 @@ SERVICE_START_TIME = time.time()
 SERVICE_VERSION = "1.0.0"
 
 
-@dataclass
 class HealthChecker:
     """
     Centralized health checking for all components.
@@ -79,7 +79,12 @@ class HealthChecker:
     Components register their health check functions here.
     """
 
-    _instance: HealthChecker | None = None
+    _instance: ClassVar[HealthChecker | None] = None
+
+    _checks: dict[str, Any]
+    _classifier: Any | None
+    _kafka_consumer: Any | None
+    _router: Any | None
 
     def __new__(cls):
         if cls._instance is None:
@@ -260,7 +265,7 @@ class HealthChecker:
 
         return HealthResponse(
             status=overall,
-            timestamp=datetime.utcnow().isoformat() + "Z",
+            timestamp=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             version=SERVICE_VERSION,
             uptime_seconds=round(time.time() - SERVICE_START_TIME, 2),
             components=clean_components,
@@ -352,4 +357,7 @@ async def liveness_probe() -> LivenessResponse:
 )
 async def metrics_summary() -> dict[str, Any]:
     """Get summary of key metrics."""
-    return {"timestamp": datetime.utcnow().isoformat() + "Z", **METRICS.get_summary()}
+    return {
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        **METRICS.get_summary(),
+    }

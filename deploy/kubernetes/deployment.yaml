@@ -70,8 +70,6 @@ spec:
               containerPort: 8000
             - name: metrics
               containerPort: 9090
-            - name: health
-              containerPort: 8080
 
           env:
             - name: APP_ENV
@@ -128,7 +126,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /health/live
-              port: health
+              port: http
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
@@ -138,7 +136,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /health/ready
-              port: health
+              port: http
             initialDelaySeconds: 45
             periodSeconds: 10
             timeoutSeconds: 5
@@ -148,7 +146,7 @@ spec:
           startupProbe:
             httpGet:
               path: /health/ready
-              port: health
+              port: http
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
@@ -159,7 +157,8 @@ spec:
               mountPath: /app/models
               readOnly: true
             - name: config
-              mountPath: /app/configs
+              mountPath: /app/configs/production.yaml
+              subPath: production.yaml
               readOnly: true
             - name: logs
               mountPath: /var/log/ai-log-filter
@@ -274,9 +273,6 @@ spec:
     - name: metrics
       port: 9090
       targetPort: metrics
-    - name: health
-      port: 8080
-      targetPort: health
   selector:
     app: ai-log-filter
 
@@ -321,11 +317,95 @@ data:
   # Production config file
   production.yaml: |
     # Embedded from configs/production.yaml
+
     app:
-      environment: production
-    safety:
-      fail_open:
+      name: "AI Log Filter"
+      version: "1.0.0"
+      env: "production"
+      debug: false
+
+    logging:
+      level: ${LOG_LEVEL:-INFO}
+      format: "json"
+      output: "stdout"
+
+    # Lightweight HTTP server for Kubernetes probes.
+    health:
+      host: "0.0.0.0"
+      port: ${HEALTH_PORT:-8000}
+
+    monitoring:
+      prometheus:
         enabled: true
-    compliance:
-      enabled: true
-      never_discard: true
+        host: "0.0.0.0"
+        port: ${PROMETHEUS_PORT:-9090}
+        path: "/metrics"
+
+    ingestion:
+      kafka:
+        bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
+        consumer:
+          group_id: ${KAFKA_CONSUMER_GROUP:-ai-log-filter-group}
+          auto_offset_reset: ${KAFKA_AUTO_OFFSET_RESET:-latest}
+          session_timeout_ms: 30000
+          heartbeat_interval_ms: 10000
+        producer:
+          acks: "all"
+          retries: 3
+          batch_size: 16384
+          linger_ms: 10
+        topics:
+          input: ${KAFKA_INPUT_TOPIC:-raw-logs}
+          output: ${KAFKA_OUTPUT_TOPIC:-filtered-logs}
+
+    processing:
+      batch_size: ${PROCESSING_BATCH_SIZE:-256}
+      max_wait_ms: ${PROCESSING_MAX_WAIT_MS:-100}
+
+    model:
+      type: ${MODEL_TYPE:-safe_ensemble}
+      path: ${MODEL_PATH:-/app/models/latest}
+      timeout_seconds: ${MODEL_TIMEOUT_SECONDS:-5.0}
+      max_batch_size: ${MODEL_MAX_BATCH_SIZE:-1000}
+      ensemble:
+        combination_strategy: "weighted_average"
+        weights:
+          rule_based: 0.30
+          tfidf_xgboost: 0.45
+          anomaly_detector: 0.25
+      rule_based:
+        rules_path: ${RULES_PATH:-configs/rules.yaml}
+      compliance:
+        enabled: true
+
+    routing:
+      qradar:
+        host: ${QRADAR_HOST:-qradar.example.com}
+        port: ${QRADAR_PORT:-443}
+        token: ${QRADAR_TOKEN:-}
+        verify_ssl: ${QRADAR_VERIFY_SSL:-true}
+        timeout: ${QRADAR_TIMEOUT:-30}
+      cold_storage:
+        type: ${COLD_STORAGE_TYPE:-local}
+        bucket: ${COLD_STORAGE_BUCKET:-log-archive}
+        batch_size: ${COLD_STORAGE_BATCH_SIZE:-10000}
+        compression: ${COLD_STORAGE_COMPRESSION:-gzip}
+      summary:
+        aggregation_window_seconds: ${SUMMARY_WINDOW_SECONDS:-3600}
+      rules:
+        critical:
+          method: immediate
+          destinations: [qradar, cold_storage]
+          batch_size: 1
+        suspicious:
+          method: queue
+          destinations: [qradar, cold_storage]
+          batch_size: 100
+        routine:
+          method: queue
+          destinations: [cold_storage]
+          batch_size: 500
+        noise:
+          method: queue
+          destinations: [summary, cold_storage]
+          batch_size: 1000

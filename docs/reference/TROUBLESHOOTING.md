@@ -1,6 +1,26 @@
 # Troubleshooting Guide
 
+[Back to docs index](../README.md)
+
 This guide helps diagnose and resolve common issues with the AI Log Filter system.
+
+## Table of Contents
+
+- [Quick Diagnostics](#quick-diagnostics)
+- [Common Issues](#common-issues)
+  - [1. Service Won't Start](#1-service-wont-start)
+  - [2. Classification Errors](#2-classification-errors)
+  - [3. Kafka Connection Issues](#3-kafka-connection-issues)
+  - [4. High Latency](#4-high-latency)
+  - [5. Low Accuracy](#5-low-accuracy)
+  - [6. Monitoring Issues](#6-monitoring-issues)
+- [ONNX Runtime Issues](#onnx-runtime-issues) 🆕
+- [SPC (Statistical Process Control) Issues](#spc-statistical-process-control-issues) 🆕
+- [Model Performance Issues](#model-performance-issues)
+- [Environment Variables](#environment-variables)
+- [Log Analysis](#log-analysis)
+- [Recovery Procedures](#recovery-procedures)
+- [Getting Help](#getting-help)
 
 ---
 
@@ -9,8 +29,12 @@ This guide helps diagnose and resolve common issues with the AI Log Filter syste
 Run these commands first to check system health:
 
 ```bash
-# Check API health
+# Check engine health (service mode)
+curl http://localhost:8000/health
+
+# Check REST API health
 curl http://localhost:8080/health
+curl http://localhost:8080/ready
 
 # Check metrics endpoint
 curl http://localhost:9090/metrics | head -50
@@ -62,11 +86,11 @@ lsof -i :9090
 
 #### Diagnosis
 ```bash
-# Check circuit breaker status
-curl http://localhost:8080/api/v1/circuit-breaker/status
+# Check circuit breaker + classifier status (engine)
+curl http://localhost:8000/health
 
-# Check model status
-curl http://localhost:8080/api/v1/models
+# Check available models (REST API)
+curl http://localhost:8080/models
 
 # View error logs
 docker-compose logs ai-engine 2>&1 | grep -i error
@@ -76,7 +100,7 @@ docker-compose logs ai-engine 2>&1 | grep -i error
 
 | Issue | Solution |
 |-------|----------|
-| Model not loaded | Reload models: `POST /api/v1/models/reload` |
+| Model not loaded | Restart the API process/container to reload models |
 | Circuit breaker open | Wait for timeout or restart service |
 | Invalid input format | Check log format matches expected schema |
 | Memory exhaustion | Scale horizontally or increase resources |
@@ -131,7 +155,7 @@ curl http://localhost:9090/metrics | grep latency
 docker stats ai-engine
 
 # Profile endpoint
-time curl -X POST http://localhost:8080/api/v1/classify \
+time curl -X POST http://localhost:8080/classify \
   -H "Content-Type: application/json" \
   -d '{"message": "test log", "source": "test"}'
 ```
@@ -159,8 +183,8 @@ time curl -X POST http://localhost:8080/api/v1/classify \
 # Run shadow validation
 python scripts/shadow_validation.py --target-recall 0.99
 
-# Check model metrics
-curl http://localhost:8080/api/v1/models
+# Check available models
+curl http://localhost:8080/models
 
 # Review misclassifications
 cat reports/shadow_validation/false_negatives_*.csv
@@ -295,8 +319,145 @@ docker-compose up -d ai-engine
 
 ## Getting Help
 
+## ONNX Runtime Issues
+
+### Symptoms
+- ONNX model fails to load
+- Inference different from joblib
+- Import errors for onnxruntime
+
+### Diagnosis
+
+```bash
+# Check ONNX dependencies
+python -c "import onnxruntime; print(onnxruntime.__version__)"
+python -c "import skl2onnx; print(skl2onnx.__version__)"
+
+# Validate ONNX model
+python -c "from src.utils.onnx_config import print_onnx_validation; print_onnx_validation('models/v3/onnx')"
+
+# Compare ONNX vs joblib predictions
+python -c "
+from src.models.onnx_runtime import compare_inference_speed
+# See docs/performance/ONNX_MIGRATION_GUIDE.md for details
+"
+```
+
+### Solutions
+
+| Issue | Solution |
+|-------|----------|
+| `skl2onnx` not found | `uv sync --extra onnx --extra onnxruntime` (or `pip install ".[onnx,onnxruntime]"`) |
+| `onnxruntime` install fails on Python 3.14 | Use Python 3.13 for ONNX runtime (or skip ONNX runtime extras) |
+| ONNX model fails to load | Re-convert: `python scripts/convert_models_to_onnx.py` |
+| Different predictions from joblib | Normal if < 1% difference. If higher, verify scaler loaded |
+| ONNX slower than joblib | Use batch size > 50. ONNX overhead pays off at scale |
+| Memory access errors | Disable memory arena in `src/models/onnx_runtime.py` |
+| GPU not available | Use `onnxruntime` not `onnxruntime-gpu` for CPU-only |
+
+### ONNX Conversion Issues
+
+```bash
+# Conversion fails with "Unknown model type"
+# Solution: Ensure model is standard scikit-learn, not customized
+
+# Conversion succeeds but model is slower
+# Solution: Use batch inference, not single-item
+
+# ONNX model larger than joblib
+# Solution: Check if using old skl2onnx version, upgrade: pip install -U skl2onnx
+```
+
+---
+
+## SPC (Statistical Process Control) Issues
+
+### Symptoms
+- SPC anomalies not detected
+- Too many false positives
+- Control limits not updating
+
+### Diagnosis
+
+```bash
+# Check SPC metrics
+curl http://localhost:9090/metrics | grep spc_
+
+# View SPC stats
+python -c "
+from src.monitoring.spc_detector import create_siem_spc_detectors
+spc = create_siem_spc_detectors()
+print(spc.get_all_stats())
+"
+```
+
+### Solutions
+
+| Issue | Solution |
+|-------|----------|
+| No anomalies detected | Check `min_samples` threshold not reached yet |
+| Too many false positives | Increase `sigma_threshold` from 3.0 to 4.0 |
+| Missing temporal anomalies | Ensure `hour_of_day` feature is included |
+| Control limits too wide/narrow | Adjust `window_size` (larger = smoother) |
+| SPC metrics not in Prometheus | Check `spc_detector.py` is imported and running |
+
+### SPC Tuning Guide
+
+```python
+from src.monitoring.spc_detector import SPCDetector
+
+# For high-volume, stable metrics (e.g., EPS)
+detector = SPCDetector(
+    name="eps",
+    window_size=300,        # 5 minutes of data
+    sigma_threshold=2.5,    # Tighter threshold
+    min_samples=60          # Need 1 minute of data
+)
+
+# For volatile metrics (e.g., error rate)
+detector = SPCDetector(
+    name="error_rate",
+    window_size=60,         # 1 minute of data
+    sigma_threshold=4.0,    # Loose threshold for noisy data
+    min_samples=30
+)
+```
+
+---
+
+## Model Performance Issues
+
+### High Inference Latency (> 100ms)
+
+```bash
+# Check if using ONNX (should be ~10x faster)
+curl http://localhost:9090/metrics | grep onnx
+
+# Benchmark models
+python scripts/convert_models_to_onnx.py --input models/v3 --benchmark
+
+# Check batch size (larger = more efficient)
+curl http://localhost:9090/metrics | grep batch_size
+```
+
+### Solutions
+
+| Issue | Solution |
+|-------|----------|
+| Still using joblib | Migrate to ONNX: see docs/performance/ONNX_MIGRATION_GUIDE.md |
+| Feature extraction slow | Optimize regex patterns in `anomaly_detector.py` |
+| TF-IDF vectorization slow | Pre-compute vectors or use ONNX for model only |
+| Single-item inference | Batch logs: use `predict_batch()` not `predict()` |
+
+---
+
+## Getting Help
+
 1. **Check logs**: `docker-compose logs ai-engine --tail=200`
 2. **Run tests**: `python -m pytest tests/ -v`
 3. **Check metrics**: `curl http://localhost:9090/metrics`
-4. **Review docs**: See `docs/runbooks/` for operational guides
-5. **File an issue**: Include logs, metrics, and steps to reproduce
+4. **Validate models**: `python scripts/validate_models.py`
+5. **ONNX issues**: See [ONNX Migration Guide](../performance/ONNX_MIGRATION_GUIDE.md)
+6. **SPC issues**: Check `src/monitoring/spc_detector.py` docstrings
+7. **Review docs**: See `docs/runbooks/` for operational guides
+8. **File an issue**: Include logs, metrics, and steps to reproduce

@@ -6,7 +6,7 @@ Routes classified logs to appropriate destinations based on category.
 
 import asyncio
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from src.utils.logging import get_logger
@@ -85,7 +85,7 @@ class QRadarDestination(BaseDestination):
     def _to_leef(self, log: dict[str, Any]) -> str:
         """Convert log to LEEF format."""
         # LEEF format: LEEF:Version|Vendor|Product|Version|EventID|Attributes
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
         attributes = [
             f"devTime={timestamp}",
@@ -144,7 +144,7 @@ class ColdStorageDestination(BaseDestination):
 
         try:
             # Generate partition path
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             partition_path = f"year={now.year}/month={now.month:02d}/day={now.day:02d}"
             filename = f"logs_{now.strftime('%Y%m%d_%H%M%S')}.json.gz"
 
@@ -182,13 +182,15 @@ class SummaryDestination(BaseDestination):
                 self.summaries[template] = {
                     "template": template,
                     "count": 0,
-                    "first_seen": datetime.utcnow().isoformat(),
+                    "first_seen": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
                     "last_seen": None,
                     "sample": log,
                 }
 
             self.summaries[template]["count"] += 1
-            self.summaries[template]["last_seen"] = datetime.utcnow().isoformat()
+            self.summaries[template]["last_seen"] = (
+                datetime.now(UTC).isoformat().replace("+00:00", "Z")
+            )
 
         logger.debug(f"Aggregated {len(logs)} logs into {len(self.summaries)} summaries")
 

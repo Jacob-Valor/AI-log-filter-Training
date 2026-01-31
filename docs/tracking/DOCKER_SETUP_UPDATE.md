@@ -40,15 +40,25 @@ ingestion:
       group_id: ${KAFKA_CONSUMER_GROUP:-ai-log-filter-group}
     topics:
       input: ${KAFKA_INPUT_TOPIC:-raw-logs}
-      output: "filtered-logs"
+      output: ${KAFKA_OUTPUT_TOPIC:-filtered-logs}
+
+processing:
+  batch_size: ${PROCESSING_BATCH_SIZE:-256}
+  max_wait_ms: ${PROCESSING_MAX_WAIT_MS:-100}
+
+health:
+  port: ${HEALTH_PORT:-8000}
 
 monitoring:
   prometheus:
     port: ${PROMETHEUS_PORT:-9090}
 
 routing:
-  default_output: "filtered-logs"
-  rules: [...]
+  rules:
+    critical: { destinations: [qradar, cold_storage] }
+    suspicious: { destinations: [qradar, cold_storage] }
+    routine: { destinations: [cold_storage] }
+    noise: { destinations: [summary, cold_storage] }
 ```
 
 ## Service Architecture
@@ -59,7 +69,7 @@ routing:
 │                              │                                  │
 │                    ┌─────────┴─────────┐                       │
 │                    ▼                   ▼                        │
-│            AI-Engine (:9090)      API (:8080)                  │
+│       AI-Engine (:8000 health, :9090 metrics)      API (:8080) │
 │                    │                                            │
 │                    ▼                                            │
 │            Prometheus (:9091) ───► Grafana (:3000)             │
@@ -74,7 +84,8 @@ routing:
 ## Verification
 
 All services healthy:
-- ✅ AI Engine (metrics on :9090)
+- ✅ AI Engine health (:8000)
+- ✅ AI Engine metrics (:9090)
 - ✅ API (health on :8080)
 - ✅ Grafana (:3000)
 - ✅ Prometheus (:9091)

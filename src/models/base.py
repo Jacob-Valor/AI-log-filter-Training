@@ -79,7 +79,7 @@ class BaseClassifier(ABC):
         raise NotImplementedError(f"{self.name} does not support saving")
 
     @classmethod
-    def load_from_path(cls, path: str) -> BaseClassifier:
+    def load_from_path(cls, path: str) -> "BaseClassifier":
         """Load model from disk."""
         raise NotImplementedError(f"{cls.__name__} does not support loading from path")
 
