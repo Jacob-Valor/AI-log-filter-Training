@@ -5,12 +5,13 @@ Handles loading and validation of configuration from files and environment.
 """
 
 import os
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def load_config(config_path: str = "configs/config.yaml") -> dict[str, Any]:
@@ -100,6 +101,12 @@ class Settings(BaseSettings):
     with the same name (case-insensitive).
     """
 
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
     # Application
     app_name: str = Field(default="ai-log-filter")
     app_env: str = Field(default="development")
@@ -129,17 +136,17 @@ class Settings(BaseSettings):
     # API
     api_host: str = Field(default="0.0.0.0")
     api_port: int = Field(default=8000)
+    cors_allowed_origins: str = Field(
+        default="*",
+        description="Comma-separated list of allowed CORS origins",
+    )
 
     # Monitoring
     prometheus_port: int = Field(default=9090)
     metrics_enabled: bool = Field(default=True)
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
 
-
+@lru_cache
 def get_settings() -> Settings:
     """Get cached application settings."""
     return Settings()

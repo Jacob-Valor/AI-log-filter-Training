@@ -10,7 +10,7 @@ import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from confluent_kafka import Consumer, KafkaError, KafkaException, Producer
@@ -145,7 +145,7 @@ class KafkaProducerIntegration(BaseIntegration):
         # Create delivery future
         loop = asyncio.get_event_loop()
         future = loop.create_future()
-        message_id = message_data.get("id", str(datetime.utcnow().timestamp()))
+        message_id = message_data.get("id", str(datetime.now(UTC).timestamp()))
         self._pending_messages[message_id] = future
 
         # Prepare headers
@@ -153,7 +153,7 @@ class KafkaProducerIntegration(BaseIntegration):
         if headers:
             kafka_headers.extend([(k, v.encode()) for k, v in headers.items()])
         kafka_headers.append(("message_id", message_id.encode()))
-        kafka_headers.append(("timestamp", datetime.utcnow().isoformat().encode()))
+        kafka_headers.append(("timestamp", datetime.now(UTC).isoformat().encode()))
 
         try:
             self._producer.produce(
@@ -319,7 +319,7 @@ class KafkaConsumerIntegration(BaseIntegration):
                             "timestamp",
                             msg.timestamp()[1].isoformat()
                             if msg.timestamp()[1]
-                            else datetime.utcnow().isoformat(),
+                            else datetime.now(UTC).isoformat(),
                         ),
                         source=value.get("source", msg.topic()),
                         raw_message=value.get("raw_message", msg.value().decode()),

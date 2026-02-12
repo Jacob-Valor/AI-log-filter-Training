@@ -4,6 +4,7 @@ FastAPI Application
 REST API for log classification and management.
 """
 
+import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
@@ -20,6 +21,7 @@ from src.api.rate_limiter import (
 )
 from src.models.ensemble import EnsembleClassifier
 from src.monitoring.metrics import health_checker
+from src.monitoring.production_metrics import get_metrics_collector
 from src.utils.config import get_settings
 from src.utils.logging import get_logger, setup_logging
 
@@ -65,17 +67,20 @@ app = FastAPI(
 # Setup rate limiting
 setup_rate_limiting(app)
 
-# CORS middleware
+# CORS middleware — restrict origins in production
+_settings = get_settings()
+_cors_origins = (
+    ["*"]
+    if _settings.app_env == "development"
+    else [o.strip() for o in _settings.cors_allowed_origins.split(",") if o.strip()]
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Global classifier instance
-classifier: EnsembleClassifier | None = None
 
 
 # =============================================================================
@@ -186,14 +191,12 @@ async def classify_log(request: Request, log: LogMessage):
         raise HTTPException(status_code=503, detail="Classifier not available")
 
     try:
-        import time
-
         start = time.time()
 
         prediction = await classifier.predict(log.message)
 
         processing_time = (time.time() - start) * 1000
-        logger.debug(f"Classified log in {processing_time:.2f}ms")
+        logger.debug("Classified log in %.2fms", processing_time)
 
         return ClassificationResult(
             category=prediction.category,
@@ -225,8 +228,6 @@ async def classify_batch(request: Request, batch_request: BatchClassifyRequest):
         raise HTTPException(status_code=400, detail="Batch size exceeds limit (1000)")
 
     try:
-        import time
-
         start = time.time()
 
         messages = [log.message for log in batch_request.logs]
@@ -259,11 +260,17 @@ async def classify_batch(request: Request, batch_request: BatchClassifyRequest):
 @app.get("/stats", response_model=StatsResponse, tags=["Monitoring"])
 async def get_stats():
     """Get classification statistics."""
-    # In production, these would come from actual metrics
+    collector = get_metrics_collector()
+    summary = collector.get_summary()
+
     return StatsResponse(
-        total_processed=0,
+        total_processed=(
+            summary["detection_quality"]["critical_true_positives"]
+            + summary["detection_quality"]["critical_false_negatives"]
+            + summary["detection_quality"]["critical_false_positives"]
+        ),
         classification_distribution={
-            "critical": 0,
+            "critical": summary["detection_quality"]["critical_true_positives"],
             "suspicious": 0,
             "routine": 0,
             "noise": 0,
@@ -326,7 +333,7 @@ async def submit_feedback(
 
 async def process_feedback(log_id: str, correct_category: str):
     """Process feedback in background."""
-    logger.info(f"Processing feedback for {log_id}: {correct_category}")
+    logger.info("Processing feedback for %s: %s", log_id, correct_category)
     # Store for retraining
 
 

@@ -16,7 +16,7 @@ import hashlib
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -262,8 +262,8 @@ class OffenseCorrelator:
         """Record an AI classification for later correlation."""
         record = ClassificationRecord(
             log_id=log_id,
-            timestamp=timestamp or datetime.utcnow(),
-            message_hash=hashlib.md5(message.encode()).hexdigest(),
+            timestamp=timestamp or datetime.now(UTC),
+            message_hash=hashlib.sha256(message.encode()).hexdigest(),
             source_ip=source_ip,
             source=source,
             category=category,
@@ -286,7 +286,7 @@ class OffenseCorrelator:
 
     def _cleanup_old_records(self, max_age_hours: int = 24):
         """Remove classification records older than max_age_hours."""
-        cutoff = datetime.utcnow() - timedelta(hours=max_age_hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=max_age_hours)
 
         to_remove = [
             log_id for log_id, record in self.classifications.items() if record.timestamp < cutoff
@@ -305,7 +305,7 @@ class OffenseCorrelator:
 
         Returns list of matches, highlighting false negatives.
         """
-        start_time = datetime.utcnow() - timedelta(hours=lookback_hours)
+        start_time = datetime.now(UTC) - timedelta(hours=lookback_hours)
 
         try:
             offenses = await self.qradar.get_offenses(
@@ -483,7 +483,7 @@ class OffenseCorrelator:
     def get_false_negative_report(self) -> dict[str, Any]:
         """Generate a report of detected false negatives."""
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "summary": {
                 "total_classifications_tracked": self.stats["total_classifications"],
                 "total_offenses_checked": self.stats["total_offenses_checked"],

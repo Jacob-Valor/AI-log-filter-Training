@@ -6,7 +6,7 @@ Provides structured logging with JSON output support.
 
 import logging
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 
 try:
     import structlog
@@ -98,7 +98,7 @@ class JsonFormatter(logging.Formatter):
         import json
 
         log_data = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

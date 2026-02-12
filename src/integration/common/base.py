@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, TypeVar
 
@@ -72,7 +72,7 @@ class HealthStatus:
     latency_ms: float
     message: str
     details: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class BaseIntegration(ABC):
@@ -119,7 +119,7 @@ class BaseIntegration(ABC):
             if success:
                 self._state = ConnectionState.CONNECTED
                 self.stats.state = ConnectionState.CONNECTED
-                self.stats.last_connection = datetime.utcnow()
+                self.stats.last_connection = datetime.now(UTC)
                 self.stats.total_connections += 1
 
                 # Start background health check
@@ -134,7 +134,7 @@ class BaseIntegration(ABC):
         except Exception as e:
             self._state = ConnectionState.FAILED
             self.stats.failed_connections += 1
-            self.stats.last_failure = datetime.utcnow()
+            self.stats.last_failure = datetime.now(UTC)
             logger.error(f"Integration {self.name} initialization error: {e}")
             return False
 

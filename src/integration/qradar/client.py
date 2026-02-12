@@ -10,7 +10,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, TypedDict
 
 import httpx
@@ -261,7 +261,7 @@ class QRadarIntegration(BaseIntegration):
             payload: dict[str, Any] = {
                 "events": [
                     {
-                        "device_time": datetime.utcnow().isoformat(),
+                        "device_time": datetime.now(UTC).isoformat(),
                         "logsource_id": log_source_id or 116,
                         "sourceip": leef_event.source_ip or "0.0.0.0",
                         "severity": leef_event.severity,
