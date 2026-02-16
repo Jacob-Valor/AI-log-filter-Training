@@ -2,7 +2,7 @@
 # AI Log Filter - Dockerfile
 # =============================================================================
 
-FROM python:3.14-slim as base
+FROM python:3.14-slim AS base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -12,16 +12,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install system dependencies
+# Install only runtime system dependencies in base
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 # =============================================================================
-# Builder stage
+# Builder stage - install build tools and Python deps
 # =============================================================================
-FROM base as builder
+FROM base AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY pyproject.toml ./
@@ -29,9 +32,9 @@ RUN pip install --upgrade pip && \
     pip install .
 
 # =============================================================================
-# Production stage
+# Production stage - minimal runtime image
 # =============================================================================
-FROM base as production
+FROM base AS production
 
 # Create non-root user
 RUN groupadd --gid 1000 appuser && \
@@ -56,9 +59,9 @@ USER appuser
 # Expose ports
 EXPOSE 8000 9090
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+# Health check - use the lightweight liveness endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/health/live || exit 1
 
 # Default command
 CMD ["python", "-m", "src.main"]

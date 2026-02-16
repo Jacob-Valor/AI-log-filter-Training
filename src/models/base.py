@@ -46,7 +46,6 @@ class BaseClassifier(ABC):
     @abstractmethod
     async def load(self):
         """Load model weights and resources."""
-        pass
 
     @abstractmethod
     async def predict(self, text: str) -> Prediction:
@@ -59,7 +58,6 @@ class BaseClassifier(ABC):
         Returns:
             Prediction object with category and confidence
         """
-        pass
 
     @abstractmethod
     async def predict_batch(self, texts: list[str]) -> list[Prediction]:
@@ -72,7 +70,6 @@ class BaseClassifier(ABC):
         Returns:
             List of Prediction objects
         """
-        pass
 
     def save(self, path: str):
         """Save model to disk."""
@@ -99,7 +96,7 @@ class ClassifierRegistry:
     Allows dynamic registration and retrieval of classifier classes.
     """
 
-    _classifiers: dict[str, type] = {}
+    _classifiers: dict[str, type] = {}  # noqa: RUF012 - intentional shared mutable class var
 
     @classmethod
     def register(cls, name: str):

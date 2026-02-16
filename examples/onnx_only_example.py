@@ -5,8 +5,8 @@ ONNX-Only Mode Example
 This script demonstrates how to use ONNX-only mode for maximum performance.
 
 Prerequisites:
-    1. Convert models to ONNX:
-       python scripts/convert_models_to_onnx.py --input models/v3 --output models/v3/onnx
+    1. Train and export ONNX artifacts:
+       python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v3
 
     2. Install ONNX runtime:
        pip install onnxruntime
@@ -35,19 +35,19 @@ async def main():
 
     # Validate ONNX setup
     print("\n1. Validating ONNX Setup...")
-    is_valid = validate_onnx_setup("models/v3/onnx")
+    is_valid = validate_onnx_setup("models/v3")
 
     if not is_valid:
         print("\n⚠️  ONNX models not found!")
-        print("Run: python scripts/convert_models_to_onnx.py \\")
-        print("       --input models/v3 \\")
-        print("       --output models/v3/onnx")
+        print("Run: python scripts/training_pipeline.py \\")
+        print("       --data data/labeled/train.csv \\")
+        print("       --output models/v3")
         return
 
     print("\n2. Loading ONNX-Only Classifier...")
 
     # Create ONNX-only classifier
-    classifier = await create_onnx_classifier(model_path="models/v3/onnx", config={})
+    classifier = await create_onnx_classifier(model_path="models/v3", config={})
 
     print("✅ Classifier loaded successfully!")
 
@@ -113,7 +113,7 @@ async def main():
     print("✅ ONNX-Only Mode Working Successfully!")
     print("=" * 60)
     print("\nKey Benefits:")
-    print("  • 8x faster inference than joblib")
+    print("  • 8x faster inference than legacy sklearn runtime")
     print("  • 78% smaller model files")
     print("  • 60% less memory usage")
     print("  • Cross-platform compatible")

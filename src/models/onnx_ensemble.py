@@ -2,25 +2,22 @@
 ONNX-Only Safe Ensemble Classifier
 
 Production-ready ensemble classifier that uses ONLY ONNX models.
-No joblib dependency at runtime - models must be converted to ONNX first.
 
 This provides:
 - Maximum performance (8x faster inference)
 - Minimal memory footprint (78% smaller models)
 - Cross-platform compatibility
-- No Python pickle/joblib security concerns
+- Portable ONNX artifacts across environments
 
 Usage:
-    # 1. First, convert your joblib models to ONNX
-    python scripts/convert_models_to_onnx.py \
-        --input models/v3 \
-        --output models/v3/onnx
+    # 1. First, train/export ONNX artifacts
+    python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v3
 
     # 2. Use ONNX-only classifier
     from src.models.onnx_ensemble import ONNXSafeEnsembleClassifier
 
     classifier = ONNXSafeEnsembleClassifier(
-        model_path="models/v3/onnx",
+        model_path="models/v3",
         config={"use_onnx_only": True}
     )
     await classifier.load()
@@ -29,10 +26,10 @@ Usage:
 
 import asyncio
 import time
-from dataclasses import dataclass
 from typing import Any
 
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
+from src.models.classification_result import ClassificationResult, create_fail_open_prediction
 from src.models.onnx_runtime import ONNXAnomalyDetector
 from src.models.rule_based import RuleBasedClassifier
 from src.monitoring.production_metrics import (
@@ -55,61 +52,29 @@ from src.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-@dataclass
-class ClassificationResult:
-    """Result of classification including metadata."""
-
-    prediction: Prediction
-    processing_time_ms: float
-    compliance_bypassed: bool = False
-    fail_open_used: bool = False
-    models_used: list[str] | None = None
-
-    def __post_init__(self):
-        if self.models_used is None:
-            self.models_used = []
-
-
-def create_fail_open_prediction(text: str, reason: str = "system_error") -> Prediction:
-    """Create a fail-open prediction that ensures log goes to QRadar."""
-    return Prediction(
-        category="critical",
-        confidence=0.0,
-        model="fail_open",
-        probabilities={"critical": 1.0, "suspicious": 0.0, "routine": 0.0, "noise": 0.0},
-        explanation={
-            "fail_open": True,
-            "reason": reason,
-            "note": "Log forwarded to QRadar due to system safety measure",
-        },
-    )
-
-
 @ClassifierRegistry.register("onnx_safe_ensemble")
 class ONNXSafeEnsembleClassifier(BaseClassifier):
     """
     ONNX-only production-safe ensemble classifier.
 
-    CRITICAL: This classifier requires models to be converted to ONNX format first.
-    Use scripts/convert_models_to_onnx.py to convert your joblib models.
+    CRITICAL: This classifier requires ONNX model artifacts.
+    Use scripts/training_pipeline.py to export ONNX artifacts.
 
     Features:
-    - 100% ONNX inference (no joblib at runtime)
-    - 8x faster inference than joblib
+    - 100% ONNX inference
+    - 8x faster inference than legacy sklearn runtime
     - 78% smaller model files
     - Fail-open behavior on errors
     - Circuit breaker protection
     - Compliance bypass for regulated logs
 
     Example:
-        # First convert models
-        python scripts/convert_models_to_onnx.py \\
-            --input models/v3 \\
-            --output models/v3/onnx
+        # First train/export models
+        python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v3
 
         # Then use ONNX-only classifier
         classifier = ONNXSafeEnsembleClassifier(
-            model_path="models/v3/onnx",
+            model_path="models/v3",
             config={}
         )
         await classifier.load()
@@ -135,17 +100,16 @@ class ONNXSafeEnsembleClassifier(BaseClassifier):
         self.onnx_paths = self.config.get(
             "onnx_paths",
             {
-                "anomaly_detector": "anomaly_detector.onnx",
-                "xgboost": "xgboost.onnx",
+                "anomaly_detector": "anomaly_detector/model.onnx",
+                "xgboost": "tfidf_xgboost/model.onnx",
             },
         )
 
-        # Scaler paths (still joblib for now - preprocessing only)
+        # Preprocessing artifact paths
         self.scaler_paths = self.config.get(
             "scaler_paths",
             {
-                "anomaly_detector": "anomaly_detector_scaler.joblib",
-                "tfidf_vectorizer": "tfidf_vectorizer.joblib",
+                "anomaly_detector": "anomaly_detector/scaler.onnx",
             },
         )
 
@@ -230,14 +194,14 @@ class ONNXSafeEnsembleClassifier(BaseClassifier):
         # Load ONNX anomaly detector
         try:
             if self.model_path:
-                anomaly_model_path = f"{self.model_path}/{self.onnx_paths.get('anomaly_detector', 'anomaly_detector.onnx')}"
-                anomaly_scaler_path = f"{self.model_path}/{self.scaler_paths.get('anomaly_detector', 'scaler.joblib')}"
+                anomaly_model_path = f"{self.model_path}/{self.onnx_paths.get('anomaly_detector', 'anomaly_detector/model.onnx')}"
+                anomaly_scaler_path = f"{self.model_path}/{self.scaler_paths.get('anomaly_detector', 'anomaly_detector/scaler.onnx')}"
             else:
                 anomaly_model_path = self.onnx_paths.get(
-                    "anomaly_detector", "models/v3/onnx/anomaly_detector.onnx"
+                    "anomaly_detector", "models/v3/anomaly_detector/model.onnx"
                 )
                 anomaly_scaler_path = self.scaler_paths.get(
-                    "anomaly_detector", "models/v3/onnx/scaler.joblib"
+                    "anomaly_detector", "models/v3/anomaly_detector/scaler.onnx"
                 )
 
             anomaly_config = {
@@ -266,7 +230,10 @@ class ONNXSafeEnsembleClassifier(BaseClassifier):
         except Exception as e:
             errors.append(f"anomaly_detector: {e}")
             logger.error(f"✗ Failed to load ONNX anomaly detector: {e}")
-            logger.error("Make sure models are converted: python scripts/convert_models_to_onnx.py")
+            logger.error(
+                "Make sure ONNX artifacts exist: "
+                "python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v3"
+            )
 
         # Check minimum viable configuration
         if "rule_based" not in self.classifiers:
@@ -549,27 +516,26 @@ class ONNXSafeEnsembleClassifier(BaseClassifier):
         stats = {"inference_engine": "ONNX Runtime", "models": {}}
 
         for name, classifier in self.classifiers.items():
-            if hasattr(classifier, "get_performance_stats"):
-                stats["models"][name] = classifier.get_performance_stats()  # type: ignore[attr-defined]
+            performance_fn = getattr(classifier, "get_performance_stats", None)
+            if callable(performance_fn):
+                stats["models"][name] = performance_fn()
 
         return stats
 
 
 # Factory function
 async def create_onnx_classifier(
-    model_path: str = "models/v3/onnx", config: dict[str, Any] | None = None
+    model_path: str = "models/v3", config: dict[str, Any] | None = None
 ) -> ONNXSafeEnsembleClassifier:
     """
     Factory function to create and initialize an ONNXSafeEnsembleClassifier.
 
     Usage:
-        # First convert models
-        python scripts/convert_models_to_onnx.py \\
-            --input models/v3 \\
-            --output models/v3/onnx
+        # First train/export models
+        python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v3
 
         # Then create classifier
-        classifier = await create_onnx_classifier("models/v3/onnx")
+        classifier = await create_onnx_classifier("models/v3")
         results = await classifier.classify_batch(logs)
     """
     classifier = ONNXSafeEnsembleClassifier(model_path=model_path, config=config)

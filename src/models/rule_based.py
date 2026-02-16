@@ -128,8 +128,44 @@ class RuleBasedClassifier(BaseClassifier):
         )
 
     async def predict_batch(self, texts: list[str]) -> list[Prediction]:
-        """Classify a batch of log messages."""
-        return [await self.predict(text) for text in texts]
+        """Classify a batch of log messages.
+
+        Rule-based classification is CPU-bound (regex matching), so we
+        call the synchronous logic directly rather than awaiting per item.
+        """
+        if not self.is_loaded:
+            await self.load()
+
+        results: list[Prediction] = []
+        for text in texts:
+            matched = False
+            for category in self.priority_order:
+                for rule_name, pattern, confidence in self.compiled_rules.get(category, []):
+                    if pattern.search(text):
+                        results.append(
+                            Prediction(
+                                category=category,
+                                confidence=confidence,
+                                model=self.name,
+                                explanation={"matched_rule": rule_name},
+                            )
+                        )
+                        matched = True
+                        break
+                if matched:
+                    break
+
+            if not matched:
+                results.append(
+                    Prediction(
+                        category=self.default_category,
+                        confidence=self.default_confidence,
+                        model=self.name,
+                        explanation={"matched_rule": None},
+                    )
+                )
+
+        return results
 
     def get_matching_rules(self, text: str) -> list[dict[str, Any]]:
         """Get all rules that match a given text."""

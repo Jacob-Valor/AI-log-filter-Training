@@ -35,8 +35,9 @@ dependencies = [
   # HTTP Client
   "httpx>=0.28.1",
   # Data Processing
-  "joblib>=1.5.3",
   "numpy>=2.4.1",
+  "onnxmltools>=1.16.0",
+  "onnxruntime>=1.23.2,<=1.24.0",
   "pandas>=2.3.3",
   # Monitoring & Logging
   "prometheus-client>=0.24.1",
@@ -48,6 +49,7 @@ dependencies = [
   "pyyaml>=6.0.3",
   # Machine Learning
   "scikit-learn>=1.8.0",
+  "skl2onnx>=1.20.0",
   "slowapi>=0.1.9",
   "structlog>=25.5.0",
   "tqdm>=4.67.1",
@@ -63,17 +65,6 @@ dev = [
   "pytest-cov>=7.0.0",
   "pytest-timeout>=2.3.0",
   "ruff>=0.14.13",
-]
-
-# Optional: ONNX conversion/runtime support.
-# Note: onnxruntime wheels may lag newest Python versions.
-onnx = [
-  "onnxmltools>=1.16.0",
-  "skl2onnx>=1.20.0",
-]
-
-onnxruntime = [
-  "onnxruntime>=1.23.2,<=1.24.0",
 ]
 
 # =============================================================================

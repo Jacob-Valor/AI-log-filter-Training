@@ -13,13 +13,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any
 
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-T = TypeVar("T")
 
 
 class CircuitState(Enum):
@@ -291,8 +289,6 @@ class CircuitBreaker:
 
 class CircuitOpenError(Exception):
     """Raised when circuit is open and no fallback is available."""
-
-    pass
 
 
 # Global circuit breaker registry for monitoring

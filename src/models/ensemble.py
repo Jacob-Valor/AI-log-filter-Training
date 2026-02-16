@@ -100,12 +100,9 @@ class EnsembleClassifier(BaseClassifier):
                 ]
 
         # Combine predictions
-        if self.strategy == "weighted_average":
-            return self._combine_weighted_average(texts, all_predictions)
-        elif self.strategy == "max_voting":
+        if self.strategy == "max_voting":
             return self._combine_max_voting(texts, all_predictions)
-        else:
-            return self._combine_weighted_average(texts, all_predictions)
+        return self._combine_weighted_average(texts, all_predictions)
 
     def _combine_weighted_average(
         self, texts: list[str], all_predictions: dict[str, list[Prediction]]
@@ -147,7 +144,7 @@ class EnsembleClassifier(BaseClassifier):
                 category_scores = {k: v / total for k, v in category_scores.items()}
 
             # Get final prediction
-            final_category = max(category_scores, key=category_scores.get)
+            final_category = max(category_scores, key=lambda k: category_scores[k])
             final_confidence = category_scores[final_category]
 
             # Override: If rule-based says critical with high confidence, use it
@@ -188,7 +185,7 @@ class EnsembleClassifier(BaseClassifier):
                     "confidence": pred.confidence,
                 }
 
-            final_category = max(votes, key=votes.get)
+            final_category = max(votes, key=lambda k: votes[k])
             final_confidence = votes[final_category] / sum(votes.values())
 
             results.append(

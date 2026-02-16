@@ -22,7 +22,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
@@ -39,6 +38,11 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from src.models.onnx_converter import (
+    convert_sklearn_to_onnx,
+    convert_text_vectorizer_to_onnx,
+    convert_xgboost_to_onnx,
+)
 from src.utils.logging import get_logger, setup_logging
 
 logger = get_logger(__name__)
@@ -409,8 +413,9 @@ class ModelTrainer:
         features_scaled = self.anomaly_scaler.fit_transform(features)
 
         # Train Isolation Forest
+        contamination: Any = self.config.anomaly_contamination
         self.anomaly_detector = IsolationForest(
-            contamination=self.config.anomaly_contamination,
+            contamination=contamination,
             n_estimators=self.config.anomaly_n_estimators,
             max_samples="auto",
             random_state=self.config.random_state,
@@ -580,35 +585,66 @@ class ModelTrainer:
 
     def save(self, output_path: str, results: TrainingResults):
         """Save trained models and metadata."""
+        if self.vectorizer is None or self.classifier is None or self.label_encoder is None:
+            raise RuntimeError("TF-IDF model artifacts are not available for export")
+        if self.anomaly_detector is None or self.anomaly_scaler is None:
+            raise RuntimeError("Anomaly detector artifacts are not available for export")
+
         output_dir = Path(output_path)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save TF-IDF + XGBoost
+        # Save TF-IDF + XGBoost in ONNX format
         tfidf_dir = output_dir / "tfidf_xgboost"
         tfidf_dir.mkdir(exist_ok=True)
-        joblib.dump(
-            {
-                "vectorizer": self.vectorizer,
-                "classifier": self.classifier,
-                "label_encoder": self.label_encoder,
-                "config": asdict(self.config),
-            },
-            tfidf_dir / "model.joblib",
-        )
-        logger.info(f"Saved TF-IDF model to {tfidf_dir}")
 
-        # Save anomaly detector
+        feature_count = len(self.vectorizer.get_feature_names_out())
+        convert_text_vectorizer_to_onnx(
+            vectorizer=self.vectorizer,
+            output_path=str(tfidf_dir / "vectorizer.onnx"),
+        )
+        convert_xgboost_to_onnx(
+            estimator=self.classifier,
+            output_path=str(tfidf_dir / "model.onnx"),
+            feature_count=feature_count,
+        )
+        labels = [str(label) for label in getattr(self.label_encoder, "classes_", [])]
+        with open(tfidf_dir / "labels.json", "w", encoding="utf-8") as f:
+            json.dump(labels, f, indent=2)
+        logger.info(f"Saved TF-IDF ONNX model to {tfidf_dir}")
+
+        # Save anomaly detector in ONNX format
         anomaly_dir = output_dir / "anomaly_detector"
         anomaly_dir.mkdir(exist_ok=True)
-        joblib.dump(
-            {
-                "model": self.anomaly_detector,
-                "scaler": self.anomaly_scaler,
-                "config": asdict(self.config),
-            },
-            anomaly_dir / "model.joblib",
+
+        convert_sklearn_to_onnx(
+            estimator=self.anomaly_scaler,
+            output_path=str(anomaly_dir / "scaler.onnx"),
+            feature_count=8,
         )
-        logger.info(f"Saved anomaly detector to {anomaly_dir}")
+        convert_sklearn_to_onnx(
+            estimator=self.anomaly_detector,
+            output_path=str(anomaly_dir / "model.onnx"),
+            feature_count=8,
+        )
+        logger.info(f"Saved anomaly detector ONNX model to {anomaly_dir}")
+
+        with open(output_dir / "export_manifest.json", "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "format": "onnx",
+                    "tfidf_xgboost": {
+                        "vectorizer": "tfidf_xgboost/vectorizer.onnx",
+                        "classifier": "tfidf_xgboost/model.onnx",
+                        "labels": "tfidf_xgboost/labels.json",
+                    },
+                    "anomaly_detector": {
+                        "scaler": "anomaly_detector/scaler.onnx",
+                        "model": "anomaly_detector/model.onnx",
+                    },
+                },
+                f,
+                indent=2,
+            )
 
         # Save results and metadata
         with open(output_dir / "training_results.json", "w") as f:
@@ -690,7 +726,9 @@ def run_pipeline(args):
         anomaly_info = trainer.train_anomaly_detector(X_train[normal_mask])
         logger.info(f"Anomaly detector info: {anomaly_info}")
     else:
-        logger.warning("Not enough normal samples for anomaly detector")
+        logger.warning("Not enough normal samples for anomaly detector, training on full dataset")
+        anomaly_info = trainer.train_anomaly_detector(X_train)
+        logger.info(f"Anomaly detector info (full dataset fallback): {anomaly_info}")
 
     # Evaluate
     results = trainer.evaluate(X_test, y_test)

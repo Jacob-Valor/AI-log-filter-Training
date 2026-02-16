@@ -247,8 +247,7 @@ class LogConsumer:
 
             # Extract messages for classification
             messages = [
-                p.get("message", log.raw_message)
-                for p, log in zip(parsed_logs, batch, strict=False)
+                p.get("message", log.raw_message) for p, log in zip(parsed_logs, batch, strict=True)
             ]
 
             # Classify batch
@@ -256,7 +255,7 @@ class LogConsumer:
 
             # Create classified logs
             classified_logs = []
-            for raw_log, parsed, pred in zip(batch, parsed_logs, predictions, strict=False):
+            for raw_log, parsed, pred in zip(batch, parsed_logs, predictions, strict=True):
                 classified = ClassifiedLog(
                     raw_log=raw_log,
                     parsed_data=parsed,

@@ -72,8 +72,11 @@ def validate_models() -> dict[str, Any]:
     required_files: list[tuple[str, str]] = [
         ("model", "model_info.json"),
         ("model", "training_results.json"),
-        ("model", "tfidf_xgboost/model.joblib"),
-        ("model", "anomaly_detector/model.joblib"),
+        ("model", "tfidf_xgboost/model.onnx"),
+        ("model", "tfidf_xgboost/vectorizer.onnx"),
+        ("model", "tfidf_xgboost/labels.json"),
+        ("model", "anomaly_detector/model.onnx"),
+        ("model", "anomaly_detector/scaler.onnx"),
         ("repo", "configs/rules.yaml"),
     ]
 
@@ -126,7 +129,12 @@ def validate_models() -> dict[str, Any]:
         results["warnings"].append(f"Cannot read training_results.json: {e}")
 
     # Check model file sizes
-    model_files = ["tfidf_xgboost/model.joblib", "anomaly_detector/model.joblib"]
+    model_files = [
+        "tfidf_xgboost/model.onnx",
+        "tfidf_xgboost/vectorizer.onnx",
+        "anomaly_detector/model.onnx",
+        "anomaly_detector/scaler.onnx",
+    ]
 
     for model_file in model_files:
         full_path = model_path / model_file

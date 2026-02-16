@@ -5,6 +5,7 @@ Routes classified logs to appropriate destinations based on category.
 """
 
 import asyncio
+import re
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from typing import Any
@@ -25,12 +26,10 @@ class BaseDestination(ABC):
     @abstractmethod
     async def send(self, logs: list[dict[str, Any]]):
         """Send logs to destination."""
-        pass
 
     @abstractmethod
     async def close(self):
         """Close connection to destination."""
-        pass
 
 
 class QRadarDestination(BaseDestination):
@@ -51,11 +50,15 @@ class QRadarDestination(BaseDestination):
             try:
                 import httpx
 
+                headers: dict[str, str] = {"Content-Type": "application/json"}
+                if self.token:
+                    headers["SEC"] = str(self.token)
+
                 self._client = httpx.AsyncClient(
                     base_url=f"https://{self.host}:{self.port}",
                     verify=self.verify_ssl,
                     timeout=self.timeout,
-                    headers={"SEC": self.token, "Content-Type": "application/json"},
+                    headers=headers,
                 )
             except ImportError:
                 logger.warning("httpx not available, QRadar destination disabled")
@@ -101,10 +104,10 @@ class QRadarDestination(BaseDestination):
             f"{' '.join(attributes)}"
         )
 
-    def _get_severity(self, category: str) -> int:
+    def _get_severity(self, category: str | None) -> int:
         """Map category to QRadar severity."""
         severity_map = {"critical": 10, "suspicious": 7, "routine": 3, "noise": 1}
-        return severity_map.get(category, 5)
+        return severity_map.get(category or "routine", 5)
 
     async def _send_syslog(self, message: str):
         """Send message via syslog."""
@@ -196,8 +199,6 @@ class SummaryDestination(BaseDestination):
 
     def _extract_template(self, message: str) -> str:
         """Extract template from message by replacing variables."""
-        import re
-
         # Replace IPs
         template = re.sub(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "<IP>", message)
         # Replace numbers

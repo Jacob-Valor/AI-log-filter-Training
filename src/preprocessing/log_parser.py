@@ -11,21 +11,13 @@ Supports:
 
 import json
 import re
-from dataclasses import dataclass
+from collections.abc import Callable
 from typing import Any
 
 from src.utils.logging import get_logger
+from src.utils.text_preprocessing import normalize_log_text
 
 logger = get_logger(__name__)
-
-
-@dataclass
-class LogFormat:
-    """Definition of a log format."""
-
-    name: str
-    pattern: str
-    parser: callable
 
 
 class LogParser:
@@ -39,7 +31,7 @@ class LogParser:
     def __init__(self):
         self.formats = self._initialize_formats()
 
-    def _initialize_formats(self) -> list[tuple[str, re.Pattern, callable]]:
+    def _initialize_formats(self) -> list[tuple[str, re.Pattern, Callable]]:
         """Initialize supported log formats."""
         return [
             (
@@ -237,10 +229,10 @@ class LogParser:
             (r"(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})", "timestamp"),
         ]
 
-        for pattern, field in timestamp_patterns:
-            match = re.search(pattern, log_message)
-            if match:
-                result[field] = match.group(1)
+        for pattern, field_name in timestamp_patterns:
+            ts_match = re.search(pattern, log_message)
+            if ts_match:
+                result[field_name] = ts_match.group(1)
                 break
 
         # IP addresses
@@ -256,9 +248,9 @@ class LogParser:
 
         # Log level
         level_pattern = r"\b(DEBUG|INFO|WARN(?:ING)?|ERROR|CRITICAL|FATAL|TRACE)\b"
-        level_match = re.search(level_pattern, log_message, re.IGNORECASE)
-        if level_match:
-            result["level"] = level_match.group(1).upper()
+        lvl_match = re.search(level_pattern, log_message, re.IGNORECASE)
+        if lvl_match:
+            result["level"] = lvl_match.group(1).upper()
 
         return result
 
@@ -337,44 +329,4 @@ class FeatureExtractor:
         Normalizes various patterns to reduce vocabulary size while
         preserving semantic meaning.
         """
-        # Normalize IP addresses
-        text = re.sub(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "<IP>", text)
-
-        # Normalize timestamps
-        text = re.sub(
-            r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?",
-            "<TIMESTAMP>",
-            text,
-        )
-
-        # Normalize hex values
-        text = re.sub(r"0x[0-9a-fA-F]+", "<HEX>", text)
-
-        # Normalize UUIDs
-        text = re.sub(
-            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-            "<UUID>",
-            text,
-            flags=re.IGNORECASE,
-        )
-
-        # Normalize file paths
-        text = re.sub(r"(/[\w\-./]+)+", "<PATH>", text)
-        text = re.sub(r"([A-Za-z]:\\[\w\-\\./]+)+", "<PATH>", text)
-
-        # Normalize email addresses
-        text = re.sub(r"\b[\w.-]+@[\w.-]+\.\w+\b", "<EMAIL>", text)
-
-        # Normalize URLs
-        text = re.sub(r"https?://\S+", "<URL>", text)
-
-        # Normalize large numbers
-        text = re.sub(r"\b\d{5,}\b", "<LONGNUM>", text)
-
-        # Lowercase
-        text = text.lower()
-
-        # Normalize whitespace
-        text = re.sub(r"\s+", " ", text).strip()
-
-        return text
+        return normalize_log_text(text)

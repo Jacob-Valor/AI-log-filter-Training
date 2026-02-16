@@ -2,19 +2,19 @@
 ONNX-Only Configuration and Validation
 
 This module provides configuration defaults and validation for ONNX-only mode.
-No joblib models are used at runtime - everything must be in ONNX format.
+All persisted ML artifacts are stored in ONNX format.
 """
 
 from pathlib import Path
 from typing import Any
 
 
-def get_onnx_only_config(model_path: str = "models/v3/onnx") -> dict[str, Any]:
+def get_onnx_only_config(model_path: str = "models/v3") -> dict[str, Any]:
     """
     Get default configuration for ONNX-only mode.
 
     This configuration:
-    - Uses ONNX models exclusively (no joblib at runtime)
+    - Uses ONNX models exclusively at runtime
     - Optimizes for maximum performance
     - Enables all ONNX-specific features
 
@@ -31,12 +31,12 @@ def get_onnx_only_config(model_path: str = "models/v3/onnx") -> dict[str, Any]:
             "use_onnx_only": True,
             "inference_engine": "onnx_runtime",
             "onnx_paths": {
-                "anomaly_detector": "anomaly_detector.onnx",
-                "xgboost": "xgboost.onnx",
+                "anomaly_detector": "anomaly_detector/model.onnx",
+                "xgboost": "tfidf_xgboost/model.onnx",
+                "tfidf_vectorizer": "tfidf_xgboost/vectorizer.onnx",
             },
             "scaler_paths": {
-                "anomaly_detector": "scaler.joblib",
-                "tfidf_vectorizer": "tfidf_vectorizer.joblib",
+                "anomaly_detector": "anomaly_detector/scaler.onnx",
             },
             "ensemble": {
                 "weights": {
@@ -48,7 +48,7 @@ def get_onnx_only_config(model_path: str = "models/v3/onnx") -> dict[str, Any]:
             },
             "performance": {
                 "batch_size": 256,
-                "max_latency_ms": 50,  # Lower than joblib mode
+                "max_latency_ms": 50,
                 "timeout_seconds": 5.0,
             },
         },
@@ -96,11 +96,14 @@ def validate_onnx_setup(model_path: str) -> dict[str, Any]:
 
     # Check required ONNX models
     required_models = {
-        "anomaly_detector": "anomaly_detector.onnx",
+        "anomaly_detector": "anomaly_detector/model.onnx",
+        "anomaly_scaler": "anomaly_detector/scaler.onnx",
+        "tfidf_classifier": "tfidf_xgboost/model.onnx",
+        "tfidf_vectorizer": "tfidf_xgboost/vectorizer.onnx",
     }
 
     optional_models = {
-        "xgboost": "xgboost.onnx",
+        "tfidf_labels": "tfidf_xgboost/labels.json",
     }
 
     # Check required models
@@ -129,20 +132,6 @@ def validate_onnx_setup(model_path: str) -> dict[str, Any]:
         else:
             results["warnings"].append(f"Optional model '{name}' not found at {model_file}")
 
-    # Check scalers (still needed for preprocessing)
-    required_scalers = {
-        "anomaly_scaler": "scaler.joblib",
-    }
-
-    for name, filename in required_scalers.items():
-        scaler_file = path / filename
-        if scaler_file.exists():
-            results["models_found"][name] = {"file": str(scaler_file), "status": "✓ found"}
-        else:
-            results["warnings"].append(
-                f"Scaler '{name}' not found. Anomaly detector may not work correctly."
-            )
-
     # Validate
     if not results["models_missing"]:
         results["valid"] = True
@@ -150,13 +139,13 @@ def validate_onnx_setup(model_path: str) -> dict[str, Any]:
     else:
         results["status"] = f"❌ Missing required models: {', '.join(results['models_missing'])}"
         results["help"] = (
-            "Run: python scripts/convert_models_to_onnx.py --input models/v3 --output models/v3/onnx"
+            "Run: python scripts/training_pipeline.py --data data/labeled/train.csv --output models/v3"
         )
 
     return results
 
 
-def print_onnx_validation(model_path: str = "models/v3/onnx"):
+def print_onnx_validation(model_path: str = "models/v3"):
     """Print formatted validation results."""
     results = validate_onnx_setup(model_path)
 

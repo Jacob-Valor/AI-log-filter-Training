@@ -9,11 +9,11 @@ This is the main classifier to use in production environments.
 
 import asyncio
 import time
-from dataclasses import dataclass
 from typing import Any
 
 from src.models.anomaly_detector import AnomalyDetector
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
+from src.models.classification_result import ClassificationResult, create_fail_open_prediction
 from src.models.rule_based import RuleBasedClassifier
 from src.models.tfidf_classifier import TFIDFClassifier
 from src.monitoring.production_metrics import (
@@ -34,41 +34,6 @@ from src.utils.circuit_breaker import (
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-
-@dataclass
-class ClassificationResult:
-    """Result of classification including metadata."""
-
-    prediction: Prediction
-    processing_time_ms: float
-    compliance_bypassed: bool = False
-    fail_open_used: bool = False
-    models_used: list[str] = None
-
-    def __post_init__(self):
-        if self.models_used is None:
-            self.models_used = []
-
-
-def create_fail_open_prediction(text: str, reason: str = "system_error") -> Prediction:
-    """
-    Create a fail-open prediction that ensures log goes to QRadar.
-
-    When the AI system fails, we default to sending ALL logs to QRadar
-    to ensure no security events are missed.
-    """
-    return Prediction(
-        category="critical",  # Always forward on failure
-        confidence=0.0,  # Zero confidence indicates fail-open
-        model="fail_open",
-        probabilities={"critical": 1.0, "suspicious": 0.0, "routine": 0.0, "noise": 0.0},
-        explanation={
-            "fail_open": True,
-            "reason": reason,
-            "note": "Log forwarded to QRadar due to system safety measure",
-        },
-    )
 
 
 @ClassifierRegistry.register("safe_ensemble")
@@ -280,12 +245,10 @@ class SafeEnsembleClassifier(BaseClassifier):
             regulated_results.append(
                 ClassificationResult(
                     prediction=Prediction(
-                        **{
-                            k: v
-                            for k, v in bypass_pred.items()
-                            if k
-                            in ["category", "confidence", "model", "probabilities", "explanation"]
-                        }
+                        category=bypass_pred["category"],
+                        confidence=bypass_pred["confidence"],
+                        model=bypass_pred["model"],
+                        explanation=bypass_pred.get("explanation"),
                     ),
                     processing_time_ms=0.0,
                     compliance_bypassed=True,
@@ -323,11 +286,12 @@ class SafeEnsembleClassifier(BaseClassifier):
                 ]
 
         # Merge results in original order
-        all_results = [None] * len(logs)
-        for i, result in zip(regulated_indices, regulated_results, strict=False):
-            all_results[i] = result
-        for i, result in zip(regular_indices, regular_results, strict=False):
-            all_results[i] = result
+        result_map: dict[int, ClassificationResult] = {}
+        for i, result in zip(regulated_indices, regulated_results, strict=True):
+            result_map[i] = result
+        for i, result in zip(regular_indices, regular_results, strict=True):
+            result_map[i] = result
+        all_results = [result_map[i] for i in range(len(logs))]
 
         # Record batch metrics
         total_time = time.time() - start_time
@@ -414,14 +378,14 @@ class SafeEnsembleClassifier(BaseClassifier):
         """Combine predictions from all models using weighted average."""
         results = []
 
-        for i in range(len(texts)):
+        for idx in range(len(texts)):
             category_scores: dict[str, float] = dict.fromkeys(self.CATEGORIES, 0.0)
             explanations = {}
 
             total_weight = 0.0
 
             for model_name, predictions in all_predictions.items():
-                pred = predictions[i]
+                pred = predictions[idx]
                 weight = self.weights.get(model_name, 0.25)
                 total_weight += weight
 
@@ -446,12 +410,12 @@ class SafeEnsembleClassifier(BaseClassifier):
                 category_scores = {k: v / total_weight for k, v in category_scores.items()}
 
             # Get final prediction
-            final_category = max(category_scores, key=category_scores.get)
+            final_category = max(category_scores, key=lambda k: category_scores[k])
             final_confidence = category_scores[final_category]
 
             # CRITICAL SAFETY OVERRIDE:
             # If rule-based says critical with high confidence, always use it
-            rule_pred = all_predictions.get("rule_based", [None])[i]
+            rule_pred = all_predictions.get("rule_based", [None])[idx]
             if rule_pred:
                 if rule_pred.category == "critical" and rule_pred.confidence > 0.85:
                     final_category = "critical"

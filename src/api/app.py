@@ -67,19 +67,21 @@ app = FastAPI(
 # Setup rate limiting
 setup_rate_limiting(app)
 
-# CORS middleware — restrict origins in production
+# CORS middleware — restrict origins in production.
+# NOTE: allow_credentials=True requires explicit origins, never "*".
 _settings = get_settings()
+_is_dev = _settings.app_env == "development"
 _cors_origins = (
-    ["*"]
-    if _settings.app_env == "development"
+    ["http://localhost:3000", "http://localhost:8000"]
+    if _is_dev
     else [o.strip() for o in _settings.cors_allowed_origins.split(",") if o.strip()]
 )
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=not _is_dev,  # Only send credentials for explicit origins
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Client-ID"],
 )
 
 
@@ -207,8 +209,8 @@ async def classify_log(request: Request, log: LogMessage):
         )
 
     except Exception as e:
-        logger.error(f"Classification error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Classification error: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal classification error")
 
 
 @app.post("/classify/batch", response_model=BatchClassifyResponse, tags=["Classification"])
@@ -253,8 +255,8 @@ async def classify_batch(request: Request, batch_request: BatchClassifyRequest):
         )
 
     except Exception as e:
-        logger.error(f"Batch classification error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("Batch classification error: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal classification error")
 
 
 @app.get("/stats", response_model=StatsResponse, tags=["Monitoring"])

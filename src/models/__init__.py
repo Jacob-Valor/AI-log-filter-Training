@@ -2,7 +2,7 @@
 Models Module - ML classifiers
 
 This module provides machine learning classifiers for log categorization.
-Supports both joblib-based and ONNX-based inference.
+Supports ONNX-based inference for persisted ML artifacts.
 
 ONNX-Only Mode:
     For maximum performance, use ONNX-only mode with ONNXSafeEnsembleClassifier.
@@ -10,11 +10,12 @@ ONNX-Only Mode:
 
     Example:
         from src.models.onnx_ensemble import create_onnx_classifier
-        classifier = await create_onnx_classifier("models/v3/onnx")
+        classifier = await create_onnx_classifier("models/v3")
 """
 
 from src.models.anomaly_detector import AnomalyDetector
 from src.models.base import BaseClassifier
+from src.models.classification_result import ClassificationResult, create_fail_open_prediction
 from src.models.ensemble import EnsembleClassifier
 from src.models.rule_based import RuleBasedClassifier
 from src.models.tfidf_classifier import TFIDFClassifier
@@ -22,10 +23,12 @@ from src.models.tfidf_classifier import TFIDFClassifier
 # Base exports (always available)
 __all__ = [
     "BaseClassifier",
+    "ClassificationResult",
     "RuleBasedClassifier",
     "TFIDFClassifier",
     "AnomalyDetector",
     "EnsembleClassifier",
+    "create_fail_open_prediction",
 ]
 
 # Try to import ONNX modules (optional - requires onnxruntime)
@@ -46,5 +49,5 @@ try:  # noqa: SIM105 - Try/ExceptPass okay here
         ]
     )
 except ImportError:
-    # ONNX runtime not installed - joblib only mode
+    # ONNX runtime not installed.
     pass
