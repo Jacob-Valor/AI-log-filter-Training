@@ -1,6 +1,6 @@
-# AI-Driven Log Filtering for SIEM Efficiency
-
 <div align="center">
+
+# AI-Driven Log Filtering for SIEM Efficiency
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
