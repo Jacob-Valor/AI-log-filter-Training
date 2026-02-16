@@ -13,8 +13,8 @@
 
 **An intelligent ML-based log classification system for IBM QRadar SIEM**
 
-[Quick Start](#quick-start) |
-[Architecture](#architecture) |
+[Quick Start](#-quick-start) |
+[Architecture](#-architecture) |
 [Documentation](docs/) |
 [Contributing](CONTRIBUTING.md) |
 [Security](SECURITY.md)
@@ -23,7 +23,7 @@
 
 ---
 
-## Overview
+## What is this? 🎯
 
 An intelligent log classification and filtering system that reduces IBM QRadar SIEM ingestion volume by 40-60% while maintaining >99.5% critical event recall. Incoming logs are classified into four categories:
 
@@ -34,7 +34,7 @@ An intelligent log classification and filtering system that reduces IBM QRadar S
 | **Routine**    | Archived to cold storage  | Normal operational logs with forensic value    |
 | **Noise**      | Summarized + archived     | Low-value logs that can be filtered            |
 
-### Design Principles
+### Key Design Principles
 
 | Principle            | Implementation                                            |
 |----------------------|-----------------------------------------------------------|
@@ -45,14 +45,7 @@ An intelligent log classification and filtering system that reduces IBM QRadar S
 
 ---
 
-## Quick Start
-
-### Prerequisites
-
-- Python 3.13+
-- Docker & Docker Compose (for full stack)
-
-### Installation
+## Quick Start 🚀
 
 ```bash
 git clone https://github.com/Jacob-Valor/AI-log-filter-Training.git
@@ -77,20 +70,20 @@ pip install -r requirements.txt          # production
 pip install -r requirements-dev.txt      # development
 ```
 
-### Validate Models
+### Validate Models ✅
 
 ```bash
 python scripts/validate_models.py
 ```
 
-### Run with Docker
+### Run with Docker 🐳
 
 ```bash
 cp .env.example .env       # configure environment
 docker-compose up -d --build
 ```
 
-### Service URLs (Local)
+### Service URLs (Local) 🌐
 
 | Service            | URL                                     | Description                        |
 |--------------------|-----------------------------------------|------------------------------------|
@@ -102,7 +95,7 @@ docker-compose up -d --build
 
 ---
 
-## Architecture
+## Architecture 🏗️
 
 > Full documentation: [Architecture Docs](docs/architecture/)
 
@@ -116,8 +109,8 @@ docker-compose up -d --build
  LOG SOURCES                      OBSERVABILITY
  Firewalls, IDS/IPS,              Prometheus, Grafana,
  Endpoints, Cloud/Apps            AlertManager, Shadow Validator
-         |                                |
-         v                                |
+          |                                |
+          v                                |
  ┌───────────────────────────────────────────────────────────┐
  │                 INGESTION LAYER (Kafka)                    │
  │  raw-logs (12p) | classified-logs (12p) | audit-decisions  │
@@ -182,9 +175,9 @@ Log Entry -> Parse/Normalize -> Compliance Check -> Enrich -> Classify -> Route
 
 ---
 
-## Features
+## Features ✨
 
-### Core
+### Core 🛠️
 
 - **Multi-Model Ensemble** -- Rule-based, TF-IDF+XGBoost, Anomaly Detection
 - **Real-time Processing** -- <100ms latency for log classification
@@ -193,7 +186,7 @@ Log Entry -> Parse/Normalize -> Compliance Check -> Enrich -> Classify -> Route
 - **Compliance Bypass** -- PCI-DSS, HIPAA, SOX, GDPR logs skip AI
 - **ONNX Inference** -- 8x faster inference, 78% smaller models ([migration guide](docs/performance/ONNX_MIGRATION_GUIDE.md))
 
-### Integrations
+### Integrations 🔌
 
 - **Kafka** -- Producer/Consumer with topic management
 - **QRadar** -- Native LEEF format, event submission, offense creation
@@ -201,7 +194,7 @@ Log Entry -> Parse/Normalize -> Compliance Check -> Enrich -> Classify -> Route
 - **Prometheus** -- 30+ operational metrics
 - **Grafana** -- Production dashboard with 20+ panels
 
-### Production
+### Production 🏗️
 
 - **CI/CD** -- GitHub Actions with linting, testing, security scanning
 - **Docker** -- Multi-stage build, non-root user, health checks
@@ -213,7 +206,7 @@ Log Entry -> Parse/Normalize -> Compliance Check -> Enrich -> Classify -> Route
 
 ---
 
-## Performance Targets
+## Performance Targets 📈
 
 | Metric                   | Target       |
 |--------------------------|--------------|
@@ -226,7 +219,7 @@ Log Entry -> Parse/Normalize -> Compliance Check -> Enrich -> Classify -> Route
 
 ---
 
-## Project Structure
+## Project Structure 📁
 
 ```
 ai-log-filter/
@@ -268,13 +261,13 @@ ai-log-filter/
 ├── Dockerfile                    # Multi-stage container build
 ├── docker-compose.yml            # Local development stack
 ├── Makefile                      # Build automation
-├── pyproject.toml                # Project metadata & tooling config
+├── # Project metadata & pyproject.toml                tooling config
 └── requirements.txt              # Production dependencies
 ```
 
 ---
 
-## Scripts Reference
+## Scripts Reference 📜
 
 All scripts are in the `scripts/` directory. Run from the project root.
 
@@ -406,9 +399,9 @@ bash scripts/cleanup.sh
 
 ---
 
-## Configuration
+## Configuration ⚙️
 
-### Main Configuration (`configs/config.yaml`)
+### Main Configuration (`configs/config.yaml`) 📄
 
 ```yaml
 ingestion:
@@ -450,7 +443,7 @@ monitoring:
     port: 9090
 ```
 
-### Compliance Bypass
+### Compliance Bypass 🛡️
 
 Regulated log patterns automatically bypass AI filtering:
 
@@ -461,7 +454,7 @@ Regulated log patterns automatically bypass AI filtering:
 | SOX        | `financial_*`, `trading_*`, `audit_*`     | 7 years      |
 | GDPR       | `gdpr_*`, `pii_*`                         | Configurable |
 
-### Environment Variables
+### Environment Variables 🔧
 
 | Variable                    | Default               | Description                        |
 |-----------------------------|-----------------------|------------------------------------|
@@ -477,9 +470,9 @@ Regulated log patterns automatically bypass AI filtering:
 
 ---
 
-## Production Deployment
+## Production Deployment 🏭
 
-### 1. Validate
+### 1. Validate ✅
 
 ```bash
 python scripts/validate_models.py
@@ -488,13 +481,13 @@ python scripts/load_test.py --target-eps 10000
 python scripts/integration_tests.py --kafka --qradar --s3
 ```
 
-### 2. Deploy
+### 2. Deploy 🚀
 
 ```bash
 kubectl apply -f deploy/kubernetes/deployment.yaml
 ```
 
-### 3. Monitor
+### 3. Monitor 📊
 
 Import `configs/grafana/dashboards/production.json` into Grafana.
 
@@ -513,13 +506,13 @@ Key metrics:
 - `ai_filter_classification_latency` -- target: <100ms P99
 - `ai_filter_circuit_breaker_state` -- 0=closed, 1=open (alert)
 
-### 4. Train SOC Team
+### 4. Train SOC Team 👨‍🏫
 
 See [`docs/training/SOC_TRAINING_GUIDE.md`](docs/training/SOC_TRAINING_GUIDE.md).
 
 ---
 
-## Model Training
+## Model Training 🧠
 
 ```bash
 # 1. Prepare labeled data
@@ -537,7 +530,7 @@ python scripts/validate_models.py
 
 ---
 
-## Contributing
+## Contributing 🤝
 
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
 
@@ -550,15 +543,15 @@ git push origin feature/your-feature
 
 ---
 
-## License
+## License 📜
 
 MIT License -- see [LICENSE](LICENSE).
 
-## Security
+## Security 🔒
 
 See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
-## Acknowledgments
+## Acknowledgments 🙏
 
 - [IBM QRadar](https://www.ibm.com/qradar) | [Apache Kafka](https://kafka.apache.org/) | [scikit-learn](https://scikit-learn.org/) | [XGBoost](https://xgboost.readthedocs.io/) | [Prometheus](https://prometheus.io/) | [Grafana](https://grafana.com/)
 
