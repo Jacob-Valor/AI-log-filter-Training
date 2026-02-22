@@ -240,14 +240,19 @@ jobs:
       - name: 🔍 Run Bandit security scanner
         run: |
           echo "::group::🔍 Running Bandit security scan"
-          uvx --from bandit bandit -r src/ -f json -o bandit-results.json || true
+          uvx --from bandit bandit -r src/ -f sarif -o bandit-results.sarif || true
           echo "::ingroup::"
 
       - name: ☁️ Upload Bandit results to SARIF
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('bandit-results.sarif') != ''
         with:
-          sarif_file: bandit-results.json
+          sarif_file: bandit-results.sarif
+
+      - name: 📝 Note missing Bandit SARIF
+        if: always() && hashFiles('bandit-results.sarif') == ''
+        run: |
+          echo "⚠️ Bandit did not generate `bandit-results.sarif`." >> $GITHUB_STEP_SUMMARY
 
       - name: 🛡️ Run Safety check
         run: |
@@ -272,7 +277,7 @@ jobs:
         with:
           name: security-scan-results
           path: |
-            bandit-results.json
+            bandit-results.sarif
             safety-results.json
           retention-days: 30
 
