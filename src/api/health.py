@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any, ClassVar
 
 from fastapi import APIRouter, Response, status
@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 router = APIRouter(tags=["health"])
 
 
-class HealthStatus(str, Enum):
+class HealthStatus(StrEnum):
     """Health check status values."""
 
     HEALTHY = "healthy"
