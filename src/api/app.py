@@ -4,47 +4,38 @@ FastAPI Application
 REST API for log classification and management.
 """
 
-import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from typing import Any
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 
 from src.api.rate_limiter import (
-    RateLimitConfig,
-    get_rate_limit_status,
-    limiter,
     setup_rate_limiting,
 )
+from src.api.routers import classification, management, stats
+from src.api.schemas.health import HealthResponse
 from src.models.ensemble import EnsembleClassifier
 from src.monitoring.metrics import health_checker
-from src.monitoring.production_metrics import get_metrics_collector
 from src.utils.config import get_settings
 from src.utils.logging import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
-# Global classifier instance
-classifier: EnsembleClassifier | None = None
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
-    global classifier
-
     # Startup
     settings = get_settings()
     setup_logging(level=settings.log_level)
 
     logger.info("Starting AI Log Filter API...")
 
-    # Load classifier
+    # Load classifier and attach to app.state (avoid module-level global)
     classifier = EnsembleClassifier(model_path=settings.model_path, config={})
     await classifier.load()
+    app.state.classifier = classifier
 
     logger.info("API startup complete")
 
@@ -52,15 +43,51 @@ async def lifespan(app: FastAPI):
 
     # Shutdown
     logger.info("Shutting down API...")
+    app.state.classifier = None
 
 
 # Initialize FastAPI app
 app = FastAPI(
     title="AI Log Filter API",
-    description="AI-Driven Log Classification for SIEM Efficiency",
+    description="""
+## AI-Driven Log Classification for SIEM Efficiency
+
+An intelligent ML-based log classification system that reduces IBM QRadar SIEM
+ingestion volume by 40-60% while maintaining >99.5% critical event recall.
+
+### Classification Categories
+
+| Category | Action | Description |
+|----------|--------|-------------|
+| **critical** | QRadar (high priority) | Immediate security threats |
+| **suspicious** | QRadar (medium priority) | Unusual activity warranting investigation |
+| **routine** | Cold storage | Normal operational logs |
+| **noise** | Summarized + archived | Low-value logs |
+
+### Features
+
+- **Fail-Open Design**: If AI fails, all logs forward to QRadar (zero data loss)
+- **Compliance Bypass**: PCI-DSS, HIPAA, SOX, GDPR logs skip AI entirely
+- **Real-time Processing**: <100ms latency for log classification
+- **Audit Trail**: Every classification decision is logged
+
+### Rate Limits
+
+- `/classify`: 100 requests/minute
+- `/classify/batch`: 30 requests/minute
+- `/feedback`: 20 requests/minute
+""",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    openapi_tags=[
+        {"name": "Info", "description": "API information and metadata"},
+        {"name": "Health", "description": "Health check endpoints for monitoring"},
+        {"name": "Classification", "description": "Log classification endpoints"},
+        {"name": "Models", "description": "Model management and information"},
+        {"name": "Monitoring", "description": "Metrics and monitoring endpoints"},
+        {"name": "Feedback", "description": "Submit feedback for model improvement"},
+    ],
     lifespan=lifespan,
 )
 
@@ -85,59 +112,6 @@ app.add_middleware(
 )
 
 
-# =============================================================================
-# Request/Response Models
-# =============================================================================
-
-
-class LogMessage(BaseModel):
-    """Single log message for classification."""
-
-    message: str = Field(..., description="Log message text")
-    source: str | None = Field(None, description="Log source identifier")
-    timestamp: datetime | None = Field(None, description="Log timestamp")
-    metadata: dict[str, Any] | None = Field(None, description="Additional metadata")
-
-
-class ClassificationResult(BaseModel):
-    """Classification result for a log message."""
-
-    category: str = Field(..., description="Predicted category")
-    confidence: float = Field(..., description="Prediction confidence (0-1)")
-    model: str = Field(..., description="Model used for classification")
-    probabilities: dict[str, float] | None = Field(None, description="Per-class probabilities")
-    explanation: dict[str, Any] | None = Field(None, description="Classification explanation")
-
-
-class BatchClassifyRequest(BaseModel):
-    """Request for batch classification."""
-
-    logs: list[LogMessage] = Field(..., description="List of log messages")
-
-
-class BatchClassifyResponse(BaseModel):
-    """Response for batch classification."""
-
-    results: list[ClassificationResult]
-    processing_time_ms: float
-    total_logs: int
-
-
-class HealthResponse(BaseModel):
-    """Health check response."""
-
-    status: str
-    timestamp: datetime
-    checks: dict[str, Any]
-
-
-class StatsResponse(BaseModel):
-    """Statistics response."""
-
-    total_processed: int
-    classification_distribution: dict[str, int]
-    avg_latency_ms: float
-    uptime_seconds: float
 
 
 # =============================================================================
@@ -169,9 +143,9 @@ async def health_check():
 
 
 @app.get("/ready", tags=["Health"])
-async def readiness_check():
+async def readiness_check(request: Request):
     """Check if application is ready to serve requests."""
-    global classifier
+    classifier = getattr(request.app.state, "classifier", None)
 
     if classifier is None or not classifier.is_loaded:
         raise HTTPException(status_code=503, detail="Classifier not loaded")
@@ -179,171 +153,8 @@ async def readiness_check():
     return {"ready": True}
 
 
-@app.post("/classify", response_model=ClassificationResult, tags=["Classification"])
-@limiter.limit(RateLimitConfig.CLASSIFY_SINGLE_LIMIT)
-async def classify_log(request: Request, log: LogMessage):
-    """
-    Classify a single log message.
-
-    Returns the predicted category, confidence score, and optional explanation.
-    """
-    global classifier
-
-    if classifier is None:
-        raise HTTPException(status_code=503, detail="Classifier not available")
-
-    try:
-        start = time.time()
-
-        prediction = await classifier.predict(log.message)
-
-        processing_time = (time.time() - start) * 1000
-        logger.debug("Classified log in %.2fms", processing_time)
-
-        return ClassificationResult(
-            category=prediction.category,
-            confidence=prediction.confidence,
-            model=prediction.model,
-            probabilities=prediction.probabilities,
-            explanation=prediction.explanation,
-        )
-
-    except Exception as e:
-        logger.error("Classification error: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal classification error")
 
 
-@app.post("/classify/batch", response_model=BatchClassifyResponse, tags=["Classification"])
-@limiter.limit(RateLimitConfig.CLASSIFY_BATCH_LIMIT)
-async def classify_batch(request: Request, batch_request: BatchClassifyRequest):
-    """
-    Classify a batch of log messages.
-
-    More efficient than individual requests for processing multiple logs.
-    """
-    global classifier
-
-    if classifier is None:
-        raise HTTPException(status_code=503, detail="Classifier not available")
-
-    if len(batch_request.logs) > 1000:
-        raise HTTPException(status_code=400, detail="Batch size exceeds limit (1000)")
-
-    try:
-        start = time.time()
-
-        messages = [log.message for log in batch_request.logs]
-        predictions = await classifier.predict_batch(messages)
-
-        processing_time = (time.time() - start) * 1000
-
-        results = [
-            ClassificationResult(
-                category=pred.category,
-                confidence=pred.confidence,
-                model=pred.model,
-                probabilities=pred.probabilities,
-                explanation=pred.explanation,
-            )
-            for pred in predictions
-        ]
-
-        return BatchClassifyResponse(
-            results=results,
-            processing_time_ms=processing_time,
-            total_logs=len(batch_request.logs),
-        )
-
-    except Exception as e:
-        logger.error("Batch classification error: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal classification error")
-
-
-@app.get("/stats", response_model=StatsResponse, tags=["Monitoring"])
-async def get_stats():
-    """Get classification statistics."""
-    collector = get_metrics_collector()
-    summary = collector.get_summary()
-
-    return StatsResponse(
-        total_processed=(
-            summary["detection_quality"]["critical_true_positives"]
-            + summary["detection_quality"]["critical_false_negatives"]
-            + summary["detection_quality"]["critical_false_positives"]
-        ),
-        classification_distribution={
-            "critical": summary["detection_quality"]["critical_true_positives"],
-            "suspicious": 0,
-            "routine": 0,
-            "noise": 0,
-        },
-        avg_latency_ms=0.0,
-        uptime_seconds=0.0,
-    )
-
-
-@app.get("/models", tags=["Models"])
-async def list_models():
-    """List available classification models."""
-    return {
-        "models": [
-            {
-                "name": "rule_based",
-                "type": "rule_based",
-                "description": "Pattern matching classifier",
-            },
-            {
-                "name": "tfidf_xgboost",
-                "type": "ml",
-                "description": "TF-IDF + XGBoost classifier",
-            },
-            {
-                "name": "anomaly_detector",
-                "type": "anomaly",
-                "description": "Isolation Forest anomaly detector",
-            },
-            {
-                "name": "ensemble",
-                "type": "ensemble",
-                "description": "Combined ensemble classifier",
-            },
-        ]
-    }
-
-
-@app.post("/feedback", tags=["Feedback"])
-@limiter.limit(RateLimitConfig.FEEDBACK_LIMIT)
-async def submit_feedback(
-    request: Request,
-    log_id: str,
-    correct_category: str,
-    background_tasks: BackgroundTasks,
-):
-    """
-    Submit feedback on a classification.
-
-    Used for active learning and model improvement.
-    """
-    if correct_category not in ["critical", "suspicious", "routine", "noise"]:
-        raise HTTPException(status_code=400, detail="Invalid category")
-
-    # In production, this would store feedback for retraining
-    background_tasks.add_task(process_feedback, log_id, correct_category)
-
-    return {"status": "feedback_received", "log_id": log_id}
-
-
-async def process_feedback(log_id: str, correct_category: str):
-    """Process feedback in background."""
-    logger.info("Processing feedback for %s: %s", log_id, correct_category)
-    # Store for retraining
-
-
-@app.get("/rate-limit-status", tags=["Monitoring"])
-async def rate_limit_status(request: Request):
-    """
-    Get current rate limit status for your client.
-
-    Returns configured limits and how to check remaining quota via headers.
-    """
-    return await get_rate_limit_status(request)
+app.include_router(classification.router)
+app.include_router(management.router)
+app.include_router(stats.router)

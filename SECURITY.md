@@ -17,7 +17,12 @@ We take security seriously. If you discover a security vulnerability, please fol
 
 Instead, please report security issues by emailing:
 
-- **Email**: security@example.com (replace with your email)
+- **Email**: security@valorcyber.com
+
+Or use GitHub's private vulnerability reporting feature:
+1. Go to the repository's **Security** tab
+2. Click **Report a vulnerability**
+3. Fill out the advisory form
 
 ### 📋 What to Include
 
@@ -54,11 +59,33 @@ This project handles security logs. Key security features:
 - **Audit Trail**: All classification decisions are logged
 - **No Sensitive Data Logging**: PII/credentials are never logged
 
+## Automated Security Scanning
+
+This project uses automated security scanning:
+
+| Scan Type             | Tool       | Schedule     |
+| --------------------- | ---------- | ------------ |
+| Dependency Vulnerabilities | pip-audit | Weekly + PR  |
+| Container Scanning    | Trivy      | Weekly + PR  |
+| Secret Detection      | Gitleaks   | Weekly + PR  |
+| Code Analysis         | CodeQL     | Weekly + PR  |
+| Dependency Review     | GitHub     | Pull Requests |
+
+### Dependabot
+
+Automated dependency updates are configured via [Dependabot](/.github/dependabot.yml):
+
+- **Python dependencies**: Weekly updates on Mondays
+- **Docker base images**: Weekly updates on Mondays
+- **GitHub Actions**: Weekly updates on Mondays
+- **Security updates**: Immediate (regardless of schedule)
+
 ## Dependencies
 
 We regularly update dependencies to address known vulnerabilities:
 
 - Automated dependency scanning via GitHub Actions
+- Dependabot for automated updates
 - Regular security audits of third-party packages
 
 ---

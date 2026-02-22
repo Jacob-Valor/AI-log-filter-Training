@@ -5,20 +5,9 @@ Provides ClassificationResult and fail-open prediction helpers used
 by both SafeEnsembleClassifier and ONNXSafeEnsembleClassifier.
 """
 
-from dataclasses import dataclass, field
 
+from src.domain.entities import ClassificationResult  # noqa: F401
 from src.models.base import Prediction
-
-
-@dataclass
-class ClassificationResult:
-    """Result of classification including metadata."""
-
-    prediction: Prediction
-    processing_time_ms: float
-    compliance_bypassed: bool = False
-    fail_open_used: bool = False
-    models_used: list[str] = field(default_factory=list)
 
 
 def create_fail_open_prediction(text: str, reason: str = "system_error") -> Prediction:

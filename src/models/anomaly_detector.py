@@ -88,15 +88,15 @@ class AnomalyDetector(BaseClassifier):
                 self.scaler_input_name = scaler_session.get_inputs()[0].name
                 self.model_input_name = model_session.get_inputs()[0].name
                 self.is_loaded = True
-                logger.info(f"Loaded anomaly detector ONNX artifacts from {model_path}")
+                logger.info("Loaded anomaly detector ONNX artifacts from %s", model_path)
                 return
 
-            logger.warning(f"ONNX artifacts not found at {model_path}, initializing empty model")
+            logger.warning("ONNX artifacts not found at %s, initializing empty model", model_path)
             self._initialize_empty()
             self.is_loaded = True
 
         except Exception as e:
-            logger.error(f"Failed to load anomaly detector: {e}")
+            logger.error("Failed to load anomaly detector: %s", e)
             raise
 
     def _initialize_empty(self):
@@ -118,7 +118,8 @@ class AnomalyDetector(BaseClassifier):
         self.model_input_name = None
         self.scaler_input_name = None
 
-    def extract_features(self, text: str) -> AnomalyFeatures:
+    @staticmethod
+    def extract_features(text: str) -> AnomalyFeatures:
         """Extract numerical features from log text."""
         message_length = len(text)
         word_count = len(text.split())
@@ -222,7 +223,7 @@ class AnomalyDetector(BaseClassifier):
         results: list[Prediction] = []
 
         for score, pred in zip(scores, predictions_raw, strict=True):
-            is_anomaly = self._is_anomaly_prediction(pred)
+            is_anomaly = self.is_anomaly_value(pred)
 
             if is_anomaly:
                 category = "suspicious"
@@ -260,7 +261,12 @@ class AnomalyDetector(BaseClassifier):
         return results
 
     @staticmethod
-    def _is_anomaly_prediction(prediction_value: Any) -> bool:
+    def is_anomaly_value(prediction_value: Any) -> bool:
+        """Determine whether a raw ONNX / sklearn prediction indicates an anomaly.
+
+        Handles bytes, string labels, and integer codes from both sklearn
+        IsolationForest and ONNX Runtime output formats.
+        """
         if isinstance(prediction_value, bytes):
             prediction_value = prediction_value.decode("utf-8", errors="ignore")
         if isinstance(prediction_value, str):
@@ -279,7 +285,7 @@ class AnomalyDetector(BaseClassifier):
 
         assert self.model is not None
         assert self.scaler is not None
-        logger.info(f"Training anomaly detector on {len(texts)} samples")
+        logger.info("Training anomaly detector on %s samples", len(texts))
 
         features = [self.extract_features(text).to_array() for text in texts]
         X = np.array(features)
@@ -317,4 +323,4 @@ class AnomalyDetector(BaseClassifier):
         with open(save_path / "config.json", "w", encoding="utf-8") as f:
             json.dump(self.config, f, indent=2)
 
-        logger.info(f"Anomaly detector ONNX artifacts saved to {save_path}")
+        logger.info("Anomaly detector ONNX artifacts saved to %s", save_path)

@@ -10,11 +10,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.models.base import Prediction
-from src.models.safe_ensemble import (
-    ClassificationResult,
-    SafeEnsembleClassifier,
-    create_fail_open_prediction,
-)
+from src.models.classification_result import ClassificationResult, create_fail_open_prediction
+from src.models.safe_ensemble import SafeEnsembleClassifier
 
 
 class TestFailOpenPrediction:
@@ -191,7 +188,7 @@ class TestSafeEnsembleFailOpen:
     @pytest.mark.asyncio
     async def test_fail_open_on_timeout(self):
         """Should fail-open on timeout."""
-        from src.models.safe_ensemble import create_fail_open_prediction
+        from src.models.classification_result import create_fail_open_prediction
 
         classifier = SafeEnsembleClassifier(
             config={"timeout_seconds": 0.05}  # Very short timeout (50ms)

@@ -3,18 +3,17 @@ Model Serving Infrastructure
 Sets up model serving with various backends
 """
 
-import logging
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
 import json
-import subprocess
+import logging
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 try:
+    import torch
     import uvicorn
     from fastapi import FastAPI, HTTPException
     from pydantic import BaseModel
-    import torch
 except ImportError:
     raise ImportError("fastapi and uvicorn required: pip install fastapi uvicorn")
 
@@ -49,7 +48,7 @@ class ServingConfig:
 
     @classmethod
     def from_json(cls, path: str) -> 'ServingConfig':
-        with open(path, 'r') as f:
+        with open(path) as f:
             config = json.load(f)
         return cls(**config)
 
@@ -57,12 +56,12 @@ class ServingConfig:
 class ModelServer:
     def __init__(self, config: ServingConfig):
         self.config = config
-        self.models: Dict[str, Any] = {}
+        self.models: dict[str, Any] = {}
         self.app = FastAPI(title="Model Server")
 
         self._setup_routes()
 
-    def load_model(self, model_name: str, model_path: Optional[str] = None):
+    def load_model(self, model_name: str, model_path: str | None = None):
         """Load a model for serving"""
         logger.info(f"Loading model: {model_name}")
 
@@ -70,7 +69,7 @@ class ModelServer:
             model_path = Path(self.config.model_path) / model_name
 
         try:
-            from transformers import AutoTokenizer, AutoModelForCausalLM
+            from transformers import AutoModelForCausalLM, AutoTokenizer
 
             tokenizer = AutoTokenizer.from_pretrained(model_path)
             model = AutoModelForCausalLM.from_pretrained(

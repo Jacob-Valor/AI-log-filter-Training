@@ -3,28 +3,9 @@ Base Classifier - Abstract base class for all classifiers
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any
 
-
-@dataclass
-class Prediction:
-    """Represents a classification prediction."""
-
-    category: str
-    confidence: float
-    model: str
-    probabilities: dict[str, float] | None = None
-    explanation: dict[str, Any] | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "category": self.category,
-            "confidence": self.confidence,
-            "model": self.model,
-            "probabilities": self.probabilities,
-            "explanation": self.explanation,
-        }
+from src.domain.entities import Prediction  # noqa: F401
 
 
 class BaseClassifier(ABC):

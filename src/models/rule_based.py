@@ -43,14 +43,14 @@ class RuleBasedClassifier(BaseClassifier):
 
             self._compile_rules(rules_config)
             self.is_loaded = True
-            logger.info(f"Loaded {sum(len(r) for r in self.compiled_rules.values())} rules")
+            logger.info("Loaded %s rules", sum(len(r) for r in self.compiled_rules.values()))
 
         except FileNotFoundError:
-            logger.warning(f"Rules file not found: {rules_path}, using default rules")
+            logger.warning("Rules file not found: %s, using default rules", rules_path)
             self._load_default_rules()
             self.is_loaded = True
         except Exception as e:
-            logger.error(f"Failed to load rules: {e}")
+            logger.error("Failed to load rules: %s", e)
             raise
 
     def _compile_rules(self, rules_config: dict[str, Any]):
@@ -76,7 +76,7 @@ class RuleBasedClassifier(BaseClassifier):
                             compiled = re.compile(pattern, flags)
                             self.compiled_rules[category].append((rule_name, compiled, confidence))
                         except re.error as e:
-                            logger.warning(f"Invalid regex pattern in rule {rule_name}: {e}")
+                            logger.warning("Invalid regex pattern in rule %s: %s", rule_name, e)
 
     def _load_default_rules(self):
         """Load minimal default rules."""

@@ -4,11 +4,11 @@ Exploratory Data Analysis Analyzer
 Analyzes scientific data files and generates comprehensive markdown reports
 """
 
+import json
 import os
 import sys
-from pathlib import Path
 from datetime import datetime
-import json
+from pathlib import Path
 
 
 def detect_file_type(filepath):
@@ -20,7 +20,7 @@ def detect_file_type(filepath):
     """
     file_path = Path(filepath)
     extension = file_path.suffix.lower()
-    name = file_path.name.lower()
+    file_path.name.lower()
 
     # Map extensions to categories and reference files
     extension_map = {
@@ -191,7 +191,7 @@ def load_reference_info(category, extension):
     # Parse the reference file for the specific extension
     # This is a simplified parser - could be more sophisticated
     try:
-        with open(ref_file, 'r') as f:
+        with open(ref_file) as f:
             content = f.read()
 
         # Extract section for this file type
@@ -292,7 +292,7 @@ def analyze_general_scientific(filepath, extension):
             }
 
         elif extension in ['json']:
-            with open(filepath, 'r') as f:
+            with open(filepath) as f:
                 data = json.load(f)
 
             results = {
@@ -384,8 +384,8 @@ def analyze_imaging(filepath, extension):
 
     try:
         if extension in ['tif', 'tiff', 'png', 'jpg', 'jpeg']:
-            from PIL import Image
             import numpy as np
+            from PIL import Image
 
             img = Image.open(filepath)
             img_array = np.array(img)
@@ -537,10 +537,10 @@ def main():
     print(f"Analyzing: {filepath}")
     analysis = analyze_file(filepath)
 
-    print(f"\nGenerating report...")
+    print("\nGenerating report...")
     generate_markdown_report(analysis, output_path)
 
-    print(f"\n✓ Analysis complete!")
+    print("\n✓ Analysis complete!")
 
 
 if __name__ == '__main__':

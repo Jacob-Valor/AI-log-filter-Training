@@ -3,21 +3,23 @@ Fine-tuning Automation with PEFT and LoRA
 Automates model fine-tuning pipeline
 """
 
-import logging
-import yaml
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
-from dataclasses import dataclass
 import json
+import logging
+from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
 
 try:
-    from transformers import (
-        AutoTokenizer, AutoModelForCausalLM,
-        TrainingArguments, Trainer,
-        DataCollatorForLanguageModeling
-    )
-    from peft import LoraConfig, get_peft_model, TaskType, PeftModel
     from datasets import Dataset
+    from peft import LoraConfig, PeftModel, TaskType, get_peft_model
+    from transformers import (
+        AutoModelForCausalLM,
+        AutoTokenizer,
+        DataCollatorForLanguageModeling,
+        Trainer,
+        TrainingArguments,
+    )
 except ImportError:
     raise ImportError("transformers and peft required: pip install transformers peft datasets")
 
@@ -30,7 +32,7 @@ class FinetuningConfig:
     model_name: str
     output_dir: str
     train_file: str
-    validation_file: Optional[str] = None
+    validation_file: str | None = None
 
     # Training parameters
     num_train_epochs: int = 3
@@ -48,7 +50,7 @@ class FinetuningConfig:
     lora_r: int = 8
     lora_alpha: int = 32
     lora_dropout: float = 0.05
-    lora_target_modules: List[str] = None
+    lora_target_modules: list[str] = None
 
     # Data parameters
     max_seq_length: int = 512
@@ -59,8 +61,8 @@ class FinetuningConfig:
             self.lora_target_modules = ["q_proj", "v_proj"]
 
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> 'FinetuningConfig':
-        with open(path, 'r') as f:
+    def from_yaml(cls, path: str | Path) -> 'FinetuningConfig':
+        with open(path) as f:
             config = yaml.safe_load(f)
         return cls(**config)
 
@@ -116,7 +118,7 @@ class ModelFinetuner:
     def load_data(self) -> Dataset:
         logger.info(f"Loading training data from {self.config.train_file}")
 
-        with open(self.config.train_file, 'r') as f:
+        with open(self.config.train_file) as f:
             data = json.load(f)
 
         dataset = Dataset.from_list(data)
@@ -129,7 +131,7 @@ class ModelFinetuner:
 
         return tokenized
 
-    def _tokenize_function(self, examples: Dict[str, List[str]]) -> Dict[str, List]:
+    def _tokenize_function(self, examples: dict[str, list[str]]) -> dict[str, list]:
         texts = []
         for i in range(len(examples['text'])):
             texts.append(examples['text'][i])
@@ -143,7 +145,7 @@ class ModelFinetuner:
 
         return tokenized
 
-    def prepare_trainer(self, train_dataset: Dataset, eval_dataset: Optional[Dataset] = None):
+    def prepare_trainer(self, train_dataset: Dataset, eval_dataset: Dataset | None = None):
         training_args = TrainingArguments(
             output_dir=self.config.output_dir,
             num_train_epochs=self.config.num_train_epochs,
@@ -192,7 +194,7 @@ class ModelFinetuner:
     def load_validation_data(self) -> Dataset:
         logger.info(f"Loading validation data from {self.config.validation_file}")
 
-        with open(self.config.validation_file, 'r') as f:
+        with open(self.config.validation_file) as f:
             data = json.load(f)
 
         dataset = Dataset.from_list(data)
@@ -205,7 +207,7 @@ class ModelFinetuner:
 
         return tokenized
 
-    def save_model(self, path: Optional[str] = None):
+    def save_model(self, path: str | None = None):
         output_path = path or self.config.output_dir
         logger.info(f"Saving model to {output_path}")
 
@@ -214,7 +216,7 @@ class ModelFinetuner:
 
         logger.info("Model saved")
 
-    def load_finetuned_model(self, path: Optional[str] = None):
+    def load_finetuned_model(self, path: str | None = None):
         load_path = path or self.config.output_dir
         logger.info(f"Loading fine-tuned model from {load_path}")
 

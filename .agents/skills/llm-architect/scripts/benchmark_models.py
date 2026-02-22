@@ -3,13 +3,12 @@ Model Benchmarking and Selection
 Compares different models on tasks and metrics
 """
 
-import time
-import logging
-from typing import Dict, List, Any, Callable, Optional
-from dataclasses import dataclass, field
 import json
-import yaml
-from pathlib import Path
+import logging
+import time
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ class BenchmarkResult:
     latency: float
     cost: float
     token_usage: int
-    additional_metrics: Dict[str, Any] = field(default_factory=dict)
+    additional_metrics: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -32,20 +31,20 @@ class ModelSpec:
     context_window: int
     input_price_per_1k: float
     output_price_per_1k: float
-    capabilities: List[str]
+    capabilities: list[str]
 
 
 class ModelBenchmarker:
-    def __init__(self, models: List[ModelSpec]):
+    def __init__(self, models: list[ModelSpec]):
         self.models = {m.name: m for m in models}
-        self.results: List[BenchmarkResult] = []
+        self.results: list[BenchmarkResult] = []
 
     def benchmark_task(
         self,
         task_name: str,
         task_func: Callable,
-        test_data: List[Any],
-        ground_truth: Optional[List[Any]] = None
+        test_data: list[Any],
+        ground_truth: list[Any] | None = None
     ):
         logger.info(f"Benchmarking task: {task_name}")
 
@@ -104,17 +103,17 @@ class ModelBenchmarker:
             self.results.append(result)
             logger.info(f"  Result: accuracy={avg_accuracy:.2%}, latency={avg_latency:.2f}s")
 
-    def _calculate_cost(self, model_spec: ModelSpec, usage: Dict[str, int]) -> float:
+    def _calculate_cost(self, model_spec: ModelSpec, usage: dict[str, int]) -> float:
         input_cost = (usage.get('prompt_tokens', 0) / 1000) * model_spec.input_price_per_1k
         output_cost = (usage.get('completion_tokens', 0) / 1000) * model_spec.output_price_per_1k
         return input_cost + output_cost
 
-    def _evaluate_accuracy(self, result: Dict[str, Any], ground_truth: Any) -> float:
+    def _evaluate_accuracy(self, result: dict[str, Any], ground_truth: Any) -> float:
         if isinstance(ground_truth, str):
             return 1.0 if result.get('output', '').strip() == ground_truth.strip() else 0.0
         elif isinstance(ground_truth, list):
             output = result.get('output', [])
-            correct = sum(1 for o, g in zip(output, ground_truth) if o == g)
+            correct = sum(1 for o, g in zip(output, ground_truth, strict=False) if o == g)
             return correct / max(len(ground_truth), 1)
         else:
             return 1.0 if result.get('output') == ground_truth else 0.0
@@ -123,7 +122,7 @@ class ModelBenchmarker:
         self,
         task_name: str,
         metric: str = 'accuracy'
-    ) -> Optional[BenchmarkResult]:
+    ) -> BenchmarkResult | None:
         task_results = [r for r in self.results if r.task_name == task_name]
 
         if not task_results:
@@ -214,7 +213,7 @@ DEFAULT_MODELS = [
 ]
 
 
-def sample_task(model_name: str, test_case: str) -> Dict[str, Any]:
+def sample_task(model_name: str, test_case: str) -> dict[str, Any]:
     """Sample task function for demonstration"""
     return {
         'output': test_case.upper(),

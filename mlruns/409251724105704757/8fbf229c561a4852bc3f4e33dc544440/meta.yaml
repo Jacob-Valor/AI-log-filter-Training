@@ -1,0 +1,14 @@
+artifact_uri: file:///home/jacob/Projects/AI-log-filter-Training/mlruns/409251724105704757/8fbf229c561a4852bc3f4e33dc544440/artifacts
+end_time: 1771401077007
+entry_point_name: ''
+experiment_id: '409251724105704757'
+lifecycle_stage: active
+run_id: 8fbf229c561a4852bc3f4e33dc544440
+run_name: train_20260218_025103
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1771401063817
+status: 3
+tags: []
+user_id: jacob

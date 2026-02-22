@@ -225,8 +225,13 @@ Log Entry -> Parse/Normalize -> Compliance Check -> Enrich -> Classify -> Route
 ai-log-filter/
 ├── src/                          # Source code
 │   ├── api/                      # FastAPI endpoints, rate limiting
+│   │   ├── routers/              # API route definitions
+│   │   └── schemas/              # Pydantic data models
+│   ├── compliance/               # Compliance bypass logic
+│   ├── domain/                   # Core domain entities and ports
+│   ├── infrastructure/           # Infrastructure and config
 │   ├── ingestion/                # Kafka consumers, log parsers
-│   ├── preprocessing/            # Compliance gate, data cleaning
+│   ├── integration/              # Common integrations
 │   ├── models/                   # ML models
 │   │   ├── base.py               # Base classifier interface
 │   │   ├── ensemble.py           # Ensemble classifier
@@ -237,9 +242,10 @@ ai-log-filter/
 │   │   ├── onnx_converter.py     # ONNX model converter
 │   │   └── onnx_runtime.py       # ONNX inference runtime
 │   ├── monitoring/               # Prometheus metrics, SPC detector, cost tracking
-│   ├── routing/                  # Log routing logic (QRadar, cold storage)
+│   ├── preprocessing/            # Data cleaning
+│   ├── routing/                  # Log routing logic
+│   │   └── destinations/         # Specific routing destinations
 │   ├── validation/               # Shadow mode, QRadar correlation
-│   ├── integration/              # Kafka, QRadar, common utilities
 │   └── utils/                    # Config, logging, circuit breaker
 │
 ├── configs/                      # Configuration files

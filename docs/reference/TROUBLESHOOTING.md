@@ -336,10 +336,10 @@ python -c "import skl2onnx; print(skl2onnx.__version__)"
 # Validate ONNX model
 python -c "from src.utils.onnx_config import print_onnx_validation; print_onnx_validation('models/v3/onnx')"
 
-# Compare ONNX vs joblib predictions
+# Compare ONNX vs sklearn predictions
 python -c "
-from src.models.onnx_runtime import compare_inference_speed
-# See docs/performance/ONNX_MIGRATION_GUIDE.md for details
+from src.models.onnx_converter import benchmark_models
+# See docs/performance/ONNX_MIGRATION_GUIDE.md for benchmark usage
 "
 ```
 

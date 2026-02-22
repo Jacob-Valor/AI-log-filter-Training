@@ -927,28 +927,24 @@ kubectl rollout restart deployment/ai-filter
 /home/jacob/Projects/tester/
 ├── src/
 │   ├── api/
+│   │   ├── routers/                  # FastAPI routers for endpoints
+│   │   ├── schemas/                  # Pydantic models for API
 │   │   ├── app.py                    # FastAPI application (lifespan pattern)
 │   │   ├── rate_limiter.py           # Rate limiting middleware (NEW)
 │   │   └── health.py                 # Health/readiness/liveness endpoints
-│   ├── models/
-│   │   ├── safe_ensemble.py          # Production-safe classifier
-│   │   ├── ensemble.py               # Base ensemble logic
-│   │   ├── rule_based.py             # Rule-based classifier
-│   │   ├── tfidf_classifier.py       # TF-IDF + XGBoost
-│   │   └── anomaly_detector.py       # Isolation Forest
-│   ├── preprocessing/
-│   │   ├── compliance_gate.py        # PCI/HIPAA/SOX bypass
-│   │   └── log_parser.py             # Log parsing and normalization
-│   ├── monitoring/
-│   │   └── production_metrics.py     # Prometheus metrics
-│   ├── utils/
-│   │   └── circuit_breaker.py        # Circuit breaker pattern
-│   ├── validation/
-│   │   ├── shadow_mode.py            # Shadow mode validation
-│   │   └── qradar_correlation.py     # QRadar offense correlation
-│   └── integration/
-│       ├── kafka/client.py           # Kafka producer/consumer
-│       └── qradar/client.py          # QRadar API client
+│   ├── compliance/                   # Compliance bypass logic
+│   ├── domain/                       # Core domain entities, ports, and factories
+│   ├── infrastructure/               # Implementation of ports and config
+│   ├── integration/                  # Third-party integrations
+│   │   ├── kafka/client.py           # Kafka producer/consumer
+│   │   └── qradar/client.py          # QRadar API client
+│   ├── models/                       # ML models and classifiers
+│   ├── monitoring/                   # Prometheus metrics, SPC detector, cost tracking
+│   ├── preprocessing/                # Log parsing and normalisation
+│   ├── routing/                      # Log routing logic
+│   │   └── destinations/             # Specific destinations (QRadar, S3)
+│   ├── utils/                        # Utilities like logging and circuit breaker
+│   └── validation/                   # Shadow mode, QRadar correlation
 ├── models/
 │   ├── latest -> v1
 │   └── v1/                           # Trained model artifacts

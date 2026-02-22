@@ -2,11 +2,12 @@
 """
 Model Training Script
 
-Train log classification models on labeled data.
+Train log classification models on labeled data with MLflow experiment tracking.
 """
 
 import argparse
 import sys
+from contextlib import nullcontext
 from datetime import datetime
 from pathlib import Path
 
@@ -16,11 +17,11 @@ import yaml
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 
-# Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models.anomaly_detector import AnomalyDetector
 from src.models.tfidf_classifier import TFIDFClassifier
+from src.utils.experiment_tracking import ExperimentConfig, ExperimentTracker
 from src.utils.logging import get_logger, setup_logging
 
 logger = get_logger(__name__)
@@ -134,57 +135,96 @@ def generate_synthetic_data() -> tuple:
     )
 
 
-async def train_tfidf(config: dict, train_data: tuple, val_data: tuple, output_dir: Path):
-    """Train TF-IDF + XGBoost classifier."""
+async def train_tfidf(
+    config: dict,
+    train_data: tuple,
+    val_data: tuple,
+    output_dir: Path,
+    tracker: ExperimentTracker | None = None,
+):
+    """Train TF-IDF + XGBoost classifier with experiment tracking."""
     logger.info("Training TF-IDF + XGBoost classifier...")
 
     tfidf_config = config.get("models", {}).get("tfidf_xgboost", {})
     classifier = TFIDFClassifier(tfidf_config)
 
-    await classifier.load()  # Initialize empty model
+    await classifier.load()
 
     X_train, y_train = train_data
     classifier.train(X_train.tolist(), y_train.tolist())
 
-    # Save model
     model_path = output_dir / "tfidf_xgboost"
     classifier.save(str(model_path))
 
-    # Evaluate
     predictions = await classifier.predict_batch(val_data[0].tolist())
     pred_labels = [p.category for p in predictions]
 
     logger.info("\nTF-IDF Classifier Validation Results:")
+    report = classification_report(val_data[1], pred_labels, output_dict=True)
     print(classification_report(val_data[1], pred_labels))
+
+    if tracker:
+        tracker.log_params(
+            {
+                "tfidf.model_type": "tfidf_xgboost",
+                "tfidf.max_features": tfidf_config.get("max_features", 10000),
+                "tfidf.ngram_range": str(tfidf_config.get("ngram_range", (1, 2))),
+            }
+        )
+        tracker.log_metrics(
+            {
+                "tfidf.val.accuracy": report["accuracy"],
+                "tfidf.val.macro_f1": report["macro avg"]["f1-score"],
+                "tfidf.val.weighted_f1": report["weighted avg"]["f1-score"],
+            }
+        )
+        tracker.log_confusion_matrix(
+            val_data[1].tolist(), pred_labels, ["critical", "suspicious", "routine", "noise"]
+        )
+        tracker.log_artifact(str(model_path), "models")
 
     return classifier
 
 
-async def train_anomaly(config: dict, train_data: tuple, output_dir: Path):
-    """Train anomaly detector."""
+async def train_anomaly(
+    config: dict,
+    train_data: tuple,
+    output_dir: Path,
+    tracker: ExperimentTracker | None = None,
+):
+    """Train anomaly detector with experiment tracking."""
     logger.info("Training Anomaly Detector...")
 
     anomaly_config = config.get("models", {}).get("anomaly", {})
     detector = AnomalyDetector(anomaly_config)
 
-    await detector.load()  # Initialize empty model
+    await detector.load()
 
     X_train, y_train = train_data
 
-    # Train on normal logs (routine category)
     normal_logs = X_train[y_train == "routine"].tolist()
     detector.train(normal_logs)
 
-    # Save model
     model_path = output_dir / "anomaly_detector"
     detector.save(str(model_path))
 
     logger.info("Anomaly detector training complete")
 
+    if tracker:
+        tracker.log_params(
+            {
+                "anomaly.model_type": "isolation_forest",
+                "anomaly.contamination": anomaly_config.get("contamination", 0.1),
+                "anomaly.n_estimators": anomaly_config.get("n_estimators", 100),
+            }
+        )
+        tracker.log_metric("anomaly.train.normal_samples", len(normal_logs))
+        tracker.log_artifact(str(model_path), "models")
+
     return detector
 
 
-def evaluate_models(classifiers: dict, test_data: tuple):
+def evaluate_models(classifiers: dict, test_data: tuple, tracker: ExperimentTracker | None = None):
     """Evaluate all models on test data."""
     import asyncio
 
@@ -199,13 +239,21 @@ def evaluate_models(classifiers: dict, test_data: tuple):
         pred_labels = [p.category for p in predictions]
 
         logger.info(f"\n{name.upper()} Results:")
+        report = classification_report(y_test, pred_labels, output_dict=True)
         print(classification_report(y_test, pred_labels))
 
-        # Confusion matrix
         cm = confusion_matrix(
             y_test, pred_labels, labels=["critical", "suspicious", "routine", "noise"]
         )
         logger.info(f"\nConfusion Matrix:\n{cm}")
+
+        if tracker:
+            tracker.log_metrics(
+                {
+                    f"test.{name}.accuracy": report["accuracy"],
+                    f"test.{name}.macro_f1": report["macro avg"]["f1-score"],
+                }
+            )
 
 
 def main():
@@ -227,43 +275,86 @@ def main():
     parser.add_argument(
         "--output", type=str, default="models", help="Output directory for trained models"
     )
+    parser.add_argument(
+        "--experiment-name",
+        type=str,
+        default="ai-log-filter",
+        help="MLflow experiment name",
+    )
+    parser.add_argument(
+        "--tracking-uri",
+        type=str,
+        default=None,
+        help="MLflow tracking URI (default: local mlruns/)",
+    )
+    parser.add_argument(
+        "--no-tracking",
+        action="store_true",
+        help="Disable MLflow experiment tracking",
+    )
 
     args = parser.parse_args()
 
-    # Setup
     setup_logging(level="INFO")
     config = load_config(args.config)
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create timestamped output directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = output_dir / f"run_{timestamp}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(f"Training run: {run_dir}")
 
-    # Load data
     train_data, val_data, test_data = load_data(config)
 
-    # Train models
+    tracker = None
+    if not args.no_tracking:
+        tracker = ExperimentTracker(
+            ExperimentConfig(
+                experiment_name=args.experiment_name,
+                tracking_uri=args.tracking_uri,
+                run_name=f"train_{timestamp}",
+                tags={"model_type": args.model_type},
+            )
+        )
+
     import asyncio
 
     classifiers = {}
 
-    if args.model_type in ["tfidf", "all"]:
-        classifier = asyncio.run(train_tfidf(config, train_data, val_data, run_dir))
-        classifiers["tfidf"] = classifier
+    with tracker.start_run() if tracker else nullcontext():
+        if tracker:
+            tracker.log_params(
+                {
+                    "config_file": args.config,
+                    "output_dir": str(run_dir),
+                    "model_types": args.model_type,
+                }
+            )
 
-    if args.model_type in ["anomaly", "all"]:
-        detector = asyncio.run(train_anomaly(config, train_data, run_dir))
-        classifiers["anomaly"] = detector
+            class_dist = train_data[1].value_counts().to_dict()
+            tracker.log_dataset_stats(
+                train_size=len(train_data[0]),
+                val_size=len(val_data[0]),
+                test_size=len(test_data[0]),
+                class_distribution=class_dist,
+            )
 
-    # Evaluate
-    if classifiers:
-        evaluate_models(classifiers, test_data)
+        if args.model_type in ["tfidf", "all"]:
+            classifier = asyncio.run(train_tfidf(config, train_data, val_data, run_dir, tracker))
+            classifiers["tfidf"] = classifier
 
-    # Create symlink to latest
+        if args.model_type in ["anomaly", "all"]:
+            detector = asyncio.run(train_anomaly(config, train_data, run_dir, tracker))
+            classifiers["anomaly"] = detector
+
+        if classifiers:
+            evaluate_models(classifiers, test_data, tracker)
+
+        if tracker:
+            tracker.log_artifact(str(run_dir), "models")
+
     latest_link = output_dir / "latest"
     if latest_link.exists():
         latest_link.unlink()
@@ -271,6 +362,9 @@ def main():
 
     logger.info(f"\nTraining complete! Models saved to: {run_dir}")
     logger.info(f"Latest symlink updated: {latest_link} -> {run_dir.name}")
+
+    if tracker and tracker.get_run_id():
+        logger.info(f"MLflow run ID: {tracker.get_run_id()}")
 
 
 if __name__ == "__main__":

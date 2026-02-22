@@ -10,8 +10,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from src.domain.factories import ClassifierFactory
+from src.domain.ports import ClassifierPort, RouterPort
 from src.ingestion.kafka_consumer import LogConsumer
-from src.models.base import BaseClassifier
 from src.monitoring.metrics import MetricsServer
 from src.routing.router import LogRouter
 from src.utils.config import load_config
@@ -31,35 +32,14 @@ class AILogFilterService:
 
         # Initialize components
         self.consumer: LogConsumer | None = None
-        self.classifier: BaseClassifier | None = None
-        self.router: LogRouter | None = None
+        self.classifier: ClassifierPort | None = None
+        self.router: RouterPort | None = None
         self.metrics_server: MetricsServer | None = None
 
         # Lightweight probe server for Kubernetes health/readiness.
         self._health_server: Any | None = None
         self._health_task: asyncio.Task | None = None
 
-    def _create_classifier(self) -> BaseClassifier:
-        model_cfg = self.config.get("model", {})
-        model_type = str(model_cfg.get("type", "safe_ensemble"))
-        model_path = model_cfg.get("path")
-
-        if model_type == "safe_ensemble":
-            from src.models.safe_ensemble import SafeEnsembleClassifier
-
-            return SafeEnsembleClassifier(model_path=model_path, config=model_cfg)
-
-        if model_type == "onnx_safe_ensemble":
-            from src.models.onnx_ensemble import ONNXSafeEnsembleClassifier
-
-            return ONNXSafeEnsembleClassifier(model_path=model_path, config=model_cfg)
-
-        if model_type == "ensemble":
-            from src.models.ensemble import EnsembleClassifier
-
-            return EnsembleClassifier(model_path=model_path, config=model_cfg)
-
-        raise ValueError(f"Unknown model.type: {model_type}")
 
     async def _start_health_server(self) -> None:
         """Start lightweight health server (Kubernetes probes)."""
@@ -106,8 +86,9 @@ class AILogFilterService:
 
         # Initialize classifier
         logger.info("Loading classification models...")
-        self.classifier = self._create_classifier()
-        await self.classifier.load()
+        self.classifier = ClassifierFactory.create(self.config.get("model", {}))
+        if hasattr(self.classifier, "load"):
+            await self.classifier.load()
 
         # Initialize router
         logger.info("Setting up log router...")

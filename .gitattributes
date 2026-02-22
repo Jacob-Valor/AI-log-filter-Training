@@ -1,0 +1,91 @@
+# =============================================================================
+# Git Attributes
+# =============================================================================
+# Configure how Git handles certain files across all platforms
+# Documentation: https://git-scm.com/docs/gitattributes
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Text Files (Normalize line endings to LF)
+# -----------------------------------------------------------------------------
+* text=auto eol=lf
+
+# Source code
+*.py text eol=lf
+*.pyx text eol=lf
+*.pyi text eol=lf
+
+# Configuration files
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+
+# Web files
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.rst text eol=lf
+*.txt text eol=lf
+
+# Docker
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+.dockerignore text eol=lf
+
+# Kubernetes
+*.yaml text eol=lf
+
+# GitHub
+.github/** text eol=lf
+
+# -----------------------------------------------------------------------------
+# Binary Files (No normalization)
+# -----------------------------------------------------------------------------
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.parquet binary
+*.onnx binary
+*.pkl binary
+*.joblib binary
+*.so binary
+*.dll binary
+*.dylib binary
+
+# Model artifacts
+models/**/*.pkl binary
+models/**/*.joblib binary
+models/**/*.onnx binary
+models/**/*.bin binary
+
+# -----------------------------------------------------------------------------
+# Diff Settings
+# -----------------------------------------------------------------------------
+# Use better diff algorithm for certain files
+*.py diff=python
+*.md diff=markdown
+
+# -----------------------------------------------------------------------------
+# Merge Settings
+# -----------------------------------------------------------------------------
+# Lock files should not be merged automatically
+uv.lock merge=binary
+poetry.lock merge=binary

@@ -8,73 +8,18 @@ through the classification pipeline.
 import asyncio
 import json
 import time
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, cast
 
 from confluent_kafka import Consumer, KafkaError
 
-from src.models.base import BaseClassifier
+from src.domain.entities import ClassifiedLog, RawLog
+from src.domain.ports import ClassifierPort, RouterPort
+from src.monitoring.metrics import METRICS
 from src.preprocessing.log_parser import LogParser
-from src.routing.router import LogRouter
 from src.utils.logging import get_logger
-from src.utils.metrics import METRICS
 
 logger = get_logger(__name__)
-
-
-@dataclass
-class RawLog:
-    """Represents a raw log message from Kafka."""
-
-    raw_message: str
-    topic: str
-    partition: int
-    offset: int
-    timestamp: datetime
-    key: str | None = None
-    headers: dict[str, str] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "raw_message": self.raw_message,
-            "topic": self.topic,
-            "partition": self.partition,
-            "offset": self.offset,
-            "timestamp": self.timestamp.isoformat(),
-            "key": self.key,
-            "headers": self.headers,
-        }
-
-
-@dataclass
-class ClassifiedLog:
-    """Represents a classified log with prediction."""
-
-    raw_log: RawLog
-    parsed_data: dict[str, Any]
-    category: str
-    confidence: float
-    model_used: str
-    explanation: dict[str, Any] | None = None
-    processing_time_ms: float = 0.0
-
-    def to_dict(self) -> dict[str, Any]:
-        message = self.parsed_data.get("message") or self.raw_log.raw_message
-        source = self.parsed_data.get("source") or self.raw_log.topic
-
-        return {
-            "message": message,
-            "source": source,
-            "timestamp": self.raw_log.timestamp.isoformat(),
-            "category": self.category,
-            "confidence": self.confidence,
-            "model": self.model_used,
-            "explanation": self.explanation,
-            "processing_time_ms": self.processing_time_ms,
-            "raw_log": self.raw_log.to_dict(),
-            "parsed_data": self.parsed_data,
-        }
 
 
 class LogConsumer:
@@ -91,8 +36,8 @@ class LogConsumer:
     def __init__(
         self,
         config: dict[str, Any],
-        classifier: BaseClassifier,
-        router: LogRouter,
+        classifier: ClassifierPort,
+        router: RouterPort,
         batch_size: int = 256,
         max_wait_ms: int = 100,
     ):

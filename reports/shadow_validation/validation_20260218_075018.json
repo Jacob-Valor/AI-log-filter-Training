@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-02-18T07:50:17.718479+00:00",
+  "execution_time_seconds": 0.467128,
+  "config": {
+    "model_path": "models/latest",
+    "test_data_path": "data/labeled/test.csv",
+    "target_recall": 0.995,
+    "max_false_negatives_per_1000": 5
+  },
+  "metrics": {
+    "total_samples": 2000,
+    "accuracy": 0.8415,
+    "critical_recall": 0.6,
+    "critical_precision": 1.0,
+    "critical_fn": 16,
+    "critical_fn_per_1000": 8.0
+  },
+  "pass_fail": {
+    "critical_recall_pass": false,
+    "false_negatives_pass": false
+  }
+}

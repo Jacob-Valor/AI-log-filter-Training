@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from src.models.anomaly_detector import AnomalyFeatures
+from src.models.anomaly_detector import AnomalyDetector, AnomalyFeatures
 from src.models.base import BaseClassifier, ClassifierRegistry, Prediction
 from src.utils.logging import get_logger
 
@@ -106,39 +106,13 @@ class ONNXAnomalyDetector(BaseClassifier):
             )
 
         except Exception as e:
-            logger.error(f"Failed to load ONNX anomaly detector: {e}")
+            logger.error("Failed to load ONNX anomaly detector: %s", e)
             raise
 
-    def extract_features(self, text: str) -> AnomalyFeatures:
-        """Extract numerical features from log text."""
-        import re
-        from datetime import datetime
-
-        message_length = len(text)
-        word_count = len(text.split())
-
-        digit_count = sum(char.isdigit() for char in text)
-        special_count = sum(not char.isalnum() and not char.isspace() for char in text)
-        upper_count = sum(char.isupper() for char in text)
-
-        digit_ratio = digit_count / max(message_length, 1)
-        special_char_ratio = special_count / max(message_length, 1)
-        uppercase_ratio = upper_count / max(message_length, 1)
-
-        has_error = 1 if re.search(r"\b(error|fail|exception|critical)\b", text, re.I) else 0
-        has_ip = 1 if re.search(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", text) else 0
-        hour = datetime.now().hour
-
-        return AnomalyFeatures(
-            message_length=message_length,
-            word_count=word_count,
-            digit_ratio=digit_ratio,
-            special_char_ratio=special_char_ratio,
-            uppercase_ratio=uppercase_ratio,
-            has_error_keyword=has_error,
-            has_ip_address=has_ip,
-            hour_of_day=hour,
-        )
+    @staticmethod
+    def extract_features(text: str) -> AnomalyFeatures:
+        """Delegate to :meth:`AnomalyDetector.extract_features` (single source of truth)."""
+        return AnomalyDetector.extract_features(text)
 
     async def predict(self, text: str) -> Prediction:
         """Predict anomaly status for a single log."""
@@ -222,14 +196,8 @@ class ONNXAnomalyDetector(BaseClassifier):
 
     @staticmethod
     def _is_anomaly(value: Any) -> bool:
-        if isinstance(value, bytes):
-            value = value.decode("utf-8", errors="ignore")
-        if isinstance(value, str):
-            return value.strip().lower() in {"-1", "anomaly", "anomalous", "true"}
-        try:
-            return int(value) == -1
-        except (TypeError, ValueError):
-            return False
+        """Delegate to the canonical implementation in AnomalyDetector."""
+        return AnomalyDetector.is_anomaly_value(value)
 
     def get_performance_stats(self) -> dict[str, Any]:
         """Get performance statistics."""
@@ -245,74 +213,3 @@ class ONNXAnomalyDetector(BaseClassifier):
             "model_path": self.model_path,
             "scaler_path": self.scaler_path,
         }
-
-
-class ONNXEnsembleClassifier(BaseClassifier):
-    """Placeholder ensemble for ONNX-only inference."""
-
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__("onnx_ensemble", config)
-        cfg = config or {}
-        self.model_paths = cfg.get("model_paths", {})
-        self.weights = cfg.get(
-            "weights",
-            {
-                "rule_based": 0.30,
-                "tfidf_xgboost": 0.45,
-                "anomaly": 0.25,
-            },
-        )
-        self.models: dict[str, BaseClassifier] = {}
-
-    async def load(self):
-        if "anomaly" in self.model_paths:
-            anomaly_cfg = {"model_path": self.model_paths["anomaly"]}
-            anomaly_scaler = self.model_paths.get("anomaly_scaler")
-            if anomaly_scaler:
-                anomaly_cfg["scaler_path"] = anomaly_scaler
-            self.models["anomaly"] = ONNXAnomalyDetector(anomaly_cfg)
-            await self.models["anomaly"].load()
-
-        self.is_loaded = True
-        logger.info(f"Loaded {len(self.models)} ONNX models")
-
-    async def predict(self, text: str) -> Prediction:
-        predictions = await self.predict_batch([text])
-        return predictions[0]
-
-    async def predict_batch(self, texts: list[str]) -> list[Prediction]:
-        raise NotImplementedError("Full ONNX ensemble implementation required")
-
-
-def compare_inference_speed(
-    baseline_detector: BaseClassifier,
-    onnx_detector: ONNXAnomalyDetector,
-    test_texts: list[str],
-    iterations: int = 100,
-) -> dict[str, Any]:
-    """Compare baseline detector speed against ONNX detector speed."""
-    import asyncio
-
-    async def run_benchmark() -> dict[str, Any]:
-        await baseline_detector.predict_batch(test_texts)
-        await onnx_detector.predict_batch(test_texts)
-
-        start = time.perf_counter()
-        for _ in range(iterations):
-            await baseline_detector.predict_batch(test_texts)
-        baseline_time = time.perf_counter() - start
-
-        start = time.perf_counter()
-        for _ in range(iterations):
-            await onnx_detector.predict_batch(test_texts)
-        onnx_time = time.perf_counter() - start
-
-        return {
-            "baseline_time_ms": baseline_time * 1000 / iterations,
-            "onnx_time_ms": onnx_time * 1000 / iterations,
-            "speedup": baseline_time / onnx_time if onnx_time > 0 else float("inf"),
-            "texts_per_iteration": len(test_texts),
-            "iterations": iterations,
-        }
-
-    return asyncio.run(run_benchmark())

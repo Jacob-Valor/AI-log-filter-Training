@@ -119,6 +119,7 @@ jobs:
             type=raw,value=${{ needs.validate.outputs.version }}
 
       - name: 🐳 Build and push
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -127,6 +128,34 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: 📦 Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          artifact-name: sbom
+
+      - name: 🔐 Sign container image
+        if: github.event_name == 'release'
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.2.2'
+
+      - name: ✍️ Sign the image
+        if: github.event_name == 'release'
+        env:
+          COSIGN_EXPERIMENTAL: true
+        run: |
+          cosign sign --yes ghcr.io/${{ github.repository }}/ai-log-filter@${{ steps.build.outputs.digest }}
+
+      - name: 📋 Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-spdx
+          path: sbom.spdx.json
+          retention-days: 90
 
       - name: 📊 Generate build summary
         run: |

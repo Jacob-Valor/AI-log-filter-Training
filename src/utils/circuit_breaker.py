@@ -92,7 +92,8 @@ class CircuitBreaker:
         self._half_open_calls = 0
 
         logger.info(
-            f"Circuit breaker '{name}' initialized",
+            "Circuit breaker '%s' initialized",
+            name,
             extra={
                 "failure_threshold": self.config.failure_threshold,
                 "timeout_seconds": self.config.timeout_seconds,
@@ -137,7 +138,10 @@ class CircuitBreaker:
             self._half_open_calls = 0
 
         logger.warning(
-            f"Circuit breaker '{self.name}' state change: {old_state.value} -> {new_state.value}",
+            "Circuit breaker '%s' state change: %s -> %s",
+            self.name,
+            old_state.value,
+            new_state.value,
             extra={
                 "circuit_name": self.name,
                 "old_state": old_state.value,
@@ -151,7 +155,7 @@ class CircuitBreaker:
             try:
                 self.on_state_change(old_state, new_state)
             except Exception as e:
-                logger.error(f"Error in state change callback: {e}")
+                logger.error("Error in state change callback: %s", e)
 
     async def _record_success(self):
         """Record a successful call."""
@@ -174,7 +178,8 @@ class CircuitBreaker:
             self.stats.last_failure_time = time.time()
 
             logger.error(
-                f"Circuit breaker '{self.name}' recorded failure",
+                "Circuit breaker '%s' recorded failure",
+                self.name,
                 extra={
                     "circuit_name": self.name,
                     "failure_count": self.stats.failure_count,
@@ -223,7 +228,8 @@ class CircuitBreaker:
         if not can_execute:
             if self.fallback:
                 logger.info(
-                    f"Circuit '{self.name}' is OPEN, using fallback",
+                    "Circuit '%s' is OPEN, using fallback",
+                    self.name,
                     extra={"circuit_name": self.name},
                 )
                 if inspect.iscoroutinefunction(self.fallback):
@@ -247,7 +253,8 @@ class CircuitBreaker:
 
             if self.fallback:
                 logger.warning(
-                    f"Circuit '{self.name}' call failed, using fallback",
+                    "Circuit '%s' call failed, using fallback",
+                    self.name,
                     extra={"circuit_name": self.name, "error": str(e)},
                 )
                 if inspect.iscoroutinefunction(self.fallback):
@@ -284,7 +291,7 @@ class CircuitBreaker:
             await self._transition_to(CircuitState.CLOSED)
             self.stats.failure_count = 0
             self.stats.success_count = 0
-            logger.info(f"Circuit breaker '{self.name}' manually reset")
+            logger.info("Circuit breaker '%s' manually reset", self.name)
 
 
 class CircuitOpenError(Exception):

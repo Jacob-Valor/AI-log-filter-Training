@@ -1,0 +1,83 @@
+name: 🔐 SLSA Provenance
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build:
+    name: 🔨 Build with SLSA
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/ai-log-filter
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=${{ github.ref_name }}
+
+      - name: 🐳 Build and push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+  provenance:
+    name: 📜 Generate SLSA Provenance
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📜 Generate SLSA Provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository }}/ai-log-filter
+          subject-digest: ${{ needs.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: 📊 Generate summary
+        run: |
+          echo "## 🔐 SLSA Provenance" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ SLSA provenance generated and pushed to registry!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Digest**: \`${{ needs.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Verify with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "cosign verify-attestation \\\\" >> $GITHUB_STEP_SUMMARY
+          echo "  --type slsaprovenance \\\\" >> $GITHUB_STEP_SUMMARY
+          echo "  --certificate-identity-regexp 'https://github.com/${{ github.repository }}' \\\\" >> $GITHUB_STEP_SUMMARY
+          echo "  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \\\\" >> $GITHUB_STEP_SUMMARY
+          echo "  ghcr.io/${{ github.repository }}/ai-log-filter@${{ needs.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

@@ -3,15 +3,13 @@ Prompt Template Management System
 Manages, versions, and retrieves prompt templates
 """
 
-import os
-import json
-import yaml
 import logging
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
-import hashlib
+from pathlib import Path
+from typing import Any
+
+import yaml
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,11 +20,11 @@ class PromptTemplate:
     name: str
     template: str
     version: str
-    variables: List[str]
-    description: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    variables: list[str]
+    description: str | None = None
+    metadata: dict[str, Any] | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
 
     def __post_init__(self):
         if self.created_at is None:
@@ -46,20 +44,20 @@ class PromptTemplate:
 
 
 class PromptManager:
-    def __init__(self, templates_dir: Union[str, Path] = "./prompt_templates"):
+    def __init__(self, templates_dir: str | Path = "./prompt_templates"):
         self.templates_dir = Path(templates_dir)
         self.templates_dir.mkdir(parents=True, exist_ok=True)
-        self.templates: Dict[str, List[PromptTemplate]] = {}
+        self.templates: dict[str, list[PromptTemplate]] = {}
 
         self._load_templates()
 
     def _load_templates(self):
         for file_path in self.templates_dir.rglob("*.yaml"):
             try:
-                with open(file_path, 'r') as f:
+                with open(file_path) as f:
                     data = yaml.safe_load(f)
 
-                for template_data in data.get('templates', []):
+                for template_data in data.get("templates", []):
                     template = PromptTemplate(**template_data)
                     if template.name not in self.templates:
                         self.templates[template.name] = []
@@ -92,31 +90,27 @@ class PromptManager:
             return "1.0.0"
 
         try:
-            latest = max(versions, key=lambda v: [int(x) for x in v.split('.')])
-            major, minor, patch = latest.split('.')
+            latest = max(versions, key=lambda v: [int(x) for x in v.split(".")])
+            major, minor, patch = latest.split(".")
             return f"{major}.{minor}.{int(patch) + 1}"
-        except:
+        except (ValueError, IndexError):
             return "1.0.0"
 
     def _save_template(self, template: PromptTemplate):
         file_path = self.templates_dir / f"{template.name}.yaml"
 
-        data = {'templates': []}
+        data = {"templates": []}
         if file_path.exists():
-            with open(file_path, 'r') as f:
-                data = yaml.safe_load(f) or {'templates': []}
+            with open(file_path) as f:
+                data = yaml.safe_load(f) or {"templates": []}
 
         template_dict = asdict(template)
-        data['templates'].append(template_dict)
+        data["templates"].append(template_dict)
 
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             yaml.dump(data, f, default_flow_style=False)
 
-    def get_template(
-        self,
-        name: str,
-        version: Optional[str] = None
-    ) -> Optional[PromptTemplate]:
+    def get_template(self, name: str, version: str | None = None) -> PromptTemplate | None:
         if name not in self.templates:
             return None
 
@@ -129,7 +123,7 @@ class PromptManager:
 
         return None
 
-    def list_templates(self, name: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_templates(self, name: str | None = None) -> list[dict[str, Any]]:
         if name:
             templates = self.templates.get(name, [])
         else:
@@ -139,16 +133,16 @@ class PromptManager:
 
         return [
             {
-                'name': t.name,
-                'version': t.version,
-                'description': t.description,
-                'created_at': t.created_at,
-                'updated_at': t.updated_at
+                "name": t.name,
+                "version": t.version,
+                "description": t.description,
+                "created_at": t.created_at,
+                "updated_at": t.updated_at,
             }
             for t in templates
         ]
 
-    def delete_template(self, name: str, version: Optional[str] = None):
+    def delete_template(self, name: str, version: str | None = None):
         if name not in self.templates:
             return
 
@@ -167,22 +161,22 @@ def create_default_templates(manager: PromptManager):
             template="Explain the following code:\n\n```\n{code}\n```\n\nFocus on: {focus}",
             variables=["code", "focus"],
             description="Explains code with specific focus areas",
-            metadata={"category": "code"}
+            metadata={"category": "code"},
         ),
         PromptTemplate(
             name="summarization",
             template="Summarize the following text in {max_sentences} sentences:\n\n{text}",
             variables=["text", "max_sentences"],
             description="Summarizes text to specified length",
-            metadata={"category": "nlp"}
+            metadata={"category": "nlp"},
         ),
         PromptTemplate(
             name="question_answering",
             template="Based on the following context:\n\n{context}\n\nAnswer the question: {question}",
             variables=["context", "question"],
             description="Answers questions based on provided context",
-            metadata={"category": "qa"}
-        )
+            metadata={"category": "qa"},
+        ),
     ]
 
     for template in templates:
@@ -197,8 +191,7 @@ def main():
     template = manager.get_template("code_explanation")
     if template:
         rendered = template.render(
-            code="print('Hello, World!')",
-            focus="functionality and best practices"
+            code="print('Hello, World!')", focus="functionality and best practices"
         )
         print("Rendered prompt:")
         print(rendered)

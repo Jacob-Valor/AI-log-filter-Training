@@ -3,12 +3,11 @@ RAG (Retrieval-Augmented Generation) Setup Script
 Handles vector database, document chunking, and retrieval
 """
 
-import os
 import logging
-from typing import List, Dict, Any, Optional, Union
-from pathlib import Path
 from dataclasses import dataclass
-import json
+from pathlib import Path
+from typing import Any
+
 import yaml
 
 try:
@@ -36,8 +35,8 @@ class RAGConfig:
     top_k: int = 5
 
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> 'RAGConfig':
-        with open(path, 'r') as f:
+    def from_yaml(cls, path: str | Path) -> 'RAGConfig':
+        with open(path) as f:
             config = yaml.safe_load(f)
         return cls(**config)
 
@@ -47,7 +46,7 @@ class DocumentChunker:
         self.chunk_size = chunk_size
         self.overlap = overlap
 
-    def chunk_text(self, text: str) -> List[str]:
+    def chunk_text(self, text: str) -> list[str]:
         chunks = []
         start = 0
 
@@ -63,7 +62,7 @@ class DocumentChunker:
 
         return [c for c in chunks if c]
 
-    def chunk_documents(self, documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def chunk_documents(self, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
         chunked_docs = []
 
         for doc in documents:
@@ -103,7 +102,7 @@ class RAGSystem:
         logger.info(f"Loading embedding model: {config.embedding_model}")
         self.embedding_model = SentenceTransformer(config.embedding_model)
 
-    def add_documents(self, documents: List[Dict[str, Any]]):
+    def add_documents(self, documents: list[dict[str, Any]]):
         chunked_docs = self.chunker.chunk_documents(documents)
 
         texts = [doc['text'] for doc in chunked_docs]
@@ -121,9 +120,9 @@ class RAGSystem:
     def query(
         self,
         query_text: str,
-        n_results: Optional[int] = None,
-        where: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        n_results: int | None = None,
+        where: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         if n_results is None:
             n_results = self.config.top_k
 
@@ -146,11 +145,11 @@ class RAGSystem:
 
         return retrieved_docs
 
-    def delete_documents(self, ids: List[str]):
+    def delete_documents(self, ids: list[str]):
         self.collection.delete(ids=ids)
         logger.info(f"Deleted {len(ids)} documents")
 
-    def get_collection_stats(self) -> Dict[str, Any]:
+    def get_collection_stats(self) -> dict[str, Any]:
         return {
             'count': self.collection.count(),
             'name': self.config.collection_name,
@@ -163,12 +162,12 @@ class RAGSystem:
         logger.info("Collection cleared")
 
 
-def load_documents_from_directory(directory: Union[str, Path]) -> List[Dict[str, Any]]:
+def load_documents_from_directory(directory: str | Path) -> list[dict[str, Any]]:
     documents = []
     directory = Path(directory)
 
     for file_path in directory.rglob("*.txt"):
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             text = f.read()
 
         documents.append({

@@ -146,13 +146,13 @@ export MODEL_TYPE=onnx_safe_ensemble
 
 ### Benchmarking
 ```python
-from src.models.onnx_runtime import compare_inference_speed
+from src.models.onnx_converter import benchmark_models
 
-results = compare_inference_speed(
-    joblib_detector=old_detector,
-    onnx_detector=new_detector,
-    test_texts=test_logs,
-    iterations=100
+results = benchmark_models(
+    onnx_path="models/v3/anomaly_detector/model.onnx",
+    baseline_predict=old_detector.predict,
+    test_data=test_features,
+    iterations=100,
 )
 
 print(f"Speedup: {results['speedup']:.2f}x")

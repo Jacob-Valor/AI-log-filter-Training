@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Dependabot configuration for automated dependency updates (`/.github/dependabot.yml`)
+- Comprehensive security scanning workflow with Trivy, Gitleaks, CodeQL, pip-audit
+- CODEOWNERS file for automated review assignment
+- GitHub issue templates (bug report, feature request, security, documentation)
+- Pull request template with comprehensive checklist
+- Branch protection rules documentation (`docs/guides/BRANCH_PROTECTION.md`)
+- Enhanced CONTRIBUTING.md with security guidelines
+- `.github/SECURITY.md` for GitHub security policy integration
+
+### Security
+
+- Added `security@valorcyber.com` as official security contact
+- Added `.dockerignore` for secure Docker builds
+- SLSA provenance workflow for supply chain security
+
 ## [1.0.0] - 2026-01-15
 
 ### Added

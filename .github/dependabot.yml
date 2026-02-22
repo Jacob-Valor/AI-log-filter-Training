@@ -1,0 +1,167 @@
+# =============================================================================
+# Dependabot Configuration
+# =============================================================================
+# Automated dependency updates for security and compatibility.
+# 
+# Documentation: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+# =============================================================================
+
+version: 2
+
+registries:
+  # Uncomment if using private PyPI packages
+  # pypi:
+  #   type: python-index
+  #   url: https://pypi.org/simple
+  #   username: ${{ secrets.PYPI_USERNAME }}
+  #   password: ${{ secrets.PYPI_TOKEN }}
+
+updates:
+  # ---------------------------------------------------------------------------
+  # Python Dependencies (Production)
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "python"
+      - "security"
+    reviewers:
+      - "Jacob-Valor"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      # Group minor/patch updates together to reduce PR noise
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group all scikit-learn ecosystem together
+      ml-dependencies:
+        patterns:
+          - "scikit-learn"
+          - "xgboost"
+          - "onnxruntime"
+          - "skl2onnx"
+          - "onnxmltools"
+      # Group web framework dependencies
+      web-dependencies:
+        patterns:
+          - "fastapi"
+          - "uvicorn"
+          - "pydantic"
+          - "pydantic-settings"
+      # Group data processing dependencies
+      data-dependencies:
+        patterns:
+          - "numpy"
+          - "pandas"
+          - "pyarrow"
+          - "fastparquet"
+    ignore:
+      # Python 3.13 compatibility - onnxruntime doesn't support 3.14 yet
+      - dependency-name: "onnxruntime"
+        update-types: ["version-update:semver-major"]
+      # Pin Python version in dev dependencies
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
+    versioning-strategy: "increase-if-necessary"
+
+  # ---------------------------------------------------------------------------
+  # Python Dependencies (Development)
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "python"
+      - "development"
+    reviewers:
+      - "Jacob-Valor"
+    commit-message:
+      prefix: "deps(dev)"
+      include: "scope"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      testing-dependencies:
+        patterns:
+          - "pytest*"
+          - "pytest-*"
+      linting-dependencies:
+        patterns:
+          - "ruff"
+          - "mypy"
+          - "black"
+    versioning-strategy: "increase-if-necessary"
+
+  # ---------------------------------------------------------------------------
+  # Docker Base Images
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "infrastructure"
+    reviewers:
+      - "Jacob-Valor"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    ignore:
+      # Only allow patch updates for Python base image (3.13.x)
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    reviewers:
+      - "Jacob-Valor"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

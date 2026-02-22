@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 REQUIRED_ARTIFACTS = [
     "tfidf_xgboost/model.onnx",
     "tfidf_xgboost/vectorizer.onnx",
@@ -57,8 +56,9 @@ def _infer_feature_count(input_shape: list[Any] | tuple[Any, ...]) -> int:
 
 
 def _benchmark_onnx_model(model_path: Path, iterations: int = 100) -> dict[str, float]:
-    import numpy as np
     from importlib import import_module
+
+    import numpy as np
 
     ort = import_module("onnxruntime")
 

@@ -3,11 +3,11 @@ Token Usage and Cost Optimization
 Tracks token usage, estimates costs, and suggests optimizations
 """
 
-import logging
-from typing import Dict, List, Any, Optional, Callable
-from dataclasses import dataclass, field
-from collections import defaultdict
 import json
+import logging
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,13 +32,13 @@ class UsageRecord:
     model: str
     usage: TokenUsage
     timestamp: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class TokenTracker:
     def __init__(self):
-        self.records: List[UsageRecord] = []
-        self.pricing: Dict[str, TokenPricing] = {
+        self.records: list[UsageRecord] = []
+        self.pricing: dict[str, TokenPricing] = {
             'gpt-4': TokenPricing('gpt-4', 0.03, 0.06),
             'gpt-4-turbo': TokenPricing('gpt-4-turbo', 0.01, 0.03),
             'gpt-3.5-turbo': TokenPricing('gpt-3.5-turbo', 0.0005, 0.0015),
@@ -49,8 +49,8 @@ class TokenTracker:
     def record_usage(
         self,
         model: str,
-        usage: Dict[str, int],
-        metadata: Optional[Dict[str, Any]] = None
+        usage: dict[str, int],
+        metadata: dict[str, Any] | None = None
     ):
         record = UsageRecord(
             model=model,
@@ -65,14 +65,14 @@ class TokenTracker:
         self.records.append(record)
         logger.debug(f"Recorded usage: {model} - {usage.get('total_tokens', 0)} tokens")
 
-    def get_total_tokens(self, model: Optional[str] = None) -> int:
+    def get_total_tokens(self, model: str | None = None) -> int:
         total = 0
         for record in self.records:
             if model is None or record.model == model:
                 total += record.usage.total_tokens
         return total
 
-    def get_total_cost(self, model: Optional[str] = None) -> float:
+    def get_total_cost(self, model: str | None = None) -> float:
         total_cost = 0.0
 
         for record in self.records:
@@ -87,7 +87,7 @@ class TokenTracker:
 
         return total_cost
 
-    def get_cost_by_model(self) -> Dict[str, float]:
+    def get_cost_by_model(self) -> dict[str, float]:
         costs = defaultdict(float)
         for record in self.records:
             pricing = self.pricing.get(record.model)
@@ -97,13 +97,13 @@ class TokenTracker:
                 costs[record.model] += input_cost + output_cost
         return dict(costs)
 
-    def get_average_tokens_per_request(self, model: Optional[str] = None) -> float:
+    def get_average_tokens_per_request(self, model: str | None = None) -> float:
         records = [r for r in self.records if model is None or r.model == model]
         if not records:
             return 0.0
         return sum(r.usage.total_tokens for r in records) / len(records)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         total_tokens = self.get_total_tokens()
         total_cost = self.get_total_cost()
         total_requests = len(self.records)
@@ -121,7 +121,7 @@ class TokenTracker:
             'requests_by_model': self._count_by_model()
         }
 
-    def _count_by_model(self) -> Dict[str, int]:
+    def _count_by_model(self) -> dict[str, int]:
         counts = defaultdict(int)
         for record in self.records:
             counts[record.model] += 1
@@ -153,7 +153,7 @@ class TokenTracker:
 
 class TokenOptimizer:
     @staticmethod
-    def optimize_prompt(prompt: str, target_tokens: int) -> tuple[str, Dict[str, Any]]:
+    def optimize_prompt(prompt: str, target_tokens: int) -> tuple[str, dict[str, Any]]:
         approx_tokens = len(prompt.split()) * 1.3
 
         suggestions = []
@@ -175,7 +175,7 @@ class TokenOptimizer:
         tokens_needed: int,
         budget: float,
         complexity: str = 'medium'
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         models = [
             {'name': 'gpt-3.5-turbo', 'cost_per_1k': 0.002, 'context': 16384, 'quality': 'low'},
             {'name': 'gpt-4-turbo', 'cost_per_1k': 0.04, 'context': 128000, 'quality': 'high'},

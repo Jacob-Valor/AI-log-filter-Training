@@ -207,7 +207,8 @@ class ComplianceGate:
         }
 
         logger.info(
-            f"Compliance gate initialized with {len(self.rules)} rules",
+            "Compliance gate initialized with %s rules",
+            len(self.rules),
             extra={"enabled": self.enabled, "rule_count": len(self.rules)},
         )
 
@@ -232,9 +233,9 @@ class ComplianceGate:
                     priority=rule_def.get("priority", 50),
                 )
                 self.rules.append(rule)
-                logger.debug(f"Loaded custom compliance rule: {rule.name}")
+                logger.debug("Loaded custom compliance rule: %s", rule.name)
             except Exception as e:
-                logger.warning(f"Failed to load custom rule: {e}")
+                logger.warning("Failed to load custom rule: %s", e)
 
         # Load additional source patterns from config
         additional = self.config.get("additional_source_patterns", {})
@@ -249,7 +250,7 @@ class ComplianceGate:
                 )
                 self.rules.append(rule)
             except Exception as e:
-                logger.warning(f"Failed to load additional patterns for {framework_name}: {e}")
+                logger.warning("Failed to load additional patterns for %s: %s", framework_name, e)
 
     def _compile_patterns(self):
         """Compile regex patterns for performance."""
@@ -264,18 +265,19 @@ class ComplianceGate:
                     compiled = re.compile(pattern, re.IGNORECASE)
                     self.compiled_patterns["source"].append((rule.name, compiled))
                 except re.error as e:
-                    logger.warning(f"Invalid source pattern in {rule.name}: {e}")
+                    logger.warning("Invalid source pattern in %s: %s", rule.name, e)
 
             for pattern in rule.message_patterns:
                 try:
                     compiled = re.compile(pattern, re.IGNORECASE)
                     self.compiled_patterns["message"].append((rule.name, compiled))
                 except re.error as e:
-                    logger.warning(f"Invalid message pattern in {rule.name}: {e}")
+                    logger.warning("Invalid message pattern in %s: %s", rule.name, e)
 
         logger.debug(
-            f"Compiled {len(self.compiled_patterns['source'])} source patterns, "
-            f"{len(self.compiled_patterns['message'])} message patterns"
+            "Compiled %s source patterns, %s message patterns",
+            len(self.compiled_patterns["source"]),
+            len(self.compiled_patterns["message"]),
         )
 
     def check(self, log: dict[str, Any]) -> ComplianceDecision:
@@ -377,7 +379,7 @@ class ComplianceGate:
             except re.error:
                 pass
 
-        logger.info(f"Added compliance rule: {rule.name}")
+        logger.info("Added compliance rule: %s", rule.name)
 
     def get_stats(self) -> dict[str, Any]:
         """Get compliance gate statistics."""

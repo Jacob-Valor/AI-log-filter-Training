@@ -73,7 +73,7 @@ class EnsembleClassifier(BaseClassifier):
         await self.classifiers["anomaly_detector"].load()
 
         self.is_loaded = True
-        logger.info(f"Loaded {len(self.classifiers)} classifiers")
+        logger.info("Loaded %s classifiers", len(self.classifiers))
 
     async def predict(self, text: str) -> Prediction:
         """Classify a single log message."""
@@ -93,7 +93,7 @@ class EnsembleClassifier(BaseClassifier):
                 preds = await classifier.predict_batch(texts)
                 all_predictions[name] = preds
             except Exception as e:
-                logger.warning(f"Classifier {name} failed: {e}")
+                logger.warning("Classifier %s failed: %s", name, e)
                 # Use default predictions
                 all_predictions[name] = [
                     Prediction(category="routine", confidence=0.5, model=name) for _ in texts
@@ -110,7 +110,7 @@ class EnsembleClassifier(BaseClassifier):
         """Combine predictions using weighted averaging."""
         results = []
 
-        for i in range(len(texts)):
+        for i, _text in enumerate(texts):
             # Aggregate probabilities across models
             category_scores: dict[str, float] = dict.fromkeys(self.CATEGORIES, 0.0)
             explanations = {}
@@ -171,7 +171,7 @@ class EnsembleClassifier(BaseClassifier):
         """Combine predictions using max voting."""
         results = []
 
-        for i in range(len(texts)):
+        for i, _text in enumerate(texts):
             votes: dict[str, float] = dict.fromkeys(self.CATEGORIES, 0.0)
             explanations = {}
 
@@ -208,6 +208,6 @@ class EnsembleClassifier(BaseClassifier):
             try:
                 classifier.save(str(save_path / name))
             except NotImplementedError:
-                logger.debug(f"Classifier {name} does not support saving")
+                logger.debug("Classifier %s does not support saving", name)
 
-        logger.info(f"Ensemble saved to {save_path}")
+        logger.info("Ensemble saved to %s", save_path)

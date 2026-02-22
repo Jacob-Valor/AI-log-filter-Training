@@ -1,0 +1,86 @@
+# =============================================================================
+# CODEOWNERS - Code Review Ownership
+# =============================================================================
+# This file defines individuals or teams that own specific areas of the codebase.
+# PRs affecting these areas will automatically request review from owners.
+#
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# =============================================================================
+
+# Default owners for everything in the repo
+* @Jacob-Valor
+
+# =============================================================================
+# Security-Critical Files (Require Review)
+# =============================================================================
+
+# Security policy and configuration
+/SECURITY.md @Jacob-Valor
+/.github/dependabot.yml @Jacob-Valor
+/.github/workflows/* @Jacob-Valor
+
+# Secrets and environment configuration
+.env* @Jacob-Valor
+*.pem @Jacob-Valor
+*.key @Jacob-Valor
+
+# =============================================================================
+# Infrastructure & Deployment
+# =============================================================================
+
+# Docker
+/Dockerfile @Jacob-Valor
+/docker-compose*.yml @Jacob-Valor
+/.dockerignore @Jacob-Valor
+
+# Kubernetes
+/deploy/ @Jacob-Valor
+/deploy/**/*.yaml @Jacob-Valor
+
+# CI/CD
+/.github/workflows/ @Jacob-Valor
+/.github/**/*.yml @Jacob-Valor
+
+# =============================================================================
+# Core Application Code
+# =============================================================================
+
+# Main application entry points
+/src/main.py @Jacob-Valor
+/src/api/app.py @Jacob-Valor
+
+# Security-critical modules
+/src/preprocessing/compliance_gate.py @Jacob-Valor
+/src/utils/circuit_breaker.py @Jacob-Valor
+/src/api/rate_limiter.py @Jacob-Valor
+
+# ML Models
+/src/models/ @Jacob-Valor
+/scripts/train*.py @Jacob-Valor
+/scripts/*validation*.py @Jacob-Valor
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+/pyproject.toml @Jacob-Valor
+/requirements*.txt @Jacob-Valor
+/configs/ @Jacob-Valor
+/configs/**/*.yaml @Jacob-Valor
+
+# =============================================================================
+# Testing
+# =============================================================================
+
+/tests/ @Jacob-Valor
+/tests/**/*.py @Jacob-Valor
+/scripts/*test*.py @Jacob-Valor
+/scripts/chaos_test.py @Jacob-Valor
+
+# =============================================================================
+# Documentation
+# =============================================================================
+
+/docs/ @Jacob-Valor
+/README.md @Jacob-Valor
+/CONTRIBUTING.md @Jacob-Valor

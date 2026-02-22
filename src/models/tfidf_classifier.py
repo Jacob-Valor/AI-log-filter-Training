@@ -72,15 +72,15 @@ class TFIDFClassifier(BaseClassifier):
                         self.class_names = [str(label) for label in labels]
 
                 self.is_loaded = True
-                logger.info(f"Loaded TF-IDF ONNX artifacts from {model_path}")
+                logger.info("Loaded TF-IDF ONNX artifacts from %s", model_path)
                 return
 
-            logger.warning(f"ONNX artifacts not found at {model_path}, initializing empty model")
+            logger.warning("ONNX artifacts not found at %s, initializing empty model", model_path)
             self._initialize_empty()
             self.is_loaded = True
 
         except Exception as e:
-            logger.error(f"Failed to load TF-IDF classifier: {e}")
+            logger.error("Failed to load TF-IDF classifier: %s", e)
             raise
 
     def _initialize_empty(self):
@@ -250,8 +250,6 @@ class TFIDFClassifier(BaseClassifier):
 
             if probabilities_raw is None:
                 probabilities = {cat: (1.0 if cat == category else 0.0) for cat in self.CATEGORIES}
-            elif isinstance(probabilities_raw, np.ndarray):
-                probabilities = self._normalize_probabilities(probabilities_raw[index])
             else:
                 probabilities = self._normalize_probabilities(probabilities_raw[index])
 
@@ -277,7 +275,7 @@ class TFIDFClassifier(BaseClassifier):
         assert self.vectorizer is not None
         assert self.classifier is not None
         assert self.label_encoder is not None
-        logger.info(f"Training TF-IDF classifier on {len(texts)} samples")
+        logger.info("Training TF-IDF classifier on %s samples", len(texts))
 
         processed = [self.preprocess(text) for text in texts]
         encoded_labels = self.label_encoder.fit_transform(labels)
@@ -332,7 +330,7 @@ class TFIDFClassifier(BaseClassifier):
         with open(save_path / "config.json", "w", encoding="utf-8") as f:
             json.dump(self.config, f, indent=2)
 
-        logger.info(f"TF-IDF ONNX artifacts saved to {save_path}")
+        logger.info("TF-IDF ONNX artifacts saved to %s", save_path)
 
     def get_feature_importance(self) -> dict[str, float] | None:
         """Get feature importance from the in-memory XGBoost model."""

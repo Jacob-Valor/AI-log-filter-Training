@@ -101,7 +101,7 @@ class LogParser:
                     parsed["raw"] = log_message
                     return parsed
                 except Exception as e:
-                    logger.debug(f"Failed to parse as {format_name}: {e}")
+                    logger.debug("Failed to parse as %s: %s", format_name, e)
                     continue
 
         # Default: treat as generic text

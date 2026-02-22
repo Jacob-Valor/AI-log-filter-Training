@@ -3,17 +3,16 @@ Model Evaluation Framework
 Comprehensive evaluation of model performance
 """
 
+import json
 import logging
-from typing import Dict, List, Any, Optional, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-import json
-from pathlib import Path
-import time
+from typing import Any
 
 try:
+    from nltk.translate.bleu_score import SmoothingFunction, sentence_bleu
     from rouge_score import rouge_scorer
-    from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 except ImportError:
     logger = logging.getLogger(__name__)
     logger.warning("rouge-score and nltk not available for NLP metrics")
@@ -43,21 +42,21 @@ class EvaluationResult:
     model_name: str
     metric_name: str
     score: float
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class Dataset:
     name: str
-    inputs: List[str]
-    references: List[str]
-    metadata: Optional[List[Dict[str, Any]]] = None
+    inputs: list[str]
+    references: list[str]
+    metadata: list[dict[str, Any]] | None = None
 
 
 class ModelEvaluator:
     def __init__(self):
-        self.metrics: List[EvaluationMetric] = []
-        self.results: List[EvaluationResult] = []
+        self.metrics: list[EvaluationMetric] = []
+        self.results: list[EvaluationResult] = []
 
     def add_metric(self, metric: EvaluationMetric):
         self.metrics.append(metric)
@@ -68,8 +67,8 @@ class ModelEvaluator:
         model_name: str,
         generate_func: Callable[[str], str],
         dataset: Dataset,
-        metrics: Optional[List[EvaluationMetric]] = None
-    ) -> Dict[str, Any]:
+        metrics: list[EvaluationMetric] | None = None,
+    ) -> dict[str, Any]:
         logger.info(f"Evaluating model {model_name} on dataset {dataset.name}")
 
         if metrics is None:
@@ -90,7 +89,7 @@ class ModelEvaluator:
             logger.info(f"  Computing {metric.name}")
             scores = []
 
-            for i, (pred, ref) in enumerate(zip(predictions, dataset.references)):
+            for i, (pred, ref) in enumerate(zip(predictions, dataset.references, strict=False)):
                 try:
                     if metric.metric_type == MetricType.EXACT_MATCH:
                         score = self._exact_match(pred, ref)
@@ -113,16 +112,18 @@ class ModelEvaluator:
 
             if scores:
                 mean_score = sum(scores) / len(scores)
-                evaluation_results.append(EvaluationResult(
-                    model_name=model_name,
-                    metric_name=metric.name,
-                    score=mean_score,
-                    details={
-                        'individual_scores': scores,
-                        'min': min(scores),
-                        'max': max(scores)
-                    }
-                ))
+                evaluation_results.append(
+                    EvaluationResult(
+                        model_name=model_name,
+                        metric_name=metric.name,
+                        score=mean_score,
+                        details={
+                            "individual_scores": scores,
+                            "min": min(scores),
+                            "max": max(scores),
+                        },
+                    )
+                )
 
         self.results.extend(evaluation_results)
 
@@ -135,10 +136,10 @@ class ModelEvaluator:
 
     def _rouge_score(self, prediction: str, reference: str) -> float:
         try:
-            scorer = rouge_scorer.RougeScorer(['rougeL'], use_stemmer=True)
+            scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
             scores = scorer.score(reference, prediction)
-            return scores['rougeL'].fmeasure
-        except:
+            return scores["rougeL"].fmeasure
+        except Exception:
             return 0.0
 
     def _bleu_score(self, prediction: str, reference: str) -> float:
@@ -149,49 +150,37 @@ class ModelEvaluator:
             smoothing = SmoothingFunction().method1
             score = sentence_bleu(reference_tokens, prediction_tokens, smoothing_function=smoothing)
             return score
-        except:
+        except Exception:
             return 0.0
 
     def _semantic_similarity(self, prediction: str, reference: str) -> float:
         try:
-            from sentence_transformers import SentenceTransformer
             import torch
+            from sentence_transformers import SentenceTransformer
 
-            model = SentenceTransformer('all-MiniLM-L6-v2')
+            model = SentenceTransformer("all-MiniLM-L6-v2")
 
             emb1 = model.encode(prediction, convert_to_tensor=True)
             emb2 = model.encode(reference, convert_to_tensor=True)
 
             similarity = torch.cosine_similarity(emb1.unsqueeze(0), emb2.unsqueeze(0)).item()
             return (similarity + 1) / 2
-        except:
+        except Exception:
             return 0.0
 
     def _generate_report(
-        self,
-        model_name: str,
-        dataset_name: str,
-        results: List[EvaluationResult]
-    ) -> Dict[str, Any]:
+        self, model_name: str, dataset_name: str, results: list[EvaluationResult]
+    ) -> dict[str, Any]:
         return {
-            'model_name': model_name,
-            'dataset_name': dataset_name,
-            'metrics': {
-                r.metric_name: {
-                    'score': r.score,
-                    'details': r.details
-                }
-                for r in results
-            },
-            'average_score': sum(r.score for r in results) / len(results) if results else 0
+            "model_name": model_name,
+            "dataset_name": dataset_name,
+            "metrics": {r.metric_name: {"score": r.score, "details": r.details} for r in results},
+            "average_score": sum(r.score for r in results) / len(results) if results else 0,
         }
 
     def compare_models(
-        self,
-        model_names: List[str],
-        generate_funcs: Dict[str, Callable],
-        dataset: Dataset
-    ) -> Dict[str, Any]:
+        self, model_names: list[str], generate_funcs: dict[str, Callable], dataset: Dataset
+    ) -> dict[str, Any]:
         logger.info(f"Comparing {len(model_names)} models")
 
         reports = {}
@@ -203,15 +192,15 @@ class ModelEvaluator:
         comparison = self._generate_comparison(reports)
         return comparison
 
-    def _generate_comparison(self, reports: Dict[str, Any]) -> Dict[str, Any]:
-        comparison = {'models': reports, 'winners': {}}
+    def _generate_comparison(self, reports: dict[str, Any]) -> dict[str, Any]:
+        comparison = {"models": reports, "winners": {}}
 
         metric_scores = {}
         for model_name, report in reports.items():
-            for metric_name, metric_data in report['metrics'].items():
+            for metric_name, metric_data in report["metrics"].items():
                 if metric_name not in metric_scores:
                     metric_scores[metric_name] = {}
-                metric_scores[metric_name][model_name] = metric_data['score']
+                metric_scores[metric_name][model_name] = metric_data["score"]
 
         for metric_name, scores in metric_scores.items():
             metric = next((m for m in self.metrics if m.name == metric_name), None)
@@ -220,65 +209,52 @@ class ModelEvaluator:
             else:
                 winner = min(scores.items(), key=lambda x: x[1])
 
-            comparison['winners'][metric_name] = {
-                'model': winner[0],
-                'score': winner[1]
-            }
+            comparison["winners"][metric_name] = {"model": winner[0], "score": winner[1]}
 
         return comparison
 
     def export_results(self, filepath: str):
         data = {
-            'results': [
+            "results": [
                 {
-                    'model': r.model_name,
-                    'metric': r.metric_name,
-                    'score': r.score,
-                    'details': r.details
+                    "model": r.model_name,
+                    "metric": r.metric_name,
+                    "score": r.score,
+                    "details": r.details,
                 }
                 for r in self.results
             ]
         }
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(data, f, indent=2)
 
         logger.info(f"Exported results to {filepath}")
 
 
-def create_default_metrics() -> List[EvaluationMetric]:
+def create_default_metrics() -> list[EvaluationMetric]:
     return [
         EvaluationMetric(
             name="exact_match",
             metric_type=MetricType.EXACT_MATCH,
-            description="Exact match of prediction and reference"
+            description="Exact match of prediction and reference",
         ),
         EvaluationMetric(
-            name="rouge_l",
-            metric_type=MetricType.ROUGE,
-            description="ROUGE-L F1 score"
+            name="rouge_l", metric_type=MetricType.ROUGE, description="ROUGE-L F1 score"
         ),
-        EvaluationMetric(
-            name="bleu",
-            metric_type=MetricType.BLEU,
-            description="BLEU score"
-        )
+        EvaluationMetric(name="bleu", metric_type=MetricType.BLEU, description="BLEU score"),
     ]
 
 
 def create_sample_dataset() -> Dataset:
     return Dataset(
         name="sample",
-        inputs=[
-            "What is the capital of France?",
-            "Explain machine learning.",
-            "Who wrote Hamlet?"
-        ],
+        inputs=["What is the capital of France?", "Explain machine learning.", "Who wrote Hamlet?"],
         references=[
             "Paris",
             "Machine learning enables computers to learn from data.",
-            "William Shakespeare"
-        ]
+            "William Shakespeare",
+        ],
     )
 
 
@@ -307,7 +283,7 @@ def main():
     print(f"Average Score: {report['average_score']:.2%}")
 
     print("\n--- Metrics ---")
-    for metric_name, metric_data in report['metrics'].items():
+    for metric_name, metric_data in report["metrics"].items():
         print(f"{metric_name}: {metric_data['score']:.2%}")
 
 

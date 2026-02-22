@@ -228,17 +228,16 @@ print(f"Latency: {elapsed*1000/10000:.2f} ms/log")
 ### Check 3: Accuracy Validation
 
 ```python
-from src.models.onnx_runtime import compare_inference_speed
+from src.models.onnx_converter import benchmark_models
 
-# Compare ONNX vs original joblib predictions
-results = await compare_inference_speed(
-    joblib_detector=old_detector,
-    onnx_detector=new_detector,
-    test_texts=["Failed login from 192.168.1.100"],
-    iterations=100
+# Compare ONNX vs original sklearn predictions
+results = benchmark_models(
+    onnx_path="models/v3/anomaly_detector/model.onnx",
+    baseline_predict=old_detector.predict,
+    test_data=test_features,
+    iterations=100,
 )
 
-print(f"Predictions match: {results['match']}")
 print(f"Speedup: {results['speedup']:.2f}x")
 ```
 

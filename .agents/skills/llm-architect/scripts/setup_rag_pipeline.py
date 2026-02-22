@@ -4,14 +4,14 @@ End-to-end RAG pipeline with retrieval and generation
 """
 
 import logging
-from typing import List, Dict, Any, Optional, Union
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
 import yaml
-import json
 
 try:
-    import chromadb
+    import chromadb  # noqa: F401 - imported for availability check
     from sentence_transformers import SentenceTransformer
 except ImportError:
     raise ImportError("chromadb and sentence-transformers required")
@@ -35,8 +35,8 @@ class RAGPipelineConfig:
     generation_max_tokens: int = 500
 
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> 'RAGPipelineConfig':
-        with open(path, 'r') as f:
+    def from_yaml(cls, path: str | Path) -> "RAGPipelineConfig":
+        with open(path) as f:
             config = yaml.safe_load(f)
         return cls(**config)
 
@@ -58,13 +58,10 @@ class RAGPipeline:
         from chromadb.config import Settings
 
         self.client = chromadb.PersistentClient(
-            path="./chroma_db",
-            settings=Settings(anonymized_telemetry=False)
+            path="./chroma_db", settings=Settings(anonymized_telemetry=False)
         )
 
-        self.collection = self.client.get_or_create_collection(
-            name=self.config.collection_name
-        )
+        self.collection = self.client.get_or_create_collection(name=self.config.collection_name)
 
     def _setup_embeddings(self):
         self.embedding_model = SentenceTransformer(self.config.embedding_model)
@@ -74,43 +71,45 @@ class RAGPipeline:
 
         self.reranker = CrossEncoder(self.config.rerank_model)
 
-    def add_documents(self, documents: List[Dict[str, str]]):
+    def add_documents(self, documents: list[dict[str, str]]):
         """Add documents to the RAG pipeline"""
         chunked_docs = self._chunk_documents(documents)
 
-        texts = [doc['text'] for doc in chunked_docs]
+        texts = [doc["text"] for doc in chunked_docs]
         embeddings = self.embedding_model.encode(texts).tolist()
 
         self.collection.add(
             embeddings=embeddings,
             documents=texts,
-            metadatas=[doc['metadata'] for doc in chunked_docs],
-            ids=[doc['id'] for doc in chunked_docs]
+            metadatas=[doc["metadata"] for doc in chunked_docs],
+            ids=[doc["id"] for doc in chunked_docs],
         )
 
         logger.info(f"Added {len(chunked_docs)} document chunks")
 
-    def _chunk_documents(self, documents: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+    def _chunk_documents(self, documents: list[dict[str, str]]) -> list[dict[str, Any]]:
         chunked = []
 
         for doc in documents:
-            text = doc.get('text', '')
+            text = doc.get("text", "")
             chunks = self._chunk_text(text)
 
             for i, chunk in enumerate(chunks):
-                chunked.append({
-                    'id': f"{doc.get('id', 'doc')}_{i}",
-                    'text': chunk,
-                    'metadata': {
-                        **doc.get('metadata', {}),
-                        'chunk_id': i,
-                        'source': doc.get('source', 'unknown')
+                chunked.append(
+                    {
+                        "id": f"{doc.get('id', 'doc')}_{i}",
+                        "text": chunk,
+                        "metadata": {
+                            **doc.get("metadata", {}),
+                            "chunk_id": i,
+                            "source": doc.get("source", "unknown"),
+                        },
                     }
-                })
+                )
 
         return chunked
 
-    def _chunk_text(self, text: str) -> List[str]:
+    def _chunk_text(self, text: str) -> list[str]:
         chunks = []
         start = 0
 
@@ -119,14 +118,14 @@ class RAGPipeline:
             chunk = text[start:end]
 
             if start > 0:
-                chunk = text[max(0, start - self.config.chunk_overlap):end]
+                chunk = text[max(0, start - self.config.chunk_overlap) : end]
 
             chunks.append(chunk.strip())
             start = end
 
         return [c for c in chunks if c]
 
-    def retrieve(self, query: str, top_k: Optional[int] = None) -> List[Dict[str, Any]]:
+    def retrieve(self, query: str, top_k: int | None = None) -> list[dict[str, Any]]:
         """Retrieve relevant documents for a query"""
         if top_k is None:
             top_k = self.config.top_k
@@ -134,45 +133,40 @@ class RAGPipeline:
         query_embedding = self.embedding_model.encode([query]).tolist()
 
         results = self.collection.query(
-            query_embeddings=query_embedding,
-            n_results=top_k * 2 if self.config.rerank else top_k
+            query_embeddings=query_embedding, n_results=top_k * 2 if self.config.rerank else top_k
         )
 
         retrieved = []
-        for i in range(len(results['ids'][0])):
-            retrieved.append({
-                'id': results['ids'][0][i],
-                'text': results['documents'][0][i],
-                'metadata': results['metadatas'][0][i],
-                'distance': results['distances'][0][i]
-            })
+        for i in range(len(results["ids"][0])):
+            retrieved.append(
+                {
+                    "id": results["ids"][0][i],
+                    "text": results["documents"][0][i],
+                    "metadata": results["metadatas"][0][i],
+                    "distance": results["distances"][0][i],
+                }
+            )
 
         if self.config.rerank:
             retrieved = self._rerank(query, retrieved)[:top_k]
 
         return retrieved
 
-    def _rerank(self, query: str, documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        pairs = [[query, doc['text']] for doc in documents]
+    def _rerank(self, query: str, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        pairs = [[query, doc["text"]] for doc in documents]
         scores = self.reranker.predict(pairs)
 
-        ranked = sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
+        ranked = sorted(zip(documents, scores, strict=False), key=lambda x: x[1], reverse=True)
         return [doc for doc, score in ranked]
 
     def generate(
-        self,
-        query: str,
-        context: Optional[List[Dict[str, Any]]] = None,
-        **generation_kwargs
+        self, query: str, context: list[dict[str, Any]] | None = None, **generation_kwargs
     ) -> str:
         """Generate response using retrieved context"""
         if context is None:
             context = self.retrieve(query)
 
-        context_text = "\n\n".join([
-            f"[{i}] {doc['text']}"
-            for i, doc in enumerate(context)
-        ])
+        context_text = "\n\n".join([f"[{i}] {doc['text']}" for i, doc in enumerate(context)])
 
         prompt = self._build_prompt(query, context_text)
 
@@ -191,11 +185,11 @@ Answer:"""
 
     def _call_llm(self, prompt: str, **kwargs) -> str:
         """Call LLM for generation"""
-        temperature = kwargs.get('temperature', self.config.generation_temperature)
-        max_tokens = kwargs.get('max_tokens', self.config.generation_max_tokens)
+        temperature = kwargs.get("temperature", self.config.generation_temperature)
+        max_tokens = kwargs.get("max_tokens", self.config.generation_max_tokens)
 
         try:
-            from integrate_openai import OpenAIIntegration, OpenAIConfig
+            from integrate_openai import OpenAIConfig, OpenAIIntegration
         except ImportError:
             logger.warning("OpenAI integration not available, returning mock response")
             return f"Based on the context, here's an answer to your query: {prompt[:100]}..."
@@ -204,7 +198,7 @@ Answer:"""
             api_key="",
             model=self.config.generation_model,
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
         )
 
         integration = OpenAIIntegration(config)
@@ -212,29 +206,29 @@ Answer:"""
         messages = [{"role": "user", "content": prompt}]
         response = integration.chat_completion(messages)
 
-        return response['content']
+        return response["content"]
 
-    def query(self, query: str, **kwargs) -> Dict[str, Any]:
+    def query(self, query: str, **kwargs) -> dict[str, Any]:
         """Full RAG query: retrieve and generate"""
         retrieved = self.retrieve(query)
 
         response = self.generate(query, context=retrieved, **kwargs)
 
         return {
-            'query': query,
-            'response': response,
-            'sources': [
+            "query": query,
+            "response": response,
+            "sources": [
                 {
-                    'id': doc['id'],
-                    'text': doc['text'],
-                    'metadata': doc['metadata'],
-                    'score': doc['distance']
+                    "id": doc["id"],
+                    "text": doc["text"],
+                    "metadata": doc["metadata"],
+                    "score": doc["distance"],
                 }
                 for doc in retrieved
-            ]
+            ],
         }
 
-    def delete_documents(self, ids: List[str]):
+    def delete_documents(self, ids: list[str]):
         """Delete documents by ID"""
         self.collection.delete(ids=ids)
         logger.info(f"Deleted {len(ids)} documents")
@@ -253,20 +247,20 @@ def main():
 
     sample_docs = [
         {
-            'id': 'doc1',
-            'text': 'Python is a high-level programming language known for its simplicity and readability.',
-            'metadata': {'category': 'programming', 'source': 'intro'}
+            "id": "doc1",
+            "text": "Python is a high-level programming language known for its simplicity and readability.",
+            "metadata": {"category": "programming", "source": "intro"},
         },
         {
-            'id': 'doc2',
-            'text': 'Machine learning is a branch of artificial intelligence that enables computers to learn from data.',
-            'metadata': {'category': 'AI', 'source': 'intro'}
+            "id": "doc2",
+            "text": "Machine learning is a branch of artificial intelligence that enables computers to learn from data.",
+            "metadata": {"category": "AI", "source": "intro"},
         },
         {
-            'id': 'doc3',
-            'text': 'Natural Language Processing (NLP) deals with the interaction between computers and human language.',
-            'metadata': {'category': 'AI', 'source': 'advanced'}
-        }
+            "id": "doc3",
+            "text": "Natural Language Processing (NLP) deals with the interaction between computers and human language.",
+            "metadata": {"category": "AI", "source": "advanced"},
+        },
     ]
 
     pipeline.add_documents(sample_docs)

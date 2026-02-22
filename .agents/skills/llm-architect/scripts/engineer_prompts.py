@@ -3,12 +3,12 @@ Prompt Engineering and Optimization
 Tests and optimizes prompts for better performance
 """
 
+import json
 import logging
-from typing import Dict, List, Any, Optional, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from statistics import mean, stdev
-import json
-from pathlib import Path
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,9 +23,9 @@ class PromptVariant:
 
 @dataclass
 class TestCase:
-    input_data: Dict[str, Any]
+    input_data: dict[str, Any]
     expected_output: Any
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -34,16 +34,16 @@ class EvaluationResult:
     test_case: str
     output: str
     score: float
-    metrics: Dict[str, float]
+    metrics: dict[str, float]
     latency: float
 
 
 class PromptOptimizer:
     def __init__(self, llm_func: Callable):
         self.llm_func = llm_func
-        self.variants: List[PromptVariant] = []
-        self.test_cases: List[TestCase] = []
-        self.results: List[EvaluationResult] = []
+        self.variants: list[PromptVariant] = []
+        self.test_cases: list[TestCase] = []
+        self.results: list[EvaluationResult] = []
 
     def add_variant(self, variant: PromptVariant):
         self.variants.append(variant)
@@ -56,8 +56,8 @@ class PromptOptimizer:
     def evaluate(
         self,
         scoring_func: Callable[[str, Any], float],
-        progress_callback: Optional[Callable] = None
-    ) -> Dict[str, Any]:
+        progress_callback: Callable | None = None
+    ) -> dict[str, Any]:
         logger.info(f"Evaluating {len(self.variants)} prompt variants on {len(self.test_cases)} test cases")
 
         import time
@@ -101,14 +101,14 @@ class PromptOptimizer:
 
         return self._generate_report()
 
-    def _render_template(self, template: str, variables: Dict[str, Any]) -> str:
+    def _render_template(self, template: str, variables: dict[str, Any]) -> str:
         try:
             return template.format(**variables)
         except KeyError as e:
             logger.error(f"Missing variable in template: {e}")
             raise
 
-    def _generate_report(self) -> Dict[str, Any]:
+    def _generate_report(self) -> dict[str, Any]:
         variant_stats = {}
 
         for variant in self.variants:
@@ -143,10 +143,10 @@ class PromptOptimizer:
         self,
         variant_a: PromptVariant,
         variant_b: PromptVariant,
-        test_cases: List[TestCase],
+        test_cases: list[TestCase],
         scoring_func: Callable,
-        sample_size: Optional[int] = None
-    ) -> Dict[str, Any]:
+        sample_size: int | None = None
+    ) -> dict[str, Any]:
         """Perform A/B test between two variants"""
         logger.info(f"A/B testing: {variant_a.name} vs {variant_b.name}")
 
@@ -174,7 +174,7 @@ class PromptOptimizer:
             )
         }
 
-    def _check_significance(self, scores_a: List[float], scores_b: List[float]) -> bool:
+    def _check_significance(self, scores_a: list[float], scores_b: list[float]) -> bool:
         """Simple significance check using z-test approximation"""
         try:
             from scipy import stats
@@ -206,7 +206,7 @@ class PromptOptimizer:
         logger.info(f"Exported results to {filepath}")
 
 
-def create_prompt_variants() -> List[PromptVariant]:
+def create_prompt_variants() -> list[PromptVariant]:
     """Create example prompt variants"""
     return [
         PromptVariant(
@@ -232,7 +232,7 @@ def create_prompt_variants() -> List[PromptVariant]:
     ]
 
 
-def create_test_cases() -> List[TestCase]:
+def create_test_cases() -> list[TestCase]:
     """Create example test cases"""
     sample_text = "Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed."
 

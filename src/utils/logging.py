@@ -16,8 +16,8 @@ except ImportError:
     HAS_STRUCTLOG = False
 
 
-# Global logger cache
-_loggers = {}
+# Global logger cache – avoids creating duplicate loggers.
+_loggers: dict[str, logging.Logger] = {}
 
 
 def setup_logging(level: str = "INFO", format_type: str = "json", output_file: str | None = None):

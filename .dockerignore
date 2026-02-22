@@ -1,0 +1,131 @@
+# =============================================================================
+# Docker Ignore File
+# =============================================================================
+# Excludes files from Docker build context to:
+# - Reduce build context size (faster builds)
+# - Prevent sensitive files from being copied into images
+# - Avoid cache invalidation from irrelevant file changes
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Version Control
+# -----------------------------------------------------------------------------
+.git
+.gitignore
+.gitattributes
+.github
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+# Bytecode
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv
+venv/
+ENV/
+env/
+.env
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# -----------------------------------------------------------------------------
+# Project Specific
+# -----------------------------------------------------------------------------
+# Documentation (not needed in runtime image)
+docs/
+*.md
+!README.md
+
+# Test files
+tests/
+scripts/test_*.py
+scripts/*test*.py
+coverage/
+
+# Development configs
+.env.local
+.env.*.local
+.flake8
+.pylintrc
+.ruff.toml
+.editorconfig
+
+# Reports and logs
+reports/
+logs/
+*.log
+
+# Large data files (should be mounted or fetched)
+data/raw/
+data/labeled/
+HDFS_v3_TraceBench/
+
+# Model artifacts (should be mounted or fetched from registry)
+# Uncomment if models are mounted at runtime:
+# models/
+
+# Local development files
+Makefile
+docker-compose*.yml
+*.yaml.bak
+
+# Agent skills (development only)
+.agents/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
