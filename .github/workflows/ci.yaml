@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: "3.14"
+  PYTHON_VERSION: "3.13"
   DOCKER_BUILDKIT: 1
   UV_VERSION: "0.9.x"
 
@@ -51,19 +51,16 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: 📦 Install Ruff via uv
-        run: uv pip install ruff
-
       - name: 🔍 Run Ruff linter
         run: |
           echo "::group::🔍 Running Ruff linter"
-          uv run ruff check src/ tests/ scripts/ --output-format=github
+          uvx ruff check src/ tests/ scripts/ --output-format=github
           echo "::endgroup::"
 
       - name: 💅 Run Ruff formatter check
         run: |
           echo "::group::💅 Checking code formatting"
-          uv run ruff format --check src/ tests/ scripts/
+          uvx ruff format --check src/ tests/ scripts/
           echo "::endgroup::"
 
       - name: 📝 Generate lint summary
@@ -240,13 +237,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: 🛡️ Install security tools
-        run: uv pip install bandit safety
-
       - name: 🔍 Run Bandit security scanner
         run: |
           echo "::group::🔍 Running Bandit security scan"
-          uv run bandit -r src/ -f json -o bandit-results.json || true
+          uvx --from bandit bandit -r src/ -f json -o bandit-results.json || true
           echo "::ingroup::"
 
       - name: ☁️ Upload Bandit results to SARIF
@@ -258,7 +252,7 @@ jobs:
       - name: 🛡️ Run Safety check
         run: |
           echo "::group::🛡️ Running Safety dependency check"
-          uv run safety check --json -o safety-results.json || true
+          uvx --from safety safety check --json -o safety-results.json || true
           echo "::ingroup::"
 
       - name: 📊 Generate security summary

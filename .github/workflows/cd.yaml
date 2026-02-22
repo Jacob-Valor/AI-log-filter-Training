@@ -15,7 +15,7 @@ on:
           - production
 
 env:
-  PYTHON_VERSION: "3.14"
+  PYTHON_VERSION: "3.13"
   DOCKER_BUILDKIT: 1
   UV_VERSION: "0.9.x"
 
