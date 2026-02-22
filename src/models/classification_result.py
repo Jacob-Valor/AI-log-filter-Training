@@ -5,7 +5,6 @@ Provides ClassificationResult and fail-open prediction helpers used
 by both SafeEnsembleClassifier and ONNXSafeEnsembleClassifier.
 """
 
-
 from src.domain.entities import ClassificationResult  # noqa: F401
 from src.models.base import Prediction
 

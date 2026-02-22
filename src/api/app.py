@@ -112,8 +112,6 @@ app.add_middleware(
 )
 
 
-
-
 # =============================================================================
 # API Endpoints
 # =============================================================================
@@ -151,8 +149,6 @@ async def readiness_check(request: Request):
         raise HTTPException(status_code=503, detail="Classifier not loaded")
 
     return {"ready": True}
-
-
 
 
 app.include_router(classification.router)

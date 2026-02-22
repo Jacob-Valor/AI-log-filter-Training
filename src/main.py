@@ -40,7 +40,6 @@ class AILogFilterService:
         self._health_server: Any | None = None
         self._health_task: asyncio.Task | None = None
 
-
     async def _start_health_server(self) -> None:
         """Start lightweight health server (Kubernetes probes)."""
         health_cfg = self.config.get("health", {})
